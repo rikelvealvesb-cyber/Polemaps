@@ -31,7 +31,7 @@
             transition: transform 0.08s linear;
         }
 
-        .leaflet-tile-pane { filter: contrast(1.15) saturate(0.8); }
+        .leaflet-tile-pane { filter: contrast(1.1) saturate(0.9); }
 
         .user-gps-container {
             position: relative;
@@ -56,7 +56,7 @@
             border: 5px solid #ffffff;
             border-radius: 50%;
             position: absolute;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.4);
             transition: transform 0.1s linear;
         }
 
@@ -68,19 +68,19 @@
         .panel-slide { transition: transform 0.3s cubic-bezier(0.1, 0.9, 0.2, 1); }
     </style>
 </head>
-<body id="app-body" class="h-full w-full flex flex-col relative bg-zinc-900 text-gray-100 overflow-hidden box-border">
+<body id="app-body" class="h-full w-full flex flex-col relative bg-zinc-100 text-zinc-900 overflow-hidden box-border">
 
     <!-- MAPA -->
     <div id="map"></div>
 
     <!-- MODAL DE CHEGADA AO DESTINO -->
     <div id="arrivalModal" class="absolute inset-0 bg-black/75 z-50 hidden flex flex-col items-center justify-center p-6 backdrop-blur-xs box-border">
-        <div class="bg-zinc-800 border border-zinc-700 rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl flex flex-col items-center">
+        <div class="bg-white border border-zinc-200 rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl flex flex-col items-center text-zinc-900">
             <div class="w-20 h-20 bg-emerald-600 text-white rounded-full flex items-center justify-center text-4xl mb-4 shadow-lg animate-bounce">
                 <i class="fa-solid fa-flag-checkered"></i>
             </div>
             <h2 class="text-3xl font-extrabold mb-2">Você chegou!</h2>
-            <p class="text-zinc-300 text-base mb-8">Destino alcançado com sucesso pelo PoleMaps.</p>
+            <p class="text-zinc-600 text-base mb-8">Destino alcançado com sucesso pelo PoleMaps.</p>
             <button onclick="closeArrivalModal()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 text-lg rounded-2xl shadow-xl transition">
                 Finalizar Navegação
             </button>
@@ -90,27 +90,27 @@
     <!-- TELA PRINCIPAL -->
     <div id="view-home" class="absolute inset-0 z-10 flex flex-col justify-between pointer-events-none p-4 box-border">
         <div class="pointer-events-auto flex items-center space-x-3 mt-2 w-full">
-            <div id="search-bar-container" class="flex-1 bg-zinc-800 shadow-2xl rounded-full flex items-center px-5 py-3.5 border border-zinc-700/80 box-border">
-                <button onclick="clearSearch()" class="text-zinc-300 mr-3 text-2xl hover:text-white transition">
+            <div id="search-bar-container" class="flex-1 bg-white shadow-2xl rounded-full flex items-center px-5 py-3.5 border border-zinc-200 box-border text-zinc-900">
+                <button onclick="clearSearch()" class="text-zinc-500 mr-3 text-2xl hover:text-zinc-900 transition">
                     <i class="fa-solid fa-arrow-left"></i>
                 </button>
                 <input type="text" id="searchInput" placeholder="Pesquisar rua ou local (Brasil)..." oninput="handleSearchInput(event)"
                        class="flex-1 bg-transparent text-inherit placeholder:text-zinc-400 focus:outline-none text-lg font-medium min-w-0">
-                <button class="text-zinc-300 mx-3 text-xl hover:text-white transition">
+                <button class="text-zinc-500 mx-3 text-xl hover:text-zinc-900 transition">
                     <i class="fa-solid fa-microphone"></i>
                 </button>
                 <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-sm text-white shadow shrink-0">US</div>
             </div>
 
-            <button onclick="toggleTheme()" id="themeToggleBtn" class="w-14 h-14 bg-zinc-800 text-yellow-400 shadow-2xl rounded-full flex items-center justify-center text-2xl border border-zinc-700 shrink-0 active:scale-95 transition" title="Alternar Tema">
-                <i class="fa-solid fa-moon" id="themeIcon"></i>
+            <button onclick="toggleTheme()" id="themeToggleBtn" class="w-14 h-14 bg-white text-orange-500 shadow-2xl rounded-full flex items-center justify-center text-2xl border border-zinc-200 shrink-0 active:scale-95 transition" title="Alternar Tema">
+                <i class="fa-solid fa-sun" id="themeIcon"></i>
             </button>
         </div>
 
-        <div id="suggestionsBox" class="absolute left-4 right-20 top-20 bg-zinc-800 border border-zinc-700 rounded-3xl shadow-2xl hidden max-h-72 overflow-y-auto z-30 pointer-events-auto box-border"></div>
+        <div id="suggestionsBox" class="absolute left-4 right-20 top-20 bg-white border border-zinc-200 rounded-3xl shadow-2xl hidden max-h-72 overflow-y-auto z-30 pointer-events-auto box-border text-zinc-900"></div>
 
         <div class="pointer-events-auto flex justify-end px-2 mb-28">
-            <button onclick="requestCompassPermission()" id="centerBtn" class="w-14 h-14 bg-zinc-800 text-blue-400 shadow-2xl rounded-2xl flex items-center justify-center text-2xl border border-zinc-700 active:scale-95 transition" title="Centralizar">
+            <button onclick="requestCompassPermission()" id="centerBtn" class="w-14 h-14 bg-white text-blue-600 shadow-2xl rounded-full flex items-center justify-center text-2xl border border-zinc-200 active:scale-95 transition" title="Centralizar">
                 <i class="fa-solid fa-location-crosshairs"></i>
             </button>
         </div>
@@ -123,21 +123,21 @@
     </div>
 
     <!-- TELA 2: FICHA DO LOCAL SELECIONADO -->
-    <div id="view-place-sheet" class="absolute inset-x-0 bottom-4 z-20 mx-3 bg-zinc-800 rounded-3xl shadow-2xl p-5 border border-zinc-700 panel-slide translate-y-[120%] flex flex-col max-h-[80vh] box-border">
-        <div id="sheet-handle" class="w-14 h-2 bg-zinc-600 rounded-full mx-auto mb-4"></div>
+    <div id="view-place-sheet" class="absolute inset-x-0 bottom-4 z-20 mx-3 bg-white rounded-3xl shadow-2xl p-5 border border-zinc-200 panel-slide translate-y-[120%] flex flex-col max-h-[80vh] box-border text-zinc-900">
+        <div id="sheet-handle" class="w-14 h-2 bg-zinc-300 rounded-full mx-auto mb-4"></div>
         
         <div class="flex justify-between items-start mb-2">
             <div>
                 <h2 id="sheet-title" class="text-2xl font-bold">Local Selecionado</h2>
             </div>
-            <button onclick="closeSheet()" id="sheet-close-btn" class="w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-300 hover:text-white text-lg shrink-0">
+            <button onclick="closeSheet()" id="sheet-close-btn" class="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-zinc-900 text-lg shrink-0">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
 
-        <p class="text-sm text-zinc-400 mb-4">PoleMaps • Ciclismo de Alta Precisão</p>
+        <p class="text-sm text-zinc-500 mb-4">PoleMaps • Ciclismo de Alta Precisão</p>
 
-        <div id="vehicle-container" class="grid grid-cols-1 gap-2 mb-5 bg-zinc-900 p-3 rounded-2xl border border-zinc-700 box-border">
+        <div id="vehicle-container" class="grid grid-cols-1 gap-2 mb-5 bg-zinc-100 p-3 rounded-2xl border border-zinc-200 box-border">
             <div class="flex items-center justify-between px-4 py-3 rounded-xl bg-blue-600 text-white">
                 <div class="flex items-center space-x-3">
                     <i class="fa-solid fa-bicycle text-2xl"></i>
@@ -173,23 +173,23 @@
                         <div id="nav-street-name" class="text-base font-semibold text-zinc-200 truncate">Siga em frente</div>
                     </div>
                 </div>
-                <button onclick="centerOnUser()" class="w-14 h-14 bg-zinc-800 rounded-full flex items-center justify-center text-blue-400 shadow-lg text-2xl pointer-events-auto border border-zinc-700 shrink-0 ml-2" title="Centralizar">
+                <button onclick="centerOnUser()" class="w-14 h-14 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-lg text-2xl pointer-events-auto border border-zinc-200 shrink-0 ml-2" title="Centralizar">
                     <i class="fa-solid fa-compass"></i>
                 </button>
             </div>
         </div>
 
-        <div id="nav-bottom-panel" class="pointer-events-auto mx-1 mb-2 bg-zinc-800 border border-zinc-700 rounded-3xl p-4 flex items-center justify-between shadow-2xl box-border w-full">
-            <button onclick="cancelNavigation()" id="nav-cancel-btn" class="w-14 h-14 rounded-full bg-zinc-700 flex items-center justify-center text-red-400 text-2xl border border-zinc-600 shrink-0">
+        <div id="nav-bottom-panel" class="pointer-events-auto mx-1 mb-2 bg-white border border-zinc-200 rounded-3xl p-4 flex items-center justify-between shadow-2xl box-border w-full text-zinc-900">
+            <button onclick="cancelNavigation()" id="nav-cancel-btn" class="w-14 h-14 rounded-full bg-zinc-100 flex items-center justify-center text-red-500 text-2xl border border-zinc-200 shrink-0">
                 <i class="fa-solid fa-xmark"></i>
             </button>
             <div class="text-center px-2">
                 <div id="nav-time" class="text-3xl font-black">-- min</div>
-                <div id="nav-distance" class="text-sm text-zinc-300 font-semibold">-- km</div>
+                <div id="nav-distance" class="text-sm text-zinc-500 font-semibold">-- km</div>
             </div>
-            <div id="nav-speed-box" class="w-20 h-14 rounded-2xl bg-zinc-900 flex flex-col items-center justify-center border border-zinc-700 text-blue-400 shrink-0">
+            <div id="nav-speed-box" class="w-20 h-14 rounded-2xl bg-zinc-100 flex flex-col items-center justify-center border border-zinc-200 text-blue-600 shrink-0">
                 <span id="current-speed" class="text-xl font-black">0</span>
-                <span class="text-[10px] text-zinc-400 uppercase tracking-tighter font-bold">km/h</span>
+                <span class="text-[10px] text-zinc-500 uppercase tracking-tighter font-bold">km/h</span>
             </div>
         </div>
     </div>
@@ -204,7 +204,7 @@
         let routingControl = null;
         let isFollowingUser = true;
         let searchTimeout = null;
-        let currentTheme = 'dark';
+        let currentTheme = 'light'; // Inicializa em light moderno (estilo Google Maps/Waze)
         let isNavigating = false;
         let currentHeading = 0;
         let routeCoordinates = [];
@@ -213,7 +213,7 @@
         let remainingLine = null;
         let hasArrived = false;
 
-        const NAVIGATION_ZOOM = 20; // Zoom bem maior focado nas ruas e casas
+        const NAVIGATION_ZOOM = 20;
 
         function initMap() {
             userLatLng = L.latLng(-23.5505, -46.6333);
@@ -284,7 +284,8 @@
             if (theme === 'dark') {
                 tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_nolabels/{z}/{x}/{y}{r}.png', { maxZoom: 21 });
             } else {
-                tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', { maxZoom: 21 });
+                // CartoDB Positron No Labels: fundo cinza claro super limpo igual Waze/Google Maps
+                tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/light_nolabels/{z}/{x}/{y}{r}.png', { maxZoom: 21 });
             }
             tileLayer.addTo(map);
         }
@@ -306,7 +307,7 @@
 
             if (theme === 'light') {
                 body.className = "h-full w-full flex flex-col relative bg-zinc-100 text-zinc-900 overflow-hidden box-border";
-                searchBar.className = "flex-1 bg-white shadow-2xl rounded-full flex items-center px-5 py-3.5 border border-zinc-200 box-border";
+                searchBar.className = "flex-1 bg-white shadow-2xl rounded-full flex items-center px-5 py-3.5 border border-zinc-200 box-border text-zinc-900";
                 suggestions.className = "absolute left-4 right-20 top-20 bg-white border border-zinc-200 rounded-3xl shadow-2xl hidden max-h-72 overflow-y-auto z-30 pointer-events-auto text-zinc-900 box-border";
                 themeBtn.className = "w-14 h-14 bg-white text-orange-500 shadow-2xl rounded-full flex items-center justify-center text-2xl border border-zinc-200 shrink-0 active:scale-95 transition";
                 themeIcon.className = "fa-solid fa-sun";
@@ -320,11 +321,11 @@
                 navSpeedBox.className = "w-20 h-14 rounded-2xl bg-zinc-100 flex flex-col items-center justify-center border border-zinc-200 text-blue-600 shrink-0";
             } else {
                 body.className = "h-full w-full flex flex-col relative bg-zinc-900 text-gray-100 overflow-hidden box-border";
-                searchBar.className = "flex-1 bg-zinc-800 shadow-2xl rounded-full flex items-center px-5 py-3.5 border border-zinc-700/80 box-border";
+                searchBar.className = "flex-1 bg-zinc-800 shadow-2xl rounded-full flex items-center px-5 py-3.5 border border-zinc-700/80 box-border text-gray-100";
                 suggestions.className = "absolute left-4 right-20 top-20 bg-zinc-800 border border-zinc-700 rounded-3xl shadow-2xl hidden max-h-72 overflow-y-auto z-30 pointer-events-auto text-gray-100 box-border";
                 themeBtn.className = "w-14 h-14 bg-zinc-800 text-yellow-400 shadow-2xl rounded-full flex items-center justify-center text-2xl border border-zinc-700 shrink-0 active:scale-95 transition";
                 themeIcon.className = "fa-solid fa-moon";
-                centerBtn.className = "w-14 h-14 bg-zinc-800 text-blue-400 shadow-2xl rounded-2xl flex items-center justify-center text-2xl border border-zinc-700 active:scale-95 transition";
+                centerBtn.className = "w-14 h-14 bg-zinc-800 text-blue-400 shadow-2xl rounded-full flex items-center justify-center text-2xl border border-zinc-700 active:scale-95 transition";
                 sheet.className = "absolute inset-x-0 bottom-4 z-20 mx-3 bg-zinc-800 rounded-3xl shadow-2xl p-5 border border-zinc-700 panel-slide translate-y-[120%] flex flex-col max-h-[80vh] text-gray-100 box-border";
                 sheetHandle.className = "w-14 h-2 bg-zinc-600 rounded-full mx-auto mb-4";
                 sheetClose.className = "w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-300 hover:text-white text-lg shrink-0";
@@ -589,7 +590,7 @@
             if (traveledLine) map.removeLayer(traveledLine);
             if (remainingLine) map.removeLayer(remainingLine);
 
-            traveledLine = L.polyline(traveledCoords, { color: '#71717a', weight: 8, opacity: 0.8 }).addTo(map);
+            traveledLine = L.polyline(traveledCoords, { color: '#a1a1aa', weight: 8, opacity: 0.8 }).addTo(map);
             remainingLine = L.polyline(remainingCoords, { color: '#2563eb', weight: 9, opacity: 0.95 }).addTo(map);
         }
 
