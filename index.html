@@ -25,6 +25,7 @@
             position: absolute;
             inset: 0;
             z-index: 0;
+            transition: transform 0.3s ease-out;
         }
 
         .user-gps-container {
@@ -189,9 +190,9 @@
         let currentTheme = 'dark';
         let isNavigating = false;
         let currentBearing = 0;
+        let routeCoordinates = [];
 
         function initMap() {
-            // Posição padrão inicial (São Paulo) caso o GPS demore
             userLatLng = L.latLng(-23.5505, -46.6333);
             map = L.map('map', { zoomControl: false, attributionControl: false }).setView(userLatLng, 16);
             setMapTheme(currentTheme);
@@ -300,6 +301,15 @@
 
                         if (isFollowingUser) {
                             map.setView(userLatLng, isNavigating ? 19 : 17, { animate: true });
+                            if (isNavigating) {
+                                // Gira o mapa em tempo real para a direção do movimento
+                                document.getElementById('map').style.transform = `rotate(${-currentBearing}deg)`;
+                            }
+                        }
+
+                        // Atualiza as cores da rota (percorrida em cinza, restante em azul)
+                        if (isNavigating && routeCoordinates.length > 0) {
+                            updateRouteProgress(userLatLng);
                         }
                     },
                     (err) => {
@@ -343,6 +353,11 @@
             isFollowingUser = true;
             if (userLatLng) {
                 map.setView(userLatLng, isNavigating ? 19 : 17, { animate: true });
+                if (isNavigating) {
+                    document.getElementById('map').style.transform = `rotate(${-currentBearing}deg)`;
+                } else {
+                    document.getElementById('map').style.transform = `rotate(0deg)`;
+                }
             }
         }
 
@@ -390,6 +405,7 @@
             if (routingControl) map.removeControl(routingControl);
             routingControl = null;
             destinationMarker = null;
+            routeCoordinates = [];
             closeSheet();
             centerOnUser();
         }
@@ -446,7 +462,6 @@
                 const data = await res.json();
                 if (data && data.routes && data.routes.length > 0) {
                     const summary = data.routes[0];
-                    // Multiplicador aplicado para simular ritmo realista de bicicleta em subidas/trânsito (~15km/h médio)
                     const totalMinutes = Math.round((summary.duration / 60) * 2.2);
                     document.getElementById('timeBike').innerText = formatMinutesToHours(totalMinutes);
                 }
@@ -461,22 +476,31 @@
             closeSheet();
             calculateRoute(() => {
                 document.getElementById('view-navigation').classList.remove('hidden');
-                if (userLatLng) map.setView(userLatLng, 19, { animate: true });
+                if (userLatLng) {
+                    map.setView(userLatLng, 19, { animate: true });
+                    document.getElementById('map').style.transform = `rotate(${-currentBearing}deg)`;
+                }
             }, true);
         }
+
+        let traveledLine = null;
+        let remainingLine = null;
 
         function calculateRoute(onComplete, isPreview = false) {
             if (!userLatLng || !destinationLatLng) return;
             if (isPreview) document.getElementById('loadingOverlay').classList.remove('hidden');
 
             if (routingControl) map.removeControl(routingControl);
+            if (traveledLine) map.removeLayer(traveledLine);
+            if (remainingLine) map.removeLayer(remainingLine);
 
             routingControl = L.Routing.control({
                 waypoints: [userLatLng, destinationLatLng],
                 router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1', profile: 'bike' }),
                 routeWhileDragging: false,
                 show: false,
-                lineOptions: { styles: [{ color: '#2563eb', opacity: 0.9, weight: 6 }] },
+                // Deixamos a linha padrão invisível se estiver navegando, pois desenharemos as duas customizadas (cinza/azul)
+                lineOptions: { styles: [{ color: isPreview ? '#2563eb' : 'transparent', opacity: 0.9, weight: 6 }] },
                 fitSelectedRoutes: isPreview
             }).addTo(map);
 
@@ -486,12 +510,17 @@
                 const routes = e.routes;
                 if (routes && routes.length > 0) {
                     const summary = routes[0].summary;
-                    // Fator de correção de tempo para bicicleta urbana
                     const totalMinutes = Math.round((summary.totalTime / 60) * 2.2);
                     const totalKm = (summary.totalDistance / 1000).toFixed(1);
 
                     document.getElementById('nav-time').innerText = formatMinutesToHours(totalMinutes);
                     document.getElementById('nav-distance').innerText = `${totalKm} km`;
+
+                    // Armazena todas as coordenadas da rota gerada
+                    routeCoordinates = routes[0].coordinates;
+                    if (isNavigating) {
+                        updateRouteProgress(userLatLng);
+                    }
                 }
 
                 if (onComplete) onComplete();
@@ -502,15 +531,52 @@
             });
         }
 
+        function updateRouteProgress(currentLatLng) {
+            if (routeCoordinates.length === 0) return;
+
+            // Encontra o ponto mais próximo na rota para separar o que já foi percorrido
+            let closestIndex = 0;
+            let minDistance = Infinity;
+
+            for (let i = 0; i < routeCoordinates.length; i++) {
+                const pt = routeCoordinates[i];
+                const dist = Math.hypot(pt.lat - currentLatLng.lat, pt.lng - currentLatLng.lng);
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    closestIndex = i;
+                }
+            }
+
+            const traveledCoords = routeCoordinates.slice(0, closestIndex + 1);
+            const remainingCoords = routeCoordinates.slice(closestIndex);
+
+            if (traveledLine) map.removeLayer(traveledLine);
+            if (remainingLine) map.removeLayer(remainingLine);
+
+            // Linha percorrida fica cinza
+            traveledLine = L.polyline(traveledCoords, { color: '#71717a', weight: 6, opacity: 0.8 }).addTo(map);
+            // Linha restante fica azul
+            remainingLine = L.polyline(remainingCoords, { color: '#2563eb', weight: 6, opacity: 0.9 }).addTo(map);
+        }
+
         function cancelNavigation() {
             isNavigating = false;
             isFollowingUser = true;
+            document.getElementById('map').style.transform = `rotate(0deg)`;
             document.getElementById('view-navigation').classList.add('hidden');
             document.getElementById('view-home').classList.remove('hidden');
+            
             if (routingControl) map.removeControl(routingControl);
             if (destinationMarker) map.removeLayer(destinationMarker);
+            if (traveledLine) map.removeLayer(traveledLine);
+            if (remainingLine) map.removeLayer(remainingLine);
+            
             routingControl = null;
             destinationMarker = null;
+            traveledLine = null;
+            remainingLine = null;
+            routeCoordinates = [];
+            
             centerOnUser();
         }
 
