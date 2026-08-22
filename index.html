@@ -14,22 +14,22 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
-        body { font-family: 'Roboto', sans-serif; overflow: hidden; user-select: none; position: fixed; inset: 0; }
+        body { font-family: 'Roboto', sans-serif; overflow: hidden; user-select: none; position: fixed; inset: 0; perspective: 1000px; }
         
         .leaflet-control-attribution, .leaflet-control-zoom { display: none !important; }
         .leaflet-routing-container { display: none !important; }
 
-        /* Mapa dimensionado e centralizado para evitar cortes nas laterais ao rotacionar */
+        /* Mapa dimensionado e inclinado para efeito 3D */
         #map {
-            width: 150vw;
-            height: 150vh;
+            width: 160vw;
+            height: 160vh;
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             transform-origin: center center;
             z-index: 0;
-            transition: transform 0.2s ease-out;
+            transition: transform 0.1s linear;
         }
 
         .user-gps-container {
@@ -49,19 +49,15 @@
             animation: pulse-ring 2s infinite;
         }
 
+        /* Apenas um ponto azul limpo */
         .user-dot {
-            width: 36px; height: 36px;
+            width: 22px; height: 22px;
             background: #2563eb;
             border: 3px solid #ffffff;
             border-radius: 50%;
             position: absolute;
             box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 14px;
-            transition: transform 0.2s linear;
+            transition: transform 0.1s linear;
         }
 
         @keyframes pulse-ring {
@@ -72,7 +68,7 @@
         .panel-slide { transition: transform 0.3s cubic-bezier(0.1, 0.9, 0.2, 1); }
     </style>
 </head>
-<body id="app-body" class="h-full w-full flex flex-col relative bg-zinc-950 text-gray-100 overflow-hidden">
+<body id="app-body" class="h-full w-full flex flex-col relative bg-zinc-900 text-gray-100 overflow-hidden">
 
     <!-- MAPA -->
     <div id="map"></div>
@@ -100,7 +96,7 @@
             </button>
         </div>
 
-        <div id="suggestionsBox" class="absolute left-4 right-20 mt-16 bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl hidden max-h-60 overflow-y-auto z-30 pointer-events-auto"></div>
+        <div id="suggestionsBox" class="absolute left-4 right-20 mt-16 bg-zinc-800 border border-zinc-700 rounded-2xl shadow-2xl hidden max-h-60 overflow-y-auto z-30 pointer-events-auto"></div>
 
         <!-- Botão de Centralizar -->
         <div class="pointer-events-auto flex justify-end px-2 mb-[260px]">
@@ -113,18 +109,18 @@
     <!-- OVERLAY DE CARREGAMENTO -->
     <div id="loadingOverlay" class="absolute inset-0 bg-black/60 z-50 hidden flex flex-col items-center justify-center backdrop-blur-xs">
         <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-3"></div>
-        <p class="text-white font-medium text-sm tracking-wide">Calculando rota de bike...</p>
+        <p class="text-white font-medium text-sm tracking-wide">Calculando menor rota de bike...</p>
     </div>
 
     <!-- TELA 2: FICHA DO LOCAL SELECIONADO -->
-    <div id="view-place-sheet" class="absolute inset-x-0 bottom-4 z-20 mx-3 bg-zinc-900 rounded-3xl shadow-2xl p-4 border border-zinc-700 panel-slide translate-y-[120%] flex flex-col max-h-[80vh]">
+    <div id="view-place-sheet" class="absolute inset-x-0 bottom-4 z-20 mx-3 bg-zinc-800 rounded-3xl shadow-2xl p-4 border border-zinc-700 panel-slide translate-y-[120%] flex flex-col max-h-[80vh]">
         <div id="sheet-handle" class="w-12 h-1.5 bg-zinc-600 rounded-full mx-auto mb-3"></div>
         
         <div class="flex justify-between items-start mb-2">
             <div>
                 <h2 id="sheet-title" class="text-xl font-bold">Local Selecionado</h2>
             </div>
-            <button onclick="closeSheet()" id="sheet-close-btn" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white">
+            <button onclick="closeSheet()" id="sheet-close-btn" class="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-300 hover:text-white">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
@@ -132,11 +128,11 @@
         <p class="text-xs text-zinc-400 mb-3">Ponto de Interesse • PoleMaps (Brasil)</p>
 
         <!-- Veículo: Bicicleta Ajustada -->
-        <div id="vehicle-container" class="grid grid-cols-1 gap-1.5 mb-4 bg-zinc-800 p-2 rounded-2xl border border-zinc-700">
+        <div id="vehicle-container" class="grid grid-cols-1 gap-1.5 mb-4 bg-zinc-900 p-2 rounded-2xl border border-zinc-700">
             <div class="flex items-center justify-between px-4 py-2 rounded-xl bg-blue-600 text-white">
                 <div class="flex items-center space-x-3">
                     <i class="fa-solid fa-bicycle text-xl"></i>
-                    <span class="text-sm font-medium">Bicicleta (Ritmo Real)</span>
+                    <span class="text-sm font-medium">Bicicleta (Menor Rota)</span>
                 </div>
                 <span class="text-base font-bold" id="timeBike">--</span>
             </div>
@@ -151,30 +147,41 @@
 
     <!-- TELA 3: NAVEGAÇÃO EM ANDAMENTO -->
     <div id="view-navigation" class="absolute inset-0 z-30 pointer-events-none flex flex-col justify-between p-3 pb-6 hidden">
-        <div class="pointer-events-auto bg-[#0f3833] border border-emerald-700/50 rounded-3xl p-4 shadow-2xl flex items-center justify-between mx-1 mt-2">
-            <div class="flex items-center space-x-3">
-                <div class="w-14 h-14 rounded-2xl bg-emerald-600 flex items-center justify-center text-white text-3xl shadow">
-                    <i class="fa-solid fa-arrow-turn-up"></i>
-                </div>
-                <div>
-                    <div id="nav-step-dist" class="text-xl font-bold text-gray-100">120 m</div>
-                    <div id="nav-street-name" class="text-sm font-medium text-zinc-300">Siga em frente</div>
-                </div>
+        <div class="flex flex-col space-y-2">
+            <!-- Botão Reorganizar Rota (aparece ao distanciar ou se solicitado) -->
+            <div id="reorganize-container" class="pointer-events-auto flex justify-center mx-3 hidden">
+                <button onclick="reorganizeRoute()" class="bg-amber-600 hover:bg-amber-500 text-white font-medium text-sm px-5 py-2.5 rounded-full shadow-2xl flex items-center space-x-2 border border-amber-500 transition animate-bounce">
+                    <i class="fa-solid fa-route"></i>
+                    <span>Reorganizar Rota</span>
+                </button>
             </div>
-            <button onclick="centerOnUser()" class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-lg text-xl pointer-events-auto" title="Centralizar">
-                <i class="fa-solid fa-compass"></i>
-            </button>
+
+            <!-- Painel Superior de Instruções -->
+            <div class="pointer-events-auto bg-[#183b35] border border-emerald-700/50 rounded-3xl p-4 shadow-2xl flex items-center justify-between mx-1 mt-2">
+                <div class="flex items-center space-x-3">
+                    <div class="w-14 h-14 rounded-2xl bg-emerald-600 flex items-center justify-center text-white text-3xl shadow">
+                        <i class="fa-solid fa-arrow-turn-up"></i>
+                    </div>
+                    <div>
+                        <div id="nav-step-dist" class="text-xl font-bold text-gray-100">120 m</div>
+                        <div id="nav-street-name" class="text-sm font-medium text-zinc-300">Siga em frente</div>
+                    </div>
+                </div>
+                <button onclick="centerOnUser()" class="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center text-blue-400 shadow-lg text-xl pointer-events-auto border border-zinc-700" title="Centralizar">
+                    <i class="fa-solid fa-compass"></i>
+                </button>
+            </div>
         </div>
 
-        <div id="nav-bottom-panel" class="pointer-events-auto mx-3 mb-2 bg-zinc-900 border border-zinc-800 rounded-3xl p-4 flex items-center justify-between shadow-2xl">
-            <button onclick="cancelNavigation()" id="nav-cancel-btn" class="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center text-red-400 text-xl border border-zinc-700">
+        <div id="nav-bottom-panel" class="pointer-events-auto mx-3 mb-2 bg-zinc-800 border border-zinc-700 rounded-3xl p-4 flex items-center justify-between shadow-2xl">
+            <button onclick="cancelNavigation()" id="nav-cancel-btn" class="w-12 h-12 rounded-full bg-zinc-700 flex items-center justify-center text-red-400 text-xl border border-zinc-600">
                 <i class="fa-solid fa-xmark"></i>
             </button>
             <div class="text-center">
                 <div id="nav-time" class="text-2xl font-bold">-- min</div>
                 <div id="nav-distance" class="text-xs text-zinc-400 font-medium">-- km</div>
             </div>
-            <div id="nav-speed-box" class="w-16 h-12 rounded-2xl bg-zinc-800 flex flex-col items-center justify-center border border-zinc-700 text-blue-400">
+            <div id="nav-speed-box" class="w-16 h-12 rounded-2xl bg-zinc-900 flex flex-col items-center justify-center border border-zinc-700 text-blue-400">
                 <span id="current-speed" class="text-base font-bold">0</span>
                 <span class="text-[9px] text-zinc-400 uppercase tracking-tighter">km/h</span>
             </div>
@@ -263,19 +270,19 @@
                 navCancelBtn.className = "w-12 h-12 rounded-full bg-zinc-100 flex items-center justify-center text-red-500 text-xl border border-zinc-200";
                 navSpeedBox.className = "w-16 h-12 rounded-2xl bg-zinc-100 flex flex-col items-center justify-center border border-zinc-200 text-blue-600";
             } else {
-                body.className = "h-full w-full flex flex-col relative bg-zinc-950 text-gray-100 overflow-hidden";
+                body.className = "h-full w-full flex flex-col relative bg-zinc-900 text-gray-100 overflow-hidden";
                 searchBar.className = "flex-1 bg-zinc-800 shadow-2xl rounded-full flex items-center px-4 py-3 border border-zinc-700/65";
-                suggestions.className = "absolute left-4 right-20 mt-16 bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl hidden max-h-60 overflow-y-auto z-30 pointer-events-auto text-gray-100";
+                suggestions.className = "absolute left-4 right-20 mt-16 bg-zinc-800 border border-zinc-700 rounded-2xl shadow-2xl hidden max-h-60 overflow-y-auto z-30 pointer-events-auto text-gray-100";
                 themeBtn.className = "w-12 h-12 bg-zinc-800 text-yellow-400 shadow-2xl rounded-full flex items-center justify-center text-xl border border-zinc-700 shrink-0 active:scale-95 transition";
                 themeIcon.className = "fa-solid fa-moon";
                 centerBtn.className = "w-12 h-12 bg-zinc-800 text-blue-400 shadow-2xl rounded-2xl flex items-center justify-center text-xl border border-zinc-700 active:scale-95 transition";
-                sheet.className = "absolute inset-x-0 bottom-4 z-20 mx-3 bg-zinc-900 rounded-3xl shadow-2xl p-4 border border-zinc-700 panel-slide translate-y-[120%] flex flex-col max-h-[80vh] text-gray-100";
+                sheet.className = "absolute inset-x-0 bottom-4 z-20 mx-3 bg-zinc-800 rounded-3xl shadow-2xl p-4 border border-zinc-700 panel-slide translate-y-[120%] flex flex-col max-h-[80vh] text-gray-100";
                 sheetHandle.className = "w-12 h-1.5 bg-zinc-600 rounded-full mx-auto mb-3";
-                sheetClose.className = "w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white";
-                vehicleContainer.className = "grid grid-cols-1 gap-1.5 mb-4 bg-zinc-800 p-2 rounded-2xl border border-zinc-700";
-                navBottomPanel.className = "pointer-events-auto mx-3 mb-2 bg-zinc-900 border border-zinc-800 rounded-3xl p-4 flex items-center justify-between shadow-2xl text-gray-100";
-                navCancelBtn.className = "w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center text-red-400 text-xl border border-zinc-700";
-                navSpeedBox.className = "w-16 h-12 rounded-2xl bg-zinc-800 flex flex-col items-center justify-center border border-zinc-700 text-blue-400";
+                sheetClose.className = "w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-300 hover:text-white";
+                vehicleContainer.className = "grid grid-cols-1 gap-1.5 mb-4 bg-zinc-900 p-2 rounded-2xl border border-zinc-700";
+                navBottomPanel.className = "pointer-events-auto mx-3 mb-2 bg-zinc-800 border border-zinc-700 rounded-3xl p-4 flex items-center justify-between shadow-2xl text-gray-100";
+                navCancelBtn.className = "w-12 h-12 rounded-full bg-zinc-700 flex items-center justify-center text-red-400 text-xl border border-zinc-600";
+                navSpeedBox.className = "w-16 h-12 rounded-2xl bg-zinc-900 flex flex-col items-center justify-center border border-zinc-700 text-blue-400";
             }
         }
 
@@ -307,7 +314,7 @@
                         if (isFollowingUser) {
                             map.setView(userLatLng, isNavigating ? 19 : 17, { animate: true });
                             if (isNavigating) {
-                                document.getElementById('map').style.transform = `translate(-50%, -50%) rotate(${-currentBearing}deg)`;
+                                document.getElementById('map').style.transform = `translate(-50%, -50%) rotateX(40deg) rotate(${-currentBearing}deg)`;
                             }
                         }
 
@@ -327,9 +334,7 @@
             const iconHtml = `
                 <div class="user-gps-container">
                     <div class="user-pulse"></div>
-                    <div class="user-dot" style="transform: rotate(${bearing}deg);">
-                        <i class="fa-solid fa-bicycle"></i>
-                    </div>
+                    <div class="user-dot"></div>
                 </div>`;
 
             if (!userMarker) {
@@ -357,9 +362,9 @@
             if (userLatLng) {
                 map.setView(userLatLng, isNavigating ? 19 : 17, { animate: true });
                 if (isNavigating) {
-                    document.getElementById('map').style.transform = `translate(-50%, -50%) rotate(${-currentBearing}deg)`;
+                    document.getElementById('map').style.transform = `translate(-50%, -50%) rotateX(40deg) rotate(${-currentBearing}deg)`;
                 } else {
-                    document.getElementById('map').style.transform = `translate(-50%, -50%) rotate(0deg)`;
+                    document.getElementById('map').style.transform = `translate(-50%, -50%) rotateX(0deg) rotate(0deg)`;
                 }
             }
         }
@@ -384,7 +389,7 @@
                     if (data && data.length > 0) {
                         data.forEach(item => {
                             const div = document.createElement('div');
-                            div.className = `px-4 py-3 ${currentTheme === 'light' ? 'hover:bg-zinc-100 border-zinc-200' : 'hover:bg-zinc-800 border-zinc-700'} border-b text-sm cursor-pointer flex items-center space-x-2`;
+                            div.className = `px-4 py-3 ${currentTheme === 'light' ? 'hover:bg-zinc-100 border-zinc-200' : 'hover:bg-zinc-700 border-zinc-700'} border-b text-sm cursor-pointer flex items-center space-x-2`;
                             div.innerHTML = `<i class="fa-solid fa-circle text-blue-500 text-xs mr-1"></i><span class="truncate">${item.display_name}</span>`;
                             div.onclick = () => {
                                 document.getElementById('searchInput').value = item.display_name.split(',')[0];
@@ -481,18 +486,17 @@
                 document.getElementById('view-navigation').classList.remove('hidden');
                 if (userLatLng) {
                     map.setView(userLatLng, 19, { animate: true });
-                    document.getElementById('map').style.transform = `translate(-50%, -50%) rotate(${-currentBearing}deg)`;
+                    document.getElementById('map').style.transform = `translate(-50%, -50%) rotateX(40deg) rotate(${-currentBearing}deg)`;
                 }
             }, true);
 
-            // Inicia o intervalo de meio em meio segundo para manter o mapa focado e centralizado no usuário durante a rota
             if (navigationInterval) clearInterval(navigationInterval);
             navigationInterval = setInterval(() => {
                 if (isNavigating && userLatLng) {
                     isFollowingUser = true;
                     centerOnUser();
                 }
-            }, 500);
+            }, 100);
         }
 
         let traveledLine = null;
@@ -506,6 +510,7 @@
             if (traveledLine) map.removeLayer(traveledLine);
             if (remainingLine) map.removeLayer(remainingLine);
 
+            // Garante prioridade para menor rota de bicicleta (OSRM default otimiza por menor distância/tempo no perfil)
             routingControl = L.Routing.control({
                 waypoints: [userLatLng, destinationLatLng],
                 router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1', profile: 'bike' }),
@@ -556,6 +561,15 @@
                 }
             }
 
+            // Se a menor distância até a rota ativa for maior que ~30 metros, exibe o botão de reorganizar
+            const distanceMeters = minDistance * 111320; // conversão grosseira para metros
+            const reorganizeContainer = document.getElementById('reorganize-container');
+            if (distanceMeters > 35) {
+                reorganizeContainer.classList.remove('hidden');
+            } else {
+                reorganizeContainer.classList.add('hidden');
+            }
+
             const traveledCoords = routeCoordinates.slice(0, closestIndex + 1);
             const remainingCoords = routeCoordinates.slice(closestIndex);
 
@@ -566,6 +580,14 @@
             remainingLine = L.polyline(remainingCoords, { color: '#2563eb', weight: 6, opacity: 0.9 }).addTo(map);
         }
 
+        function reorganizeRoute() {
+            if (!userLatLng || !destinationLatLng) return;
+            calculateRoute(() => {
+                document.getElementById('reorganize-container').classList.add('hidden');
+                centerOnUser();
+            }, false);
+        }
+
         function cancelNavigation() {
             isNavigating = false;
             isFollowingUser = true;
@@ -573,9 +595,10 @@
                 clearInterval(navigationInterval);
                 navigationInterval = null;
             }
-            document.getElementById('map').style.transform = `translate(-50%, -50%) rotate(0deg)`;
+            document.getElementById('map').style.transform = `translate(-50%, -50%) rotateX(0deg) rotate(0deg)`;
             document.getElementById('view-navigation').classList.add('hidden');
             document.getElementById('view-home').classList.remove('hidden');
+            document.getElementById('reorganize-container').classList.add('hidden');
             
             if (routingControl) map.removeControl(routingControl);
             if (destinationMarker) map.removeLayer(destinationMarker);
