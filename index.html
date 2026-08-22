@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>PoleMaps</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+        body { font-family: 'Roboto', sans-serif; overflow: hidden; user-select: none; position: fixed; inset: 0; }
+        
+        .leaflet-control-attribution, .leaflet-control-zoom { display: none !important; }
+        .leaflet-routing-container { display: none !important; }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+        }
+
+        .user-gps-container {
+            position: relative;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-pulse {
+            width: 56px; height: 56px;
+            background: rgba(37, 99, 235, 0.3);
+            border-radius: 50%;
+            position: absolute;
+            animation: pulse-ring 2s infinite;
+        }
+
+        .user-dot {
+            width: 36px; height: 36px;
+            background: #2563eb;
+            border: 3px solid #ffffff;
+            border-radius: 50%;
+            position: absolute;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            transition: transform 0.2s linear;
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.5); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        .panel-slide { transition: transform 0.3s cubic-bezier(0.1, 0.9, 0.2, 1); }
+    </style>
+</head>
+<body id="app-body" class="h-full w-full flex flex-col relative bg-zinc-950 text-gray-100 overflow-hidden">
+
+    <!-- MAPA -->
+    <div id="map"></div>
+
+    <!-- TELA PRINCIPAL -->
+    <div id="view-home" class="absolute inset-0 z-10 flex flex-col justify-between pointer-events-none p-3 pb-6">
+        
+        <!-- Barra de Pesquisa -->
+        <div class="pointer-events-auto flex items-center space-x-2 mt-3">
+            <div id="search-bar-container" class="flex-1 bg-zinc-800 shadow-2xl rounded-full flex items-center px-4 py-3 border border-zinc-700/65">
+                <button onclick="clearSearch()" class="text-zinc-300 mr-3 text-lg hover:text-white transition">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <input type="text" id="searchInput" placeholder="Pesquisar no PoleMaps (Brasil)..." oninput="handleSearchInput(event)"
+                       class="flex-1 bg-transparent text-inherit placeholder:text-zinc-400 focus:outline-none text-base font-normal">
+                <button class="text-zinc-300 mx-2 text-lg hover:text-white transition">
+                    <i class="fa-solid fa-microphone"></i>
+                </button>
+                <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center font-bold text-xs text-white shadow">US</div>
+            </div>
+
+            <!-- Botão de Tema -->
+            <button onclick="toggleTheme()" id="themeToggleBtn" class="w-12 h-12 bg-zinc-800 text-yellow-400 shadow-2xl rounded-full flex items-center justify-center text-xl border border-zinc-700 shrink-0 active:scale-95 transition" title="Alternar Tema">
+                <i class="fa-solid fa-moon" id="themeIcon"></i>
+            </button>
+        </div>
+
+        <div id="suggestionsBox" class="absolute left-4 right-20 mt-16 bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl hidden max-h-60 overflow-y-auto z-30 pointer-events-auto"></div>
+
+        <!-- Botão de Centralizar -->
+        <div class="pointer-events-auto flex justify-end px-2 mb-[260px]">
+            <button onclick="centerOnUser()" id="centerBtn" class="w-12 h-12 bg-zinc-800 text-blue-400 shadow-2xl rounded-2xl flex items-center justify-center text-xl border border-zinc-700 active:scale-95 transition" title="Centralizar GPS">
+                <i class="fa-solid fa-location-crosshairs"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- OVERLAY DE CARREGAMENTO -->
+    <div id="loadingOverlay" class="absolute inset-0 bg-black/60 z-50 hidden flex flex-col items-center justify-center backdrop-blur-xs">
+        <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+        <p class="text-white font-medium text-sm tracking-wide">Calculando rota de bike...</p>
+    </div>
+
+    <!-- TELA 2: FICHA DO LOCAL SELECIONADO -->
+    <div id="view-place-sheet" class="absolute inset-x-0 bottom-4 z-20 mx-3 bg-zinc-900 rounded-3xl shadow-2xl p-4 border border-zinc-700 panel-slide translate-y-[120%] flex flex-col max-h-[80vh]">
+        <div id="sheet-handle" class="w-12 h-1.5 bg-zinc-600 rounded-full mx-auto mb-3"></div>
+        
+        <div class="flex justify-between items-start mb-2">
+            <div>
+                <h2 id="sheet-title" class="text-xl font-bold">Local Selecionado</h2>
+            </div>
+            <button onclick="closeSheet()" id="sheet-close-btn" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <p class="text-xs text-zinc-400 mb-3">Ponto de Interesse • PoleMaps (Brasil)</p>
+
+        <!-- Veículo: Bicicleta Ajustada -->
+        <div id="vehicle-container" class="grid grid-cols-1 gap-1.5 mb-4 bg-zinc-800 p-2 rounded-2xl border border-zinc-700">
+            <div class="flex items-center justify-between px-4 py-2 rounded-xl bg-blue-600 text-white">
+                <div class="flex items-center space-x-3">
+                    <i class="fa-solid fa-bicycle text-xl"></i>
+                    <span class="text-sm font-medium">Bicicleta (Ritmo Real)</span>
+                </div>
+                <span class="text-base font-bold" id="timeBike">--</span>
+            </div>
+        </div>
+
+        <!-- Botão Iniciar -->
+        <button onclick="startNavigation()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-3.5 px-4 rounded-2xl flex items-center justify-center space-x-2 font-medium text-base shadow-lg transition">
+            <i class="fa-solid fa-location-arrow"></i>
+            <span>Iniciar Navegação</span>
+        </button>
+    </div>
+
+    <!-- TELA 3: NAVEGAÇÃO EM ANDAMENTO -->
+    <div id="view-navigation" class="absolute inset-0 z-30 pointer-events-none flex flex-col justify-between p-3 pb-6 hidden">
+        <div class="pointer-events-auto bg-[#0f3833] border border-emerald-700/50 rounded-3xl p-4 shadow-2xl flex items-center justify-between mx-1 mt-2">
+            <div class="flex items-center space-x-3">
+                <div class="w-14 h-14 rounded-2xl bg-emerald-600 flex items-center justify-center text-white text-3xl shadow">
+                    <i class="fa-solid fa-arrow-turn-up"></i>
+                </div>
+                <div>
+                    <div id="nav-step-dist" class="text-xl font-bold text-gray-100">120 m</div>
+                    <div id="nav-street-name" class="text-sm font-medium text-zinc-300">Siga em frente</div>
+                </div>
+            </div>
+            <button onclick="centerOnUser()" class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-blue-600 shadow-lg text-xl pointer-events-auto" title="Centralizar">
+                <i class="fa-solid fa-compass"></i>
+            </button>
+        </div>
+
+        <div id="nav-bottom-panel" class="pointer-events-auto mx-3 mb-2 bg-zinc-900 border border-zinc-800 rounded-3xl p-4 flex items-center justify-between shadow-2xl">
+            <button onclick="cancelNavigation()" id="nav-cancel-btn" class="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center text-red-400 text-xl border border-zinc-700">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="text-center">
+                <div id="nav-time" class="text-2xl font-bold">-- min</div>
+                <div id="nav-distance" class="text-xs text-zinc-400 font-medium">-- km</div>
+            </div>
+            <div id="nav-speed-box" class="w-16 h-12 rounded-2xl bg-zinc-800 flex flex-col items-center justify-center border border-zinc-700 text-blue-400">
+                <span id="current-speed" class="text-base font-bold">0</span>
+                <span class="text-[9px] text-zinc-400 uppercase tracking-tighter">km/h</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let map;
+        let tileLayer;
+        let userLatLng = null;
+        let userMarker = null;
+        let destinationLatLng = null;
+        let destinationMarker = null;
+        let routingControl = null;
+        let isFollowingUser = true;
+        let searchTimeout = null;
+        let currentTheme = 'dark';
+        let isNavigating = false;
+        let currentBearing = 0;
+
+        function initMap() {
+            // Posição padrão inicial (São Paulo) caso o GPS demore
+            userLatLng = L.latLng(-23.5505, -46.6333);
+            map = L.map('map', { zoomControl: false, attributionControl: false }).setView(userLatLng, 16);
+            setMapTheme(currentTheme);
+
+            updateUserMarker(userLatLng, 0);
+            startRealGeolocation();
+
+            map.on('click', function(e) {
+                if (isNavigating) return;
+                selectLocation(e.latlng, "Local Selecionado");
+            });
+
+            map.on('dragstart movestart', function() {
+                if (isNavigating) {
+                    isFollowingUser = false;
+                }
+            });
+        }
+
+        function toggleTheme() {
+            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            setMapTheme(currentTheme);
+            applyUITheme(currentTheme);
+        }
+
+        function setMapTheme(theme) {
+            if (tileLayer) map.removeLayer(tileLayer);
+            if (theme === 'dark') {
+                tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 });
+            } else {
+                tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 20 });
+            }
+            tileLayer.addTo(map);
+        }
+
+        function applyUITheme(theme) {
+            const body = document.getElementById('app-body');
+            const searchBar = document.getElementById('search-bar-container');
+            const suggestions = document.getElementById('suggestionsBox');
+            const themeBtn = document.getElementById('themeToggleBtn');
+            const themeIcon = document.getElementById('themeIcon');
+            const centerBtn = document.getElementById('centerBtn');
+            const sheet = document.getElementById('view-place-sheet');
+            const sheetHandle = document.getElementById('sheet-handle');
+            const sheetClose = document.getElementById('sheet-close-btn');
+            const vehicleContainer = document.getElementById('vehicle-container');
+            const navBottomPanel = document.getElementById('nav-bottom-panel');
+            const navCancelBtn = document.getElementById('nav-cancel-btn');
+            const navSpeedBox = document.getElementById('nav-speed-box');
+
+            if (theme === 'light') {
+                body.className = "h-full w-full flex flex-col relative bg-zinc-100 text-zinc-900 overflow-hidden";
+                searchBar.className = "flex-1 bg-white shadow-2xl rounded-full flex items-center px-4 py-3 border border-zinc-200";
+                suggestions.className = "absolute left-4 right-20 mt-16 bg-white border border-zinc-200 rounded-2xl shadow-2xl hidden max-h-60 overflow-y-auto z-30 pointer-events-auto text-zinc-900";
+                themeBtn.className = "w-12 h-12 bg-white text-orange-500 shadow-2xl rounded-full flex items-center justify-center text-xl border border-zinc-200 shrink-0 active:scale-95 transition";
+                themeIcon.className = "fa-solid fa-sun";
+                centerBtn.className = "w-12 h-12 bg-white text-blue-600 shadow-2xl rounded-full flex items-center justify-center text-xl border border-zinc-200 active:scale-95 transition";
+                sheet.className = "absolute inset-x-0 bottom-4 z-20 mx-3 bg-white rounded-3xl shadow-2xl p-4 border border-zinc-200 panel-slide translate-y-[120%] flex flex-col max-h-[80vh] text-zinc-900";
+                sheetHandle.className = "w-12 h-1.5 bg-zinc-300 rounded-full mx-auto mb-3";
+                sheetClose.className = "w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-zinc-900";
+                vehicleContainer.className = "grid grid-cols-1 gap-1.5 mb-4 bg-zinc-100 p-2 rounded-2xl border border-zinc-200";
+                navBottomPanel.className = "pointer-events-auto mx-3 mb-2 bg-white border border-zinc-200 rounded-3xl p-4 flex items-center justify-between shadow-2xl text-zinc-900";
+                navCancelBtn.className = "w-12 h-12 rounded-full bg-zinc-100 flex items-center justify-center text-red-500 text-xl border border-zinc-200";
+                navSpeedBox.className = "w-16 h-12 rounded-2xl bg-zinc-100 flex flex-col items-center justify-center border border-zinc-200 text-blue-600";
+            } else {
+                body.className = "h-full w-full flex flex-col relative bg-zinc-950 text-gray-100 overflow-hidden";
+                searchBar.className = "flex-1 bg-zinc-800 shadow-2xl rounded-full flex items-center px-4 py-3 border border-zinc-700/65";
+                suggestions.className = "absolute left-4 right-20 mt-16 bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl hidden max-h-60 overflow-y-auto z-30 pointer-events-auto text-gray-100";
+                themeBtn.className = "w-12 h-12 bg-zinc-800 text-yellow-400 shadow-2xl rounded-full flex items-center justify-center text-xl border border-zinc-700 shrink-0 active:scale-95 transition";
+                themeIcon.className = "fa-solid fa-moon";
+                centerBtn.className = "w-12 h-12 bg-zinc-800 text-blue-400 shadow-2xl rounded-2xl flex items-center justify-center text-xl border border-zinc-700 active:scale-95 transition";
+                sheet.className = "absolute inset-x-0 bottom-4 z-20 mx-3 bg-zinc-900 rounded-3xl shadow-2xl p-4 border border-zinc-700 panel-slide translate-y-[120%] flex flex-col max-h-[80vh] text-gray-100";
+                sheetHandle.className = "w-12 h-1.5 bg-zinc-600 rounded-full mx-auto mb-3";
+                sheetClose.className = "w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white";
+                vehicleContainer.className = "grid grid-cols-1 gap-1.5 mb-4 bg-zinc-800 p-2 rounded-2xl border border-zinc-700";
+                navBottomPanel.className = "pointer-events-auto mx-3 mb-2 bg-zinc-900 border border-zinc-800 rounded-3xl p-4 flex items-center justify-between shadow-2xl text-gray-100";
+                navCancelBtn.className = "w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center text-red-400 text-xl border border-zinc-700";
+                navSpeedBox.className = "w-16 h-12 rounded-2xl bg-zinc-800 flex flex-col items-center justify-center border border-zinc-700 text-blue-400";
+            }
+        }
+
+        function startRealGeolocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition(
+                    (position) => {
+                        const newLat = position.coords.latitude;
+                        const newLng = position.coords.longitude;
+                        
+                        if (userLatLng) {
+                            const dLon = (newLng - userLatLng.lng) * Math.PI / 180;
+                            const lat1 = userLatLng.lat * Math.PI / 180;
+                            const lat2 = newLat * Math.PI / 180;
+                            const y = Math.sin(dLon) * Math.cos(lat2);
+                            const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+                            let brng = Math.atan2(y, x) * 180 / Math.PI;
+                            currentBearing = (brng + 360) % 360;
+                        }
+
+                        userLatLng = L.latLng(newLat, newLng);
+                        updateUserMarker(userLatLng, currentBearing);
+                        
+                        if (position.coords.speed !== null && position.coords.speed >= 0) {
+                            const speedKmH = Math.round(position.coords.speed * 3.6);
+                            document.getElementById('current-speed').innerText = speedKmH;
+                        }
+
+                        if (isFollowingUser) {
+                            map.setView(userLatLng, isNavigating ? 19 : 17, { animate: true });
+                        }
+                    },
+                    (err) => {
+                        console.warn("Aguardando sinal GPS...");
+                    },
+                    { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 }
+                );
+            }
+        }
+
+        function updateUserMarker(latlng, bearing) {
+            const iconHtml = `
+                <div class="user-gps-container">
+                    <div class="user-pulse"></div>
+                    <div class="user-dot" style="transform: rotate(${bearing}deg);">
+                        <i class="fa-solid fa-bicycle"></i>
+                    </div>
+                </div>`;
+
+            if (!userMarker) {
+                const icon = L.divIcon({
+                    className: '',
+                    html: iconHtml,
+                    iconSize: [48, 48],
+                    iconAnchor: [24, 24]
+                });
+                userMarker = L.marker(latlng, { icon: icon, zIndexOffset: 999999 }).addTo(map);
+            } else {
+                const icon = L.divIcon({
+                    className: '',
+                    html: iconHtml,
+                    iconSize: [48, 48],
+                    iconAnchor: [24, 24]
+                });
+                userMarker.setIcon(icon);
+                userMarker.setLatLng(latlng);
+            }
+        }
+
+        function centerOnUser() {
+            isFollowingUser = true;
+            if (userLatLng) {
+                map.setView(userLatLng, isNavigating ? 19 : 17, { animate: true });
+            }
+        }
+
+        function handleSearchInput(e) {
+            const query = e.target.value;
+            clearTimeout(searchTimeout);
+            const box = document.getElementById('suggestionsBox');
+
+            if (!query || query.length < 3) {
+                box.classList.add('hidden');
+                box.innerHTML = '';
+                return;
+            }
+
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=br&q=${encodeURIComponent(query)}&limit=5`);
+                    const data = await res.json();
+                    
+                    box.innerHTML = '';
+                    if (data && data.length > 0) {
+                        data.forEach(item => {
+                            const div = document.createElement('div');
+                            div.className = `px-4 py-3 ${currentTheme === 'light' ? 'hover:bg-zinc-100 border-zinc-200' : 'hover:bg-zinc-800 border-zinc-700'} border-b text-sm cursor-pointer flex items-center space-x-2`;
+                            div.innerHTML = `<i class="fa-solid fa-circle text-blue-500 text-xs mr-1"></i><span class="truncate">${item.display_name}</span>`;
+                            div.onclick = () => {
+                                document.getElementById('searchInput').value = item.display_name.split(',')[0];
+                                box.classList.add('hidden');
+                                selectLocation(L.latLng(parseFloat(item.lat), parseFloat(item.lon)), item.display_name.split(',')[0]);
+                            };
+                            box.appendChild(div);
+                        });
+                        box.classList.remove('hidden');
+                    } else {
+                        box.classList.add('hidden');
+                    }
+                } catch(err) { console.error(err); }
+            }, 300);
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('suggestionsBox').classList.add('hidden');
+            if (destinationMarker) map.removeLayer(destinationMarker);
+            if (routingControl) map.removeControl(routingControl);
+            routingControl = null;
+            destinationMarker = null;
+            closeSheet();
+            centerOnUser();
+        }
+
+        function selectLocation(latlng, name) {
+            destinationLatLng = latlng;
+            document.getElementById('sheet-title').innerText = name;
+            
+            if (destinationMarker) map.removeLayer(destinationMarker);
+            destinationMarker = L.circleMarker(latlng, {
+                radius: 8,
+                color: '#ffffff',
+                fillColor: '#ea4335',
+                fillOpacity: 1,
+                weight: 2
+            }).addTo(map);
+
+            document.getElementById('view-home').classList.add('hidden');
+            const sheet = document.getElementById('view-place-sheet');
+            sheet.classList.remove('translate-y-[120%]');
+            sheet.classList.add('translate-y-0');
+            map.setView(latlng, 16, { animate: true });
+            
+            calculateBikeTimeAndRoute();
+        }
+
+        function closeSheet() {
+            const sheet = document.getElementById('view-place-sheet');
+            sheet.classList.remove('translate-y-0');
+            sheet.classList.add('translate-y-[120%]');
+            document.getElementById('view-home').classList.remove('hidden');
+            if (destinationMarker) map.removeLayer(destinationMarker);
+            if (routingControl) map.removeControl(routingControl);
+            routingControl = null;
+        }
+
+        function formatMinutesToHours(totalMinutes) {
+            if (totalMinutes < 60) {
+                return `${Math.max(1, totalMinutes)} min`;
+            }
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = Math.round(totalMinutes % 60);
+            if (minutes === 0) {
+                return `${hours} h`;
+            }
+            return `${hours} h ${minutes} min`;
+        }
+
+        async function calculateBikeTimeAndRoute() {
+            if (!userLatLng || !destinationLatLng) return;
+
+            try {
+                const res = await fetch(`https://router.project-osrm.org/route/v1/bike/${userLatLng.lng},${userLatLng.lat};${destinationLatLng.lng},${destinationLatLng.lat}?overview=false`);
+                const data = await res.json();
+                if (data && data.routes && data.routes.length > 0) {
+                    const summary = data.routes[0];
+                    // Multiplicador aplicado para simular ritmo realista de bicicleta em subidas/trânsito (~15km/h médio)
+                    const totalMinutes = Math.round((summary.duration / 60) * 2.2);
+                    document.getElementById('timeBike').innerText = formatMinutesToHours(totalMinutes);
+                }
+            } catch(e) {
+                console.error("Erro no cálculo de tempo", e);
+            }
+        }
+
+        function startNavigation() {
+            isNavigating = true;
+            isFollowingUser = true;
+            closeSheet();
+            calculateRoute(() => {
+                document.getElementById('view-navigation').classList.remove('hidden');
+                if (userLatLng) map.setView(userLatLng, 19, { animate: true });
+            }, true);
+        }
+
+        function calculateRoute(onComplete, isPreview = false) {
+            if (!userLatLng || !destinationLatLng) return;
+            if (isPreview) document.getElementById('loadingOverlay').classList.remove('hidden');
+
+            if (routingControl) map.removeControl(routingControl);
+
+            routingControl = L.Routing.control({
+                waypoints: [userLatLng, destinationLatLng],
+                router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1', profile: 'bike' }),
+                routeWhileDragging: false,
+                show: false,
+                lineOptions: { styles: [{ color: '#2563eb', opacity: 0.9, weight: 6 }] },
+                fitSelectedRoutes: isPreview
+            }).addTo(map);
+
+            routingControl.on('routesfound', function(e) {
+                if (isPreview) document.getElementById('loadingOverlay').classList.add('hidden');
+                
+                const routes = e.routes;
+                if (routes && routes.length > 0) {
+                    const summary = routes[0].summary;
+                    // Fator de correção de tempo para bicicleta urbana
+                    const totalMinutes = Math.round((summary.totalTime / 60) * 2.2);
+                    const totalKm = (summary.totalDistance / 1000).toFixed(1);
+
+                    document.getElementById('nav-time').innerText = formatMinutesToHours(totalMinutes);
+                    document.getElementById('nav-distance').innerText = `${totalKm} km`;
+                }
+
+                if (onComplete) onComplete();
+            });
+
+            routingControl.on('routingerror', function(e) {
+                if (isPreview) document.getElementById('loadingOverlay').classList.add('hidden');
+            });
+        }
+
+        function cancelNavigation() {
+            isNavigating = false;
+            isFollowingUser = true;
+            document.getElementById('view-navigation').classList.add('hidden');
+            document.getElementById('view-home').classList.remove('hidden');
+            if (routingControl) map.removeControl(routingControl);
+            if (destinationMarker) map.removeLayer(destinationMarker);
+            routingControl = null;
+            destinationMarker = null;
+            centerOnUser();
+        }
+
+        window.onload = initMap;
+    </script>
+</body>
+</html>
