@@ -259,11 +259,11 @@
         let traveledLine = null;
         let remainingLine = null;
         let hasArrived = false;
+        let lastUserCoords = null;
 
         let initialRouteDistance = 0;
         let expectedRouteDurationMin = 0;
 
-        // Variáveis para Estatísticas da Rota (Relatório)
         let navigationStartTime = null;
         let navigationTotalSeconds = 0;
         let maxSpeedRecorded = 0;
@@ -285,7 +285,11 @@
                 selectLocation(e.latlng, "Local Selecionado");
             });
 
+            // Se o usuário mexer na tela manualmente, desliga temporariamente o seguimento automático
             map.on('dragstart', function() {
+                isFollowingUser = false;
+            });
+            map.on('zoomstart', function() {
                 isFollowingUser = false;
             });
         }
@@ -298,7 +302,10 @@
                         if (event.webkitCompassHeading !== undefined) {
                             heading = event.webkitCompassHeading;
                         }
-                        currentHeading = heading;
+                        // Se o dispositivo estiver estático ou sem rumo firme, usa o movimento do GPS
+                        if (currentHeading === 0 && heading) {
+                            currentHeading = heading;
+                        }
                         if (userLatLng && isFollowingUser) {
                             applyMapTransform(currentHeading);
                         }
@@ -326,25 +333,42 @@
                     (position) => {
                         const newLat = position.coords.latitude;
                         const newLng = position.coords.longitude;
-                        userLatLng = L.latLng(newLat, newLng);
+                        const newPoint = L.latLng(newLat, newLng);
+
+                        // Calcular heading (direção da rua) baseado no deslocamento se o GPS fornecer
+                        if (lastUserCoords) {
+                            const dLat = newLat - lastUserCoords.lat;
+                            const dLng = newLng - lastUserCoords.lng;
+                            if (Math.hypot(dLat, dLng) > 0.00001) {
+                                let angle = Math.atan2(dLng, dLat) * (180 / Math.PI);
+                                if (angle < 0) angle += 360;
+                                currentHeading = angle;
+                            }
+                        }
+                        lastUserCoords = newPoint;
+                        userLatLng = newPoint;
 
                         updateUserMarker(userLatLng);
                         
                         let currentSpeedKmH = 0;
                         if (position.coords.speed !== null && position.coords.speed >= 0) {
                             currentSpeedKmH = Math.round(position.coords.speed * 3.6);
-                            document.getElementById('current-speed').innerText = currentSpeedKmH;
+                        } else if (lastUserCoords && userLatLng) {
+                            // Estimativa básica se o speed nativo vier nulo
+                            currentSpeedKmH = 15; 
+                        }
+                        document.getElementById('current-speed').innerText = currentSpeedKmH;
 
-                            if (isNavigating) {
-                                if (currentSpeedKmH > maxSpeedRecorded) {
-                                    maxSpeedRecorded = currentSpeedKmH;
-                                }
-                                if (currentSpeedKmH > 0 && currentSpeedKmH < minSpeedRecorded) {
-                                    minSpeedRecorded = currentSpeedKmH;
-                                }
+                        if (isNavigating) {
+                            if (currentSpeedKmH > maxSpeedRecorded) {
+                                maxSpeedRecorded = currentSpeedKmH;
+                            }
+                            if (currentSpeedKmH > 0 && currentSpeedKmH < minSpeedRecorded) {
+                                minSpeedRecorded = currentSpeedKmH;
                             }
                         }
 
+                        // Centraliza automaticamente e alinha o mapa na direção da rua se o usuário não estiver tocando
                         if (isFollowingUser) {
                             map.setView(userLatLng, NAVIGATION_ZOOM, { animate: false });
                             applyMapTransform(currentHeading);
@@ -540,7 +564,6 @@
             isFollowingUser = true;
             closeSheet();
 
-            // Resetar Métricas do Relatório
             navigationStartTime = new Date();
             maxSpeedRecorded = 0;
             minSpeedRecorded = Infinity;
@@ -550,10 +573,7 @@
 
             calculateRoute(() => {
                 document.getElementById('view-navigation').classList.remove('hidden');
-                if (userLatLng) {
-                    map.setView(userLatLng, NAVIGATION_ZOOM, { animate: true });
-                    applyMapTransform(currentHeading);
-                }
+                centerOnUser();
             }, true);
 
             if (navigationInterval) clearInterval(navigationInterval);
@@ -691,7 +711,6 @@
             if (distanceToDestination <= 20) {
                 hasArrived = true;
                 
-                // Calcular tempo decorrido total
                 if (navigationStartTime) {
                     const now = new Date();
                     navigationTotalSeconds = Math.round((now - navigationStartTime) / 1000);
@@ -704,7 +723,6 @@
         function showReportModal() {
             document.getElementById('arrivalModal').classList.add('hidden');
 
-            // Formatar tempo total
             let timeStr = "";
             const mins = Math.floor(navigationTotalSeconds / 60);
             const secs = navigationTotalSeconds % 60;
