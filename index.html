@@ -40,7 +40,8 @@
             transition: transform 0.1s linear;
         }
 
-        .leaflet-tile-pane { filter: contrast(1.1) saturate(0.9); }
+        /* Estilo azul marinho para o mapa escuro */
+        .leaflet-tile-pane { filter: brightness(0.85) contrast(1.15) hue-rotate(180deg) saturate(1.2); }
 
         .user-gps-container {
             position: relative;
@@ -53,7 +54,7 @@
 
         .user-pulse {
             width: 80px; height: 80px;
-            background: rgba(37, 99, 235, 0.4);
+            background: rgba(59, 130, 246, 0.4);
             border-radius: 50%;
             position: absolute;
             animation: pulse-ring 2s infinite;
@@ -61,11 +62,11 @@
 
         .user-dot {
             width: 36px; height: 36px;
-            background: #2563eb;
-            border: 5px solid #ffffff;
+            background: #3b82f6;
+            border: 5px solid #18181b;
             border-radius: 50%;
             position: absolute;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.6);
         }
 
         @keyframes pulse-ring {
@@ -76,7 +77,7 @@
         .panel-slide { transition: transform 0.3s cubic-bezier(0.1, 0.9, 0.2, 1); }
     </style>
 </head>
-<body id="app-body" class="h-full w-full flex flex-col relative bg-zinc-100 text-zinc-900 overflow-hidden box-border">
+<body id="app-body" class="h-full w-full flex flex-col relative bg-zinc-900 text-gray-100 overflow-hidden box-border">
 
     <!-- MAPA -->
     <div id="map-container">
@@ -85,14 +86,59 @@
 
     <!-- MODAL DE CHEGADA -->
     <div id="arrivalModal" class="absolute inset-0 bg-black/75 z-50 hidden flex flex-col items-center justify-center p-6 backdrop-blur-xs box-border">
-        <div class="bg-white border border-zinc-200 rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl flex flex-col items-center text-zinc-900">
+        <div class="bg-zinc-800 border border-zinc-700 rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl flex flex-col items-center text-gray-100">
             <div class="w-20 h-20 bg-emerald-600 text-white rounded-full flex items-center justify-center text-4xl mb-4 shadow-lg animate-bounce">
                 <i class="fa-solid fa-flag-checkered"></i>
             </div>
             <h2 class="text-3xl font-extrabold mb-2">Você chegou!</h2>
-            <p class="text-zinc-600 text-base mb-8">Destino alcançado com sucesso pelo PoleMaps.</p>
-            <button onclick="closeArrivalModal()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 text-lg rounded-2xl shadow-xl transition">
-                Finalizar Navegação
+            <p class="text-zinc-400 text-base mb-6">Destino alcançado com sucesso pelo PoleMaps.</p>
+            <button onclick="showReportModal()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 text-lg rounded-2xl shadow-xl transition">
+                Ver Relatório do Percurso
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL DE RELATÓRIO DE PERCURSO -->
+    <div id="reportModal" class="absolute inset-0 bg-black/85 z-50 hidden flex flex-col items-center justify-center p-6 backdrop-blur-xs box-border">
+        <div class="bg-zinc-800 border border-zinc-700 rounded-3xl p-6 w-full max-w-sm shadow-2xl flex flex-col text-gray-100">
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center text-2xl shadow">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-black">Relatório Final</h2>
+                    <p class="text-xs text-zinc-400">Resumo da sua atividade no PoleMaps</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-3 mb-6">
+                <div class="bg-zinc-900 border border-zinc-700/80 p-4 rounded-2xl flex items-center justify-between">
+                    <div class="flex items-center space-x-3 text-zinc-400">
+                        <i class="fa-regular fa-clock text-xl text-blue-400"></i>
+                        <span class="font-medium text-sm">Tempo Total</span>
+                    </div>
+                    <span id="report-time" class="text-lg font-black text-white">--</span>
+                </div>
+
+                <div class="bg-zinc-900 border border-zinc-700/80 p-4 rounded-2xl flex items-center justify-between">
+                    <div class="flex items-center space-x-3 text-zinc-400">
+                        <i class="fa-solid fa-gauge-high text-xl text-emerald-400"></i>
+                        <span class="font-medium text-sm">Velocidade Máxima</span>
+                    </div>
+                    <span id="report-max-speed" class="text-lg font-black text-emerald-400">-- km/h</span>
+                </div>
+
+                <div class="bg-zinc-900 border border-zinc-700/80 p-4 rounded-2xl flex items-center justify-between">
+                    <div class="flex items-center space-x-3 text-zinc-400">
+                        <i class="fa-solid fa-gauge text-xl text-amber-400"></i>
+                        <span class="font-medium text-sm">Velocidade Mínima</span>
+                    </div>
+                    <span id="report-min-speed" class="text-lg font-black text-amber-400">-- km/h</span>
+                </div>
+            </div>
+
+            <button onclick="closeReportAndFinish()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 text-lg rounded-2xl shadow-xl transition">
+                Concluir e Sair
             </button>
         </div>
     </div>
@@ -100,26 +146,23 @@
     <!-- TELA PRINCIPAL -->
     <div id="view-home" class="absolute inset-0 z-10 flex flex-col justify-between pointer-events-none p-4 box-border">
         <div id="top-search-wrapper" class="pointer-events-auto flex items-center space-x-3 mt-2 w-full transition-all duration-300">
-            <div id="search-bar-container" class="flex-1 bg-white shadow-2xl rounded-full flex items-center px-5 py-3.5 border border-zinc-200 box-border text-zinc-900">
-                <button onclick="clearSearch()" class="text-zinc-500 mr-3 text-2xl hover:text-zinc-900 transition">
+            <div id="search-bar-container" class="flex-1 bg-zinc-800 shadow-2xl rounded-full flex items-center px-5 py-3.5 border border-zinc-700/80 box-border text-gray-100">
+                <button onclick="clearSearch()" class="text-zinc-400 mr-3 text-2xl hover:text-white transition">
                     <i class="fa-solid fa-arrow-left"></i>
                 </button>
                 <input type="text" id="searchInput" placeholder="Pesquisar rua ou local (ou histórico)..." oninput="handleSearchInput(event)" onfocus="showHistorySuggestions()"
-                       class="flex-1 bg-transparent text-inherit placeholder:text-zinc-400 focus:outline-none text-lg font-medium min-w-0">
-                <button class="text-zinc-500 mx-3 text-xl hover:text-zinc-900 transition">
+                       class="flex-1 bg-transparent text-inherit placeholder:text-zinc-500 focus:outline-none text-lg font-medium min-w-0">
+                <button class="text-zinc-400 mx-3 text-xl hover:text-white transition">
                     <i class="fa-solid fa-microphone"></i>
                 </button>
                 <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-sm text-white shadow shrink-0">US</div>
             </div>
         </div>
 
-        <div id="suggestionsBox" class="absolute left-4 right-20 top-20 bg-white border border-zinc-200 rounded-3xl shadow-2xl hidden max-h-72 overflow-y-auto z-30 pointer-events-auto box-border text-zinc-900"></div>
+        <div id="suggestionsBox" class="absolute left-4 right-20 top-20 bg-zinc-800 border border-zinc-700 rounded-3xl shadow-2xl hidden max-h-72 overflow-y-auto z-30 pointer-events-auto box-border text-gray-100"></div>
 
         <div class="pointer-events-auto flex justify-end space-x-3 px-2 mb-28">
-            <button onclick="toggleTheme()" id="themeToggleBtnHome" class="w-14 h-14 bg-white text-orange-500 shadow-2xl rounded-full flex items-center justify-center text-2xl border border-zinc-200 active:scale-95 transition" title="Alternar Tema">
-                <i class="fa-solid fa-sun" id="themeIconHome"></i>
-            </button>
-            <button onclick="centerOnUser()" id="centerBtn" class="w-14 h-14 bg-white text-blue-600 shadow-2xl rounded-full flex items-center justify-center text-2xl border border-zinc-200 active:scale-95 transition" title="Centralizar">
+            <button onclick="centerOnUser()" id="centerBtn" class="w-14 h-14 bg-zinc-800 text-blue-400 shadow-2xl rounded-full flex items-center justify-center text-2xl border border-zinc-700 active:scale-95 transition" title="Centralizar">
                 <i class="fa-solid fa-location-crosshairs"></i>
             </button>
         </div>
@@ -132,21 +175,21 @@
     </div>
 
     <!-- TELA 2: FICHA DO LOCAL -->
-    <div id="view-place-sheet" class="absolute inset-x-0 bottom-4 z-20 mx-3 bg-white rounded-3xl shadow-2xl p-5 border border-zinc-200 panel-slide translate-y-[120%] flex flex-col max-h-[80vh] box-border text-zinc-900">
-        <div id="sheet-handle" class="w-14 h-2 bg-zinc-300 rounded-full mx-auto mb-4"></div>
+    <div id="view-place-sheet" class="absolute inset-x-0 bottom-4 z-20 mx-3 bg-zinc-800 rounded-3xl shadow-2xl p-5 border border-zinc-700 panel-slide translate-y-[120%] flex flex-col max-h-[80vh] box-border text-gray-100">
+        <div id="sheet-handle" class="w-14 h-2 bg-zinc-600 rounded-full mx-auto mb-4"></div>
         
         <div class="flex justify-between items-start mb-2">
             <div>
                 <h2 id="sheet-title" class="text-2xl font-bold">Local Selecionado</h2>
             </div>
-            <button onclick="closeSheet()" id="sheet-close-btn" class="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-zinc-900 text-lg shrink-0">
+            <button onclick="closeSheet()" id="sheet-close-btn" class="w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-300 hover:text-white text-lg shrink-0">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
 
-        <p class="text-sm text-zinc-500 mb-4">PoleMaps • Navegação 3D Offline Ready</p>
+        <p class="text-sm text-zinc-400 mb-4">PoleMaps • Navegação 3D Offline Ready</p>
 
-        <div id="vehicle-container" class="grid grid-cols-1 gap-2 mb-5 bg-zinc-100 p-3 rounded-2xl border border-zinc-200 box-border">
+        <div id="vehicle-container" class="grid grid-cols-1 gap-2 mb-5 bg-zinc-900 p-3 rounded-2xl border border-zinc-700 box-border">
             <div class="flex items-center justify-between px-4 py-3 rounded-xl bg-blue-600 text-white">
                 <div class="flex items-center space-x-3">
                     <i class="fa-solid fa-bicycle text-2xl"></i>
@@ -173,20 +216,17 @@
             </div>
 
             <!-- PAINEL INFERIOR -->
-            <div id="nav-bottom-panel" class="pointer-events-auto bg-white border border-zinc-200 rounded-3xl p-4 flex flex-col space-y-3 shadow-2xl box-border w-full text-zinc-900">
+            <div id="nav-bottom-panel" class="pointer-events-auto bg-zinc-800 border border-zinc-700 rounded-3xl p-4 flex flex-col space-y-3 shadow-2xl box-border w-full text-gray-100">
                 <div class="flex items-center justify-between">
-                    <button onclick="cancelNavigation()" id="nav-cancel-btn" class="w-14 h-14 rounded-full bg-zinc-100 flex items-center justify-center text-red-500 text-2xl border border-zinc-200 shrink-0">
+                    <button onclick="cancelNavigation()" id="nav-cancel-btn" class="w-14 h-14 rounded-full bg-zinc-700 flex items-center justify-center text-red-400 text-2xl border border-zinc-600 shrink-0">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                     <div class="text-center px-2">
                         <div id="nav-time" class="text-3xl font-black">-- min</div>
-                        <div id="nav-distance" class="text-sm text-zinc-500 font-semibold">-- km</div>
+                        <div id="nav-distance" class="text-sm text-zinc-400 font-semibold">-- km</div>
                     </div>
                     <div class="flex items-center space-x-2">
-                        <button onclick="toggleTheme()" id="themeToggleBtnNav" class="w-14 h-14 bg-zinc-100 text-orange-500 rounded-2xl flex items-center justify-center text-xl border border-zinc-200 shrink-0 active:scale-95 transition" title="Alternar Tema">
-                            <i class="fa-solid fa-sun" id="themeIconNav"></i>
-                        </button>
-                        <div id="nav-speed-box" class="w-20 h-14 rounded-2xl bg-zinc-100 flex flex-col items-center justify-center border border-zinc-200 text-blue-600 shrink-0">
+                        <div id="nav-speed-box" class="w-20 h-14 rounded-2xl bg-zinc-900 flex flex-col items-center justify-center border border-zinc-700 text-blue-400 shrink-0">
                             <span id="current-speed" class="text-xl font-black">0</span>
                             <span class="text-[10px] text-zinc-500 uppercase tracking-tighter font-bold">km/h</span>
                         </div>
@@ -194,7 +234,7 @@
                 </div>
 
                 <!-- ALERTA DE RITMO / VELOCIDADE MÉDIA -->
-                <div id="pace-status-banner" class="w-full py-2 px-3 rounded-xl bg-blue-50 text-blue-700 font-bold text-xs flex items-center justify-center space-x-2 border border-blue-200 text-center">
+                <div id="pace-status-banner" class="w-full py-2 px-3 rounded-xl bg-blue-950/60 text-blue-300 font-bold text-xs flex items-center justify-center space-x-2 border border-blue-800/60 text-center">
                     <i class="fa-solid fa-gauge-high text-sm"></i>
                     <span id="pace-status-text">Aguardando dados de movimento...</span>
                 </div>
@@ -212,7 +252,6 @@
         let routingControl = null;
         let isFollowingUser = true;
         let searchTimeout = null;
-        let currentTheme = 'light';
         let isNavigating = false;
         let currentHeading = 0;
         let routeCoordinates = [];
@@ -224,12 +263,18 @@
         let initialRouteDistance = 0;
         let expectedRouteDurationMin = 0;
 
-        const NAVIGATION_ZOOM = 16.5;
+        // Variáveis para Estatísticas da Rota (Relatório)
+        let navigationStartTime = null;
+        let navigationTotalSeconds = 0;
+        let maxSpeedRecorded = 0;
+        let minSpeedRecorded = Infinity;
+
+        const NAVIGATION_ZOOM = 19;
 
         function initMap() {
             userLatLng = L.latLng(-23.5505, -46.6333);
-            map = L.map('map', { zoomControl: false, attributionControl: false }).setView(userLatLng, NAVIGATION_ZOOM);
-            setMapTheme(currentTheme);
+            map = L.map('map', { zoomControl: false, attributionControl: false, maxZoom: 19 }).setView(userLatLng, NAVIGATION_ZOOM);
+            setMapTheme();
 
             updateUserMarker(userLatLng);
             startRealGeolocation();
@@ -269,72 +314,10 @@
             }
         }
 
-        function toggleTheme() {
-            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            setMapTheme(currentTheme);
-            applyUITheme(currentTheme);
-        }
-
-        function setMapTheme(theme) {
+        function setMapTheme() {
             if (tileLayer) map.removeLayer(tileLayer);
-            if (theme === 'dark') {
-                tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 21 });
-            } else {
-                tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 21 });
-            }
+            tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, maxNativeZoom: 19 });
             tileLayer.addTo(map);
-        }
-
-        function applyUITheme(theme) {
-            const body = document.getElementById('app-body');
-            const searchBar = document.getElementById('search-bar-container');
-            const suggestions = document.getElementById('suggestionsBox');
-            const themeBtnHome = document.getElementById('themeToggleBtnHome');
-            const themeIconHome = document.getElementById('themeIconHome');
-            const themeBtnNav = document.getElementById('themeToggleBtnNav');
-            const themeIconNav = document.getElementById('themeIconNav');
-            const centerBtn = document.getElementById('centerBtn');
-            const sheet = document.getElementById('view-place-sheet');
-            const sheetHandle = document.getElementById('sheet-handle');
-            const sheetClose = document.getElementById('sheet-close-btn');
-            const vehicleContainer = document.getElementById('vehicle-container');
-            const navBottomPanel = document.getElementById('nav-bottom-panel');
-            const navCancelBtn = document.getElementById('nav-cancel-btn');
-            const navSpeedBox = document.getElementById('nav-speed-box');
-
-            if (theme === 'light') {
-                body.className = "h-full w-full flex flex-col relative bg-zinc-100 text-zinc-900 overflow-hidden box-border";
-                searchBar.className = "flex-1 bg-white shadow-2xl rounded-full flex items-center px-5 py-3.5 border border-zinc-200 box-border text-zinc-900";
-                suggestions.className = "absolute left-4 right-20 top-20 bg-white border border-zinc-200 rounded-3xl shadow-2xl hidden max-h-72 overflow-y-auto z-30 pointer-events-auto text-zinc-900 box-border";
-                themeBtnHome.className = "w-14 h-14 bg-white text-orange-500 shadow-2xl rounded-full flex items-center justify-center text-2xl border border-zinc-200 shrink-0 active:scale-95 transition";
-                themeIconHome.className = "fa-solid fa-sun";
-                themeBtnNav.className = "w-14 h-14 bg-zinc-100 text-orange-500 rounded-2xl flex items-center justify-center text-xl border border-zinc-200 shrink-0 active:scale-95 transition";
-                themeIconNav.className = "fa-solid fa-sun";
-                centerBtn.className = "w-14 h-14 bg-white text-blue-600 shadow-2xl rounded-full flex items-center justify-center text-2xl border border-zinc-200 active:scale-95 transition";
-                sheet.className = "absolute inset-x-0 bottom-4 z-20 mx-3 bg-white rounded-3xl shadow-2xl p-5 border border-zinc-200 panel-slide translate-y-[120%] flex flex-col max-h-[80vh] text-zinc-900 box-border";
-                sheetHandle.className = "w-14 h-2 bg-zinc-300 rounded-full mx-auto mb-4";
-                sheetClose.className = "w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-zinc-900 text-lg shrink-0";
-                vehicleContainer.className = "grid grid-cols-1 gap-2 mb-5 bg-zinc-100 p-3 rounded-2xl border border-zinc-200 box-border";
-                navBottomPanel.className = "pointer-events-auto bg-white border border-zinc-200 rounded-3xl p-4 flex flex-col space-y-3 shadow-2xl text-zinc-900 box-border w-full";
-                navCancelBtn.className = "w-14 h-14 rounded-full bg-zinc-100 flex items-center justify-center text-red-500 text-2xl border border-zinc-200 shrink-0";
-                navSpeedBox.className = "w-20 h-14 rounded-2xl bg-zinc-100 flex flex-col items-center justify-center border border-zinc-200 text-blue-600 shrink-0";
-            } else {
-                body.className = "h-full w-full flex flex-col relative bg-zinc-900 text-gray-100 overflow-hidden box-border";
-                searchBar.className = "flex-1 bg-zinc-800 shadow-2xl rounded-full flex items-center px-5 py-3.5 border border-zinc-700/80 box-border text-gray-100";
-                suggestions.className = "absolute left-4 right-20 top-20 bg-zinc-800 border border-zinc-700 rounded-3xl shadow-2xl hidden max-h-72 overflow-y-auto z-30 pointer-events-auto text-gray-100 box-border";
-                themeBtnHome.className = "w-14 h-14 bg-zinc-800 text-yellow-400 shadow-2xl rounded-full flex items-center justify-center text-2xl border border-zinc-700 shrink-0 active:scale-95 transition";
-                themeIconHome.className = "fa-solid fa-moon";
-                themeBtnNav.className = "w-14 h-14 bg-zinc-900 text-yellow-400 rounded-2xl flex items-center justify-center text-xl border border-zinc-700 shrink-0 active:scale-95 transition";
-                themeIconNav.className = "fa-solid fa-moon";
-                centerBtn.className = "w-14 h-14 bg-zinc-800 text-blue-400 shadow-2xl rounded-full flex items-center justify-center text-2xl border border-zinc-700 shrink-0 active:scale-95 transition";
-                sheet.className = "absolute inset-x-0 bottom-4 z-20 mx-3 bg-zinc-800 rounded-3xl shadow-2xl p-5 border border-zinc-700 panel-slide translate-y-[120%] flex flex-col max-h-[80vh] text-gray-100 box-border";
-                sheetHandle.className = "w-14 h-2 bg-zinc-600 rounded-full mx-auto mb-4";
-                sheetClose.className = "w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-300 hover:text-white text-lg shrink-0";
-                vehicleContainer.className = "grid grid-cols-1 gap-2 mb-5 bg-zinc-900 p-3 rounded-2xl border border-zinc-700 box-border";
-                navBottomPanel.className = "pointer-events-auto bg-zinc-800 border border-zinc-700 rounded-3xl p-4 flex flex-col space-y-3 shadow-2xl text-gray-100 box-border w-full";
-                navCancelBtn.className = "w-14 h-14 rounded-full bg-zinc-700 flex items-center justify-center text-red-400 text-2xl border border-zinc-600 shrink-0";
-                navSpeedBox.className = "w-20 h-14 rounded-2xl bg-zinc-900 flex flex-col items-center justify-center border border-zinc-700 text-blue-400 shrink-0";
-            }
         }
 
         function startRealGeolocation() {
@@ -351,6 +334,15 @@
                         if (position.coords.speed !== null && position.coords.speed >= 0) {
                             currentSpeedKmH = Math.round(position.coords.speed * 3.6);
                             document.getElementById('current-speed').innerText = currentSpeedKmH;
+
+                            if (isNavigating) {
+                                if (currentSpeedKmH > maxSpeedRecorded) {
+                                    maxSpeedRecorded = currentSpeedKmH;
+                                }
+                                if (currentSpeedKmH > 0 && currentSpeedKmH < minSpeedRecorded) {
+                                    minSpeedRecorded = currentSpeedKmH;
+                                }
+                            }
                         }
 
                         if (isFollowingUser) {
@@ -405,11 +397,11 @@
             let history = JSON.parse(localStorage.getItem('polemaps_history') || '[]');
             
             if (history.length > 0) {
-                box.innerHTML = `<div class="px-5 py-2 text-xs font-bold text-zinc-400 uppercase tracking-wider">Locais Salvos (Offline Ready)</div>`;
+                box.innerHTML = `<div class="px-5 py-2 text-xs font-bold text-zinc-500 uppercase tracking-wider">Locais Salvos (Offline Ready)</div>`;
                 history.forEach(item => {
                     const div = document.createElement('div');
-                    div.className = `px-5 py-3.5 ${currentTheme === 'light' ? 'hover:bg-zinc-100 border-zinc-200' : 'hover:bg-zinc-700 border-zinc-700'} border-b text-base cursor-pointer flex items-center space-x-3`;
-                    div.innerHTML = `<i class="fa-solid fa-clock-rotate-left text-blue-500 mr-1"></i><span class="truncate font-medium">${item.name}</span>`;
+                    div.className = `px-5 py-3.5 hover:bg-zinc-700 border-b border-zinc-700 text-base cursor-pointer flex items-center space-x-3`;
+                    div.innerHTML = `<i class="fa-solid fa-clock-rotate-left text-blue-400 mr-1"></i><span class="truncate font-medium">${item.name}</span>`;
                     div.onclick = () => {
                         document.getElementById('searchInput').value = item.name;
                         box.classList.add('hidden');
@@ -441,8 +433,8 @@
                         data.forEach(item => {
                             const fullName = item.display_name.split(',')[0];
                             const div = document.createElement('div');
-                            div.className = `px-5 py-4 ${currentTheme === 'light' ? 'hover:bg-zinc-100 border-zinc-200' : 'hover:bg-zinc-700 border-zinc-700'} border-b text-base cursor-pointer flex items-center space-x-3`;
-                            div.innerHTML = `<i class="fa-solid fa-location-dot text-blue-500 text-sm mr-1"></i><span class="truncate font-medium">${item.display_name}</span>`;
+                            div.className = `px-5 py-4 hover:bg-zinc-700 border-b border-zinc-700 text-base cursor-pointer flex items-center space-x-3`;
+                            div.innerHTML = `<i class="fa-solid fa-location-dot text-blue-400 text-sm mr-1"></i><span class="truncate font-medium">${item.display_name}</span>`;
                             div.onclick = () => {
                                 document.getElementById('searchInput').value = fullName;
                                 box.classList.add('hidden');
@@ -462,8 +454,8 @@
                     if(matched.length > 0) {
                         matched.forEach(item => {
                             const div = document.createElement('div');
-                            div.className = `px-5 py-4 border-b text-base cursor-pointer flex items-center space-x-3`;
-                            div.innerHTML = `<i class="fa-solid fa-wifi-slash text-orange-500"></i><span class="truncate font-medium">${item.name} (Modo Offline)</span>`;
+                            div.className = `px-5 py-4 border-b border-zinc-700 text-base cursor-pointer flex items-center space-x-3`;
+                            div.innerHTML = `<i class="fa-solid fa-wifi-slash text-orange-400"></i><span class="truncate font-medium">${item.name} (Modo Offline)</span>`;
                             div.onclick = () => {
                                 document.getElementById('searchInput').value = item.name;
                                 box.classList.add('hidden');
@@ -495,7 +487,7 @@
             
             if (destinationMarker) map.removeLayer(destinationMarker);
             destinationMarker = L.circleMarker(latlng, {
-                radius: 12, color: '#ffffff', fillColor: '#ea4335', fillOpacity: 1, weight: 3
+                radius: 12, color: '#18181b', fillColor: '#ef4444', fillOpacity: 1, weight: 3
             }).addTo(map);
 
             document.getElementById('view-home').classList.add('hidden');
@@ -548,7 +540,11 @@
             isFollowingUser = true;
             closeSheet();
 
-            // Garante que o painel de pesquisa superior suma completamente ao iniciar a rota
+            // Resetar Métricas do Relatório
+            navigationStartTime = new Date();
+            maxSpeedRecorded = 0;
+            minSpeedRecorded = Infinity;
+
             document.getElementById('top-search-wrapper').classList.add('hidden');
             document.getElementById('suggestionsBox').classList.add('hidden');
 
@@ -586,7 +582,7 @@
                 }),
                 routeWhileDragging: false,
                 show: false,
-                lineOptions: { styles: [{ color: isPreview ? '#2563eb' : 'transparent', opacity: 0.9, weight: 8 }] },
+                lineOptions: { styles: [{ color: isPreview ? '#3b82f6' : 'transparent', opacity: 0.9, weight: 8 }] },
                 fitSelectedRoutes: isPreview
             }).addTo(map);
 
@@ -659,8 +655,8 @@
             if (traveledLine) map.removeLayer(traveledLine);
             if (remainingLine) map.removeLayer(remainingLine);
 
-            traveledLine = L.polyline(traveledCoords, { color: '#a1a1aa', weight: 8, opacity: 0.8 }).addTo(map);
-            remainingLine = L.polyline(remainingCoords, { color: '#2563eb', weight: 9, opacity: 0.95 }).addTo(map);
+            traveledLine = L.polyline(traveledCoords, { color: '#52525b', weight: 8, opacity: 0.8 }).addTo(map);
+            remainingLine = L.polyline(remainingCoords, { color: '#3b82f6', weight: 9, opacity: 0.95 }).addTo(map);
         }
 
         function updatePaceStatus(remainingMeters, remainingMin, currentSpeed) {
@@ -672,19 +668,19 @@
             const requiredSpeed = hoursNeeded > 0 ? (kmNeeded / hoursNeeded) : 12;
 
             if (currentSpeed < 3 && currentSpeed >= 0) {
-                banner.className = "w-full py-2 px-3 rounded-xl bg-zinc-100 text-zinc-600 font-bold text-xs flex items-center justify-center space-x-2 border border-zinc-200 text-center";
+                banner.className = "w-full py-2 px-3 rounded-xl bg-zinc-800 text-zinc-400 font-bold text-xs flex items-center justify-center space-x-2 border border-zinc-700 text-center";
                 textEl.innerText = "Em pausa ou andando muito devagar";
                 return;
             }
 
             if (currentSpeed > requiredSpeed + 3) {
-                banner.className = "w-full py-2 px-3 rounded-xl bg-amber-50 text-amber-700 font-bold text-xs flex items-center justify-center space-x-2 border border-amber-200 text-center";
+                banner.className = "w-full py-2 px-3 rounded-xl bg-amber-950/60 text-amber-300 font-bold text-xs flex items-center justify-center space-x-2 border border-amber-800/60 text-center";
                 textEl.innerText = `Você está muito rápido (${currentSpeed} km/h) — Acima da média`;
             } else if (currentSpeed < requiredSpeed - 3) {
-                banner.className = "w-full py-2 px-3 rounded-xl bg-red-50 text-red-700 font-bold text-xs flex items-center justify-center space-x-2 border border-red-200 text-center";
+                banner.className = "w-full py-2 px-3 rounded-xl bg-red-950/60 text-red-300 font-bold text-xs flex items-center justify-center space-x-2 border border-red-800/60 text-center";
                 textEl.innerText = `Ritmo abaixo da média (${currentSpeed} km/h) — Acelere para chegar a tempo`;
             } else {
-                banner.className = "w-full py-2 px-3 rounded-xl bg-emerald-50 text-emerald-700 font-bold text-xs flex items-center justify-center space-x-2 border border-emerald-200 text-center";
+                banner.className = "w-full py-2 px-3 rounded-xl bg-emerald-950/60 text-emerald-300 font-bold text-xs flex items-center justify-center space-x-2 border border-emerald-800/60 text-center";
                 textEl.innerText = `No ritmo ideal para chegar a tempo (${currentSpeed} km/h)`;
             }
         }
@@ -694,12 +690,39 @@
             const distanceToDestination = currentLatLng.distanceTo(destinationLatLng);
             if (distanceToDestination <= 20) {
                 hasArrived = true;
+                
+                // Calcular tempo decorrido total
+                if (navigationStartTime) {
+                    const now = new Date();
+                    navigationTotalSeconds = Math.round((now - navigationStartTime) / 1000);
+                }
+
                 document.getElementById('arrivalModal').classList.remove('hidden');
             }
         }
 
-        function closeArrivalModal() {
+        function showReportModal() {
             document.getElementById('arrivalModal').classList.add('hidden');
+
+            // Formatar tempo total
+            let timeStr = "";
+            const mins = Math.floor(navigationTotalSeconds / 60);
+            const secs = navigationTotalSeconds % 60;
+            if (mins > 0) {
+                timeStr = `${mins} min ${secs} seg`;
+            } else {
+                timeStr = `${secs} seg`;
+            }
+
+            document.getElementById('report-time').innerText = timeStr;
+            document.getElementById('report-max-speed').innerText = `${maxSpeedRecorded} km/h`;
+            document.getElementById('report-min-speed').innerText = `${minSpeedRecorded === Infinity ? 0 : minSpeedRecorded} km/h`;
+
+            document.getElementById('reportModal').classList.remove('hidden');
+        }
+
+        function closeReportAndFinish() {
+            document.getElementById('reportModal').classList.add('hidden');
             cancelNavigation();
         }
 
@@ -725,6 +748,7 @@
             document.getElementById('view-home').classList.remove('hidden');
             document.getElementById('reorganize-container').classList.add('hidden');
             document.getElementById('arrivalModal').classList.add('hidden');
+            document.getElementById('reportModal').classList.add('hidden');
             
             if (routingControl) map.removeControl(routingControl);
             if (destinationMarker) map.removeLayer(destinationMarker);
