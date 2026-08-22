@@ -40,7 +40,7 @@
             transition: transform 0.1s linear;
         }
 
-        .leaflet-tile-pane { filter: contrast(1.05) saturate(0.85); }
+        .leaflet-tile-pane { filter: contrast(1.1) saturate(0.9); }
 
         .user-gps-container {
             position: relative;
@@ -97,9 +97,9 @@
         </div>
     </div>
 
-    <!-- TELA PRINCIPAL -->
+    <!-- TELA PRINCIPAL (BARRA DE PESQUISA - SOME NA ROTA) -->
     <div id="view-home" class="absolute inset-0 z-10 flex flex-col justify-between pointer-events-none p-4 box-border">
-        <div class="pointer-events-auto flex items-center space-x-3 mt-2 w-full">
+        <div id="top-search-wrapper" class="pointer-events-auto flex items-center space-x-3 mt-2 w-full transition-all duration-300">
             <div id="search-bar-container" class="flex-1 bg-white shadow-2xl rounded-full flex items-center px-5 py-3.5 border border-zinc-200 box-border text-zinc-900">
                 <button onclick="clearSearch()" class="text-zinc-500 mr-3 text-2xl hover:text-zinc-900 transition">
                     <i class="fa-solid fa-arrow-left"></i>
@@ -162,9 +162,8 @@
         </button>
     </div>
 
-    <!-- TELA 3: NAVEGAÇÃO EM ANDAMENTO (SEM PAINEL SUPERIOR) -->
+    <!-- TELA 3: NAVEGAÇÃO EM ANDAMENTO -->
     <div id="view-navigation" class="absolute inset-0 z-30 pointer-events-none flex flex-col justify-end p-4 box-border hidden">
-        <!-- PAINEL INFERIOR COM BOTÃO DE REORGANIZAR ROTA ACIMA -->
         <div class="flex flex-col space-y-3 w-full">
             <div id="reorganize-container" class="pointer-events-auto flex justify-center w-full hidden">
                 <button onclick="reorganizeRoute()" class="bg-amber-600 hover:bg-amber-500 text-white font-bold text-base px-6 py-3 rounded-full shadow-2xl flex items-center space-x-3 border border-amber-500 transition animate-bounce">
@@ -173,22 +172,31 @@
                 </button>
             </div>
 
-            <div id="nav-bottom-panel" class="pointer-events-auto bg-white border border-zinc-200 rounded-3xl p-4 flex items-center justify-between shadow-2xl box-border w-full text-zinc-900">
-                <button onclick="cancelNavigation()" id="nav-cancel-btn" class="w-14 h-14 rounded-full bg-zinc-100 flex items-center justify-center text-red-500 text-2xl border border-zinc-200 shrink-0">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-                <div class="text-center px-2">
-                    <div id="nav-time" class="text-3xl font-black">-- min</div>
-                    <div id="nav-distance" class="text-sm text-zinc-500 font-semibold">-- km</div>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <button onclick="toggleTheme()" id="themeToggleBtnNav" class="w-14 h-14 bg-zinc-100 text-orange-500 rounded-2xl flex items-center justify-center text-xl border border-zinc-200 shrink-0 active:scale-95 transition" title="Alternar Tema">
-                        <i class="fa-solid fa-sun" id="themeIconNav"></i>
+            <!-- PAINEL INFERIOR COM AVISO DE VELOCIDADE / RITMO -->
+            <div id="nav-bottom-panel" class="pointer-events-auto bg-white border border-zinc-200 rounded-3xl p-4 flex flex-col space-y-3 shadow-2xl box-border w-full text-zinc-900">
+                <div class="flex items-center justify-between">
+                    <button onclick="cancelNavigation()" id="nav-cancel-btn" class="w-14 h-14 rounded-full bg-zinc-100 flex items-center justify-center text-red-500 text-2xl border border-zinc-200 shrink-0">
+                        <i class="fa-solid fa-xmark"></i>
                     </button>
-                    <div id="nav-speed-box" class="w-20 h-14 rounded-2xl bg-zinc-100 flex flex-col items-center justify-center border border-zinc-200 text-blue-600 shrink-0">
-                        <span id="current-speed" class="text-xl font-black">0</span>
-                        <span class="text-[10px] text-zinc-500 uppercase tracking-tighter font-bold">km/h</span>
+                    <div class="text-center px-2">
+                        <div id="nav-time" class="text-3xl font-black">-- min</div>
+                        <div id="nav-distance" class="text-sm text-zinc-500 font-semibold">-- km</div>
                     </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="toggleTheme()" id="themeToggleBtnNav" class="w-14 h-14 bg-zinc-100 text-orange-500 rounded-2xl flex items-center justify-center text-xl border border-zinc-200 shrink-0 active:scale-95 transition" title="Alternar Tema">
+                            <i class="fa-solid fa-sun" id="themeIconNav"></i>
+                        </button>
+                        <div id="nav-speed-box" class="w-20 h-14 rounded-2xl bg-zinc-100 flex flex-col items-center justify-center border border-zinc-200 text-blue-600 shrink-0">
+                            <span id="current-speed" class="text-xl font-black">0</span>
+                            <span class="text-[10px] text-zinc-500 uppercase tracking-tighter font-bold">km/h</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ALERTA DE RITMO / VELOCIDADE MÉDIA -->
+                <div id="pace-status-banner" class="w-full py-2 px-3 rounded-xl bg-blue-50 text-blue-700 font-bold text-xs flex items-center justify-center space-x-2 border border-blue-200 text-center">
+                    <i class="fa-solid fa-gauge-high text-sm"></i>
+                    <span id="pace-status-text">Aguardando dados de movimento...</span>
                 </div>
             </div>
         </div>
@@ -212,6 +220,9 @@
         let traveledLine = null;
         let remainingLine = null;
         let hasArrived = false;
+
+        let initialRouteDistance = 0;
+        let expectedRouteDurationMin = 0;
 
         const NAVIGATION_ZOOM = 19;
 
@@ -269,7 +280,8 @@
             if (theme === 'dark') {
                 tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 21 });
             } else {
-                tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 21 });
+                // Usando CartoDB Positron para garantir ruas e detalhes super nítidos e visíveis no claro
+                tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 21 });
             }
             tileLayer.addTo(map);
         }
@@ -304,7 +316,7 @@
                 sheetHandle.className = "w-14 h-2 bg-zinc-300 rounded-full mx-auto mb-4";
                 sheetClose.className = "w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-zinc-900 text-lg shrink-0";
                 vehicleContainer.className = "grid grid-cols-1 gap-2 mb-5 bg-zinc-100 p-3 rounded-2xl border border-zinc-200 box-border";
-                navBottomPanel.className = "pointer-events-auto bg-white border border-zinc-200 rounded-3xl p-4 flex items-center justify-between shadow-2xl text-zinc-900 box-border w-full";
+                navBottomPanel.className = "pointer-events-auto bg-white border border-zinc-200 rounded-3xl p-4 flex flex-col space-y-3 shadow-2xl text-zinc-900 box-border w-full";
                 navCancelBtn.className = "w-14 h-14 rounded-full bg-zinc-100 flex items-center justify-center text-red-500 text-2xl border border-zinc-200 shrink-0";
                 navSpeedBox.className = "w-20 h-14 rounded-2xl bg-zinc-100 flex flex-col items-center justify-center border border-zinc-200 text-blue-600 shrink-0";
             } else {
@@ -315,12 +327,12 @@
                 themeIconHome.className = "fa-solid fa-moon";
                 themeBtnNav.className = "w-14 h-14 bg-zinc-900 text-yellow-400 rounded-2xl flex items-center justify-center text-xl border border-zinc-700 shrink-0 active:scale-95 transition";
                 themeIconNav.className = "fa-solid fa-moon";
-                centerBtn.className = "w-14 h-14 bg-zinc-800 text-blue-400 shadow-2xl rounded-full flex items-center justify-center text-2xl border border-zinc-700 active:scale-95 transition";
+                centerBtn.className = "w-14 h-14 bg-zinc-800 text-blue-400 shadow-2xl rounded-full flex items-center justify-center text-2xl border border-zinc-700 shrink-0 active:scale-95 transition";
                 sheet.className = "absolute inset-x-0 bottom-4 z-20 mx-3 bg-zinc-800 rounded-3xl shadow-2xl p-5 border border-zinc-700 panel-slide translate-y-[120%] flex flex-col max-h-[80vh] text-gray-100 box-border";
                 sheetHandle.className = "w-14 h-2 bg-zinc-600 rounded-full mx-auto mb-4";
                 sheetClose.className = "w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-300 hover:text-white text-lg shrink-0";
                 vehicleContainer.className = "grid grid-cols-1 gap-2 mb-5 bg-zinc-900 p-3 rounded-2xl border border-zinc-700 box-border";
-                navBottomPanel.className = "pointer-events-auto bg-zinc-800 border border-zinc-700 rounded-3xl p-4 flex items-center justify-between shadow-2xl text-gray-100 box-border w-full";
+                navBottomPanel.className = "pointer-events-auto bg-zinc-800 border border-zinc-700 rounded-3xl p-4 flex flex-col space-y-3 shadow-2xl text-gray-100 box-border w-full";
                 navCancelBtn.className = "w-14 h-14 rounded-full bg-zinc-700 flex items-center justify-center text-red-400 text-2xl border border-zinc-600 shrink-0";
                 navSpeedBox.className = "w-20 h-14 rounded-2xl bg-zinc-900 flex flex-col items-center justify-center border border-zinc-700 text-blue-400 shrink-0";
             }
@@ -336,9 +348,10 @@
 
                         updateUserMarker(userLatLng);
                         
+                        let currentSpeedKmH = 0;
                         if (position.coords.speed !== null && position.coords.speed >= 0) {
-                            const speedKmH = Math.round(position.coords.speed * 3.6);
-                            document.getElementById('current-speed').innerText = speedKmH;
+                            currentSpeedKmH = Math.round(position.coords.speed * 3.6);
+                            document.getElementById('current-speed').innerText = currentSpeedKmH;
                         }
 
                         if (isFollowingUser) {
@@ -347,7 +360,7 @@
                         }
 
                         if (isNavigating && routeCoordinates.length > 0) {
-                            updateRouteProgress(userLatLng);
+                            updateRouteProgress(userLatLng, currentSpeedKmH);
                             checkArrival(userLatLng);
                         }
                     },
@@ -519,13 +532,14 @@
                 const data = await res.json();
                 if (data && data.routes && data.routes.length > 0) {
                     const summary = data.routes[0];
-                    const totalMinutes = Math.round((summary.duration / 60) * 1.8);
-                    document.getElementById('timeBike').innerText = formatMinutesToHours(totalMinutes);
+                    initialRouteDistance = summary.distance; // metros
+                    expectedRouteDurationMin = Math.round((summary.duration / 60) * 1.8);
+                    document.getElementById('timeBike').innerText = formatMinutesToHours(expectedRouteDurationMin);
                 }
             } catch(e) {
-                const distMeters = userLatLng.distanceTo(destinationLatLng);
-                const estMin = Math.max(1, Math.round((distMeters / 1000) / 12 * 60));
-                document.getElementById('timeBike').innerText = formatMinutesToHours(estMin) + " (Offline)";
+                initialRouteDistance = userLatLng.distanceTo(destinationLatLng);
+                expectedRouteDurationMin = Math.max(1, Math.round((initialRouteDistance / 1000) / 12 * 60));
+                document.getElementById('timeBike').innerText = formatMinutesToHours(expectedRouteDurationMin) + " (Offline)";
             }
         }
 
@@ -534,6 +548,10 @@
             isNavigating = true;
             isFollowingUser = true;
             closeSheet();
+
+            // Esconde totalmente a barra de pesquisa superior durante a rota
+            document.getElementById('top-search-wrapper').classList.add('hidden');
+
             calculateRoute(() => {
                 document.getElementById('view-navigation').classList.remove('hidden');
                 if (userLatLng) {
@@ -577,8 +595,10 @@
                 const routes = e.routes;
                 if (routes && routes.length > 0) {
                     routeCoordinates = routes[0].coordinates;
+                    initialRouteDistance = routes[0].summary.totalDistance || initialRouteDistance;
+                    expectedRouteDurationMin = Math.max(1, Math.round((routes[0].summary.totalTime / 60) * 1.8));
                     if (isNavigating) {
-                        updateRouteProgress(userLatLng);
+                        updateRouteProgress(userLatLng, 0);
                     }
                 }
                 if (onComplete) onComplete();
@@ -590,12 +610,12 @@
                     { lat: userLatLng.lat, lng: userLatLng.lng },
                     { lat: destinationLatLng.lat, lng: destinationLatLng.lng }
                 ];
-                if (isNavigating) updateRouteProgress(userLatLng);
+                if (isNavigating) updateRouteProgress(userLatLng, 0);
                 if (onComplete) onComplete();
             });
         }
 
-        function updateRouteProgress(currentLatLng) {
+        function updateRouteProgress(currentLatLng, currentSpeedKmH) {
             if (routeCoordinates.length === 0) return;
 
             let closestIndex = 0;
@@ -623,6 +643,9 @@
             document.getElementById('nav-time').innerText = formatMinutesToHours(remainingMinutes);
             document.getElementById('nav-distance').innerText = `${totalKm} km`;
 
+            // Lógica de avaliação de velocidade média / ritmo
+            updatePaceStatus(remainingDistanceMeters, remainingMinutes, currentSpeedKmH);
+
             const distanceMeters = minDistance * 111320;
             const reorganizeContainer = document.getElementById('reorganize-container');
             if (distanceMeters > 30) {
@@ -639,6 +662,34 @@
 
             traveledLine = L.polyline(traveledCoords, { color: '#a1a1aa', weight: 8, opacity: 0.8 }).addTo(map);
             remainingLine = L.polyline(remainingCoords, { color: '#2563eb', weight: 9, opacity: 0.95 }).addTo(map);
+        }
+
+        function updatePaceStatus(remainingMeters, remainingMin, currentSpeed) {
+            const banner = document.getElementById('pace-status-banner');
+            const textEl = document.getElementById('pace-status-text');
+
+            // Velocidade média necessária em km/h para chegar no tempo estimado restante
+            const hoursNeeded = remainingMin / 60;
+            const kmNeeded = remainingMeters / 1000;
+            const requiredSpeed = hoursNeeded > 0 ? (kmNeeded / hoursNeeded) : 12;
+
+            if (currentSpeed < 3 && currentSpeed >= 0) {
+                banner.className = "w-full py-2 px-3 rounded-xl bg-zinc-100 text-zinc-600 font-bold text-xs flex items-center justify-center space-x-2 border border-zinc-200 text-center";
+                textEl.innerText = "Em pausa ou andando muito devagar";
+                return;
+            }
+
+            // Margem de tolerância de 2 km/h em relação à média esperada
+            if (currentSpeed > requiredSpeed + 3) {
+                banner.className = "w-full py-2 px-3 rounded-xl bg-amber-50 text-amber-700 font-bold text-xs flex items-center justify-center space-x-2 border border-amber-200 text-center";
+                textEl.innerText = `Você está muito rápido (${currentSpeed} km/h) — Acima da média`;
+            } else if (currentSpeed < requiredSpeed - 3) {
+                banner.className = "w-full py-2 px-3 rounded-xl bg-red-50 text-red-700 font-bold text-xs flex items-center justify-center space-x-2 border border-red-200 text-center";
+                textEl.innerText = `Ritmo abaixo da média (${currentSpeed} km/h) — Acelere para chegar a tempo`;
+            } else {
+                banner.className = "w-full py-2 px-3 rounded-xl bg-emerald-50 text-emerald-700 font-bold text-xs flex items-center justify-center space-x-2 border border-emerald-200 text-center";
+                textEl.innerText = `No ritmo ideal para chegar a tempo (${currentSpeed} km/h)`;
+            }
         }
 
         function checkArrival(currentLatLng) {
@@ -673,7 +724,11 @@
             }
             applyMapTransform(0);
             document.getElementById('view-navigation').classList.add('hidden');
+            
+            // Restaura a barra de pesquisa superior ao sair ou terminar a rota
+            document.getElementById('top-search-wrapper').classList.remove('hidden');
             document.getElementById('view-home').classList.remove('hidden');
+            
             document.getElementById('reorganize-container').classList.add('hidden');
             document.getElementById('arrivalModal').classList.add('hidden');
             
