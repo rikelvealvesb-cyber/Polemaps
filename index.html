@@ -97,7 +97,7 @@
         </div>
     </div>
 
-    <!-- TELA PRINCIPAL (BARRA DE PESQUISA - SOME NA ROTA) -->
+    <!-- TELA PRINCIPAL -->
     <div id="view-home" class="absolute inset-0 z-10 flex flex-col justify-between pointer-events-none p-4 box-border">
         <div id="top-search-wrapper" class="pointer-events-auto flex items-center space-x-3 mt-2 w-full transition-all duration-300">
             <div id="search-bar-container" class="flex-1 bg-white shadow-2xl rounded-full flex items-center px-5 py-3.5 border border-zinc-200 box-border text-zinc-900">
@@ -172,7 +172,7 @@
                 </button>
             </div>
 
-            <!-- PAINEL INFERIOR COM AVISO DE VELOCIDADE / RITMO -->
+            <!-- PAINEL INFERIOR -->
             <div id="nav-bottom-panel" class="pointer-events-auto bg-white border border-zinc-200 rounded-3xl p-4 flex flex-col space-y-3 shadow-2xl box-border w-full text-zinc-900">
                 <div class="flex items-center justify-between">
                     <button onclick="cancelNavigation()" id="nav-cancel-btn" class="w-14 h-14 rounded-full bg-zinc-100 flex items-center justify-center text-red-500 text-2xl border border-zinc-200 shrink-0">
@@ -224,7 +224,7 @@
         let initialRouteDistance = 0;
         let expectedRouteDurationMin = 0;
 
-        const NAVIGATION_ZOOM = 19;
+        const NAVIGATION_ZOOM = 16.5;
 
         function initMap() {
             userLatLng = L.latLng(-23.5505, -46.6333);
@@ -280,7 +280,6 @@
             if (theme === 'dark') {
                 tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 21 });
             } else {
-                // Usando CartoDB Positron para garantir ruas e detalhes super nítidos e visíveis no claro
                 tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 21 });
             }
             tileLayer.addTo(map);
@@ -532,7 +531,7 @@
                 const data = await res.json();
                 if (data && data.routes && data.routes.length > 0) {
                     const summary = data.routes[0];
-                    initialRouteDistance = summary.distance; // metros
+                    initialRouteDistance = summary.distance;
                     expectedRouteDurationMin = Math.round((summary.duration / 60) * 1.8);
                     document.getElementById('timeBike').innerText = formatMinutesToHours(expectedRouteDurationMin);
                 }
@@ -549,8 +548,9 @@
             isFollowingUser = true;
             closeSheet();
 
-            // Esconde totalmente a barra de pesquisa superior durante a rota
+            // Garante que o painel de pesquisa superior suma completamente ao iniciar a rota
             document.getElementById('top-search-wrapper').classList.add('hidden');
+            document.getElementById('suggestionsBox').classList.add('hidden');
 
             calculateRoute(() => {
                 document.getElementById('view-navigation').classList.remove('hidden');
@@ -643,7 +643,6 @@
             document.getElementById('nav-time').innerText = formatMinutesToHours(remainingMinutes);
             document.getElementById('nav-distance').innerText = `${totalKm} km`;
 
-            // Lógica de avaliação de velocidade média / ritmo
             updatePaceStatus(remainingDistanceMeters, remainingMinutes, currentSpeedKmH);
 
             const distanceMeters = minDistance * 111320;
@@ -668,7 +667,6 @@
             const banner = document.getElementById('pace-status-banner');
             const textEl = document.getElementById('pace-status-text');
 
-            // Velocidade média necessária em km/h para chegar no tempo estimado restante
             const hoursNeeded = remainingMin / 60;
             const kmNeeded = remainingMeters / 1000;
             const requiredSpeed = hoursNeeded > 0 ? (kmNeeded / hoursNeeded) : 12;
@@ -679,7 +677,6 @@
                 return;
             }
 
-            // Margem de tolerância de 2 km/h em relação à média esperada
             if (currentSpeed > requiredSpeed + 3) {
                 banner.className = "w-full py-2 px-3 rounded-xl bg-amber-50 text-amber-700 font-bold text-xs flex items-center justify-center space-x-2 border border-amber-200 text-center";
                 textEl.innerText = `Você está muito rápido (${currentSpeed} km/h) — Acima da média`;
@@ -724,11 +721,8 @@
             }
             applyMapTransform(0);
             document.getElementById('view-navigation').classList.add('hidden');
-            
-            // Restaura a barra de pesquisa superior ao sair ou terminar a rota
             document.getElementById('top-search-wrapper').classList.remove('hidden');
             document.getElementById('view-home').classList.remove('hidden');
-            
             document.getElementById('reorganize-container').classList.add('hidden');
             document.getElementById('arrivalModal').classList.add('hidden');
             
