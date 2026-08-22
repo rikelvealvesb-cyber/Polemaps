@@ -13,56 +13,57 @@
     <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap');
         body { font-family: 'Roboto', sans-serif; overflow: hidden; user-select: none; position: fixed; inset: 0; perspective: 1000px; }
         
         .leaflet-control-attribution, .leaflet-control-zoom { display: none !important; }
         .leaflet-routing-container { display: none !important; }
 
-        /* Mapa dimensionado e inclinado para efeito 3D */
         #map {
-            width: 160vw;
-            height: 160vh;
+            width: 180vw;
+            height: 180vh;
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             transform-origin: center center;
             z-index: 0;
-            transition: transform 0.1s linear;
+            transition: transform 0.08s linear;
         }
+
+        /* Oculta polígonos desnecessários (parques, água, etc) mantendo apenas ruas e construções limpas */
+        .leaflet-tile-pane { filter: contrast(1.15) saturate(0.8); }
 
         .user-gps-container {
             position: relative;
-            width: 48px;
-            height: 48px;
+            width: 64px;
+            height: 64px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
         .user-pulse {
-            width: 56px; height: 56px;
-            background: rgba(37, 99, 235, 0.3);
+            width: 72px; height: 72px;
+            background: rgba(37, 99, 235, 0.4);
             border-radius: 50%;
             position: absolute;
             animation: pulse-ring 2s infinite;
         }
 
-        /* Apenas um ponto azul limpo */
         .user-dot {
-            width: 22px; height: 22px;
+            width: 30px; height: 30px;
             background: #2563eb;
-            border: 3px solid #ffffff;
+            border: 4px solid #ffffff;
             border-radius: 50%;
             position: absolute;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.5);
             transition: transform 0.1s linear;
         }
 
         @keyframes pulse-ring {
             0% { transform: scale(0.5); opacity: 1; }
-            100% { transform: scale(2); opacity: 0; }
+            100% { transform: scale(2.2); opacity: 0; }
         }
 
         .panel-slide { transition: transform 0.3s cubic-bezier(0.1, 0.9, 0.2, 1); }
@@ -73,34 +74,44 @@
     <!-- MAPA -->
     <div id="map"></div>
 
+    <!-- MODAL DE CHEGADA AO DESTINO -->
+    <div id="arrivalModal" class="absolute inset-0 bg-black/75 z-50 hidden flex flex-col items-center justify-center p-6 backdrop-blur-xs">
+        <div class="bg-zinc-800 border border-zinc-700 rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl flex flex-col items-center">
+            <div class="w-20 h-20 bg-emerald-600 text-white rounded-full flex items-center justify-center text-4xl mb-4 shadow-lg animate-bounce">
+                <i class="fa-solid fa-flag-checkered"></i>
+            </div>
+            <h2 class="text-3xl font-extrabold mb-2">Você chegou!</h2>
+            <p class="text-zinc-300 text-base mb-8">Destino alcançado com sucesso pelo PoleMaps.</p>
+            <button onclick="closeArrivalModal()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 text-lg rounded-2xl shadow-xl transition">
+                Finalizar Navegação
+            </button>
+        </div>
+    </div>
+
     <!-- TELA PRINCIPAL -->
-    <div id="view-home" class="absolute inset-0 z-10 flex flex-col justify-between pointer-events-none p-3 pb-6">
-        
-        <!-- Barra de Pesquisa -->
-        <div class="pointer-events-auto flex items-center space-x-2 mt-3">
-            <div id="search-bar-container" class="flex-1 bg-zinc-800 shadow-2xl rounded-full flex items-center px-4 py-3 border border-zinc-700/65">
-                <button onclick="clearSearch()" class="text-zinc-300 mr-3 text-lg hover:text-white transition">
+    <div id="view-home" class="absolute inset-0 z-10 flex flex-col justify-between pointer-events-none p-4 pb-8">
+        <div class="pointer-events-auto flex items-center space-x-3 mt-2">
+            <div id="search-bar-container" class="flex-1 bg-zinc-800 shadow-2xl rounded-full flex items-center px-5 py-4 border border-zinc-700/80">
+                <button onclick="clearSearch()" class="text-zinc-300 mr-4 text-2xl hover:text-white transition">
                     <i class="fa-solid fa-arrow-left"></i>
                 </button>
-                <input type="text" id="searchInput" placeholder="Pesquisar no PoleMaps (Brasil)..." oninput="handleSearchInput(event)"
-                       class="flex-1 bg-transparent text-inherit placeholder:text-zinc-400 focus:outline-none text-base font-normal">
-                <button class="text-zinc-300 mx-2 text-lg hover:text-white transition">
+                <input type="text" id="searchInput" placeholder="Pesquisar rua ou local (Brasil)..." oninput="handleSearchInput(event)"
+                       class="flex-1 bg-transparent text-inherit placeholder:text-zinc-400 focus:outline-none text-lg font-medium">
+                <button class="text-zinc-300 mx-3 text-xl hover:text-white transition">
                     <i class="fa-solid fa-microphone"></i>
                 </button>
-                <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center font-bold text-xs text-white shadow">US</div>
+                <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-sm text-white shadow">US</div>
             </div>
 
-            <!-- Botão de Tema -->
-            <button onclick="toggleTheme()" id="themeToggleBtn" class="w-12 h-12 bg-zinc-800 text-yellow-400 shadow-2xl rounded-full flex items-center justify-center text-xl border border-zinc-700 shrink-0 active:scale-95 transition" title="Alternar Tema">
+            <button onclick="toggleTheme()" id="themeToggleBtn" class="w-14 h-14 bg-zinc-800 text-yellow-400 shadow-2xl rounded-full flex items-center justify-center text-2xl border border-zinc-700 shrink-0 active:scale-95 transition" title="Alternar Tema">
                 <i class="fa-solid fa-moon" id="themeIcon"></i>
             </button>
         </div>
 
-        <div id="suggestionsBox" class="absolute left-4 right-20 mt-16 bg-zinc-800 border border-zinc-700 rounded-2xl shadow-2xl hidden max-h-60 overflow-y-auto z-30 pointer-events-auto"></div>
+        <div id="suggestionsBox" class="absolute left-4 right-20 mt-20 bg-zinc-800 border border-zinc-700 rounded-3xl shadow-2xl hidden max-h-72 overflow-y-auto z-30 pointer-events-auto"></div>
 
-        <!-- Botão de Centralizar -->
-        <div class="pointer-events-auto flex justify-end px-2 mb-[260px]">
-            <button onclick="centerOnUser()" id="centerBtn" class="w-12 h-12 bg-zinc-800 text-blue-400 shadow-2xl rounded-2xl flex items-center justify-center text-xl border border-zinc-700 active:scale-95 transition" title="Centralizar GPS">
+        <div class="pointer-events-auto flex justify-end px-2 mb-[280px]">
+            <button onclick="requestCompassPermission()" id="centerBtn" class="w-14 h-14 bg-zinc-800 text-blue-400 shadow-2xl rounded-2xl flex items-center justify-center text-2xl border border-zinc-700 active:scale-95 transition" title="Centralizar">
                 <i class="fa-solid fa-location-crosshairs"></i>
             </button>
         </div>
@@ -108,82 +119,78 @@
 
     <!-- OVERLAY DE CARREGAMENTO -->
     <div id="loadingOverlay" class="absolute inset-0 bg-black/60 z-50 hidden flex flex-col items-center justify-center backdrop-blur-xs">
-        <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-3"></div>
-        <p class="text-white font-medium text-sm tracking-wide">Calculando menor rota de bike...</p>
+        <div class="w-14 h-14 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p class="text-white font-semibold text-base tracking-wide">Calculando atalhos e rota livre...</p>
     </div>
 
     <!-- TELA 2: FICHA DO LOCAL SELECIONADO -->
-    <div id="view-place-sheet" class="absolute inset-x-0 bottom-4 z-20 mx-3 bg-zinc-800 rounded-3xl shadow-2xl p-4 border border-zinc-700 panel-slide translate-y-[120%] flex flex-col max-h-[80vh]">
-        <div id="sheet-handle" class="w-12 h-1.5 bg-zinc-600 rounded-full mx-auto mb-3"></div>
+    <div id="view-place-sheet" class="absolute inset-x-0 bottom-4 z-20 mx-3 bg-zinc-800 rounded-3xl shadow-2xl p-5 border border-zinc-700 panel-slide translate-y-[120%] flex flex-col max-h-[80vh]">
+        <div id="sheet-handle" class="w-14 h-2 bg-zinc-600 rounded-full mx-auto mb-4"></div>
         
         <div class="flex justify-between items-start mb-2">
             <div>
-                <h2 id="sheet-title" class="text-xl font-bold">Local Selecionado</h2>
+                <h2 id="sheet-title" class="text-2xl font-bold">Local Selecionado</h2>
             </div>
-            <button onclick="closeSheet()" id="sheet-close-btn" class="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-300 hover:text-white">
+            <button onclick="closeSheet()" id="sheet-close-btn" class="w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-300 hover:text-white text-lg">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
 
-        <p class="text-xs text-zinc-400 mb-3">Ponto de Interesse • PoleMaps (Brasil)</p>
+        <p class="text-sm text-zinc-400 mb-4">PoleMaps • Ciclismo de Alta Precisão</p>
 
-        <!-- Veículo: Bicicleta Ajustada -->
-        <div id="vehicle-container" class="grid grid-cols-1 gap-1.5 mb-4 bg-zinc-900 p-2 rounded-2xl border border-zinc-700">
-            <div class="flex items-center justify-between px-4 py-2 rounded-xl bg-blue-600 text-white">
+        <div id="vehicle-container" class="grid grid-cols-1 gap-2 mb-5 bg-zinc-900 p-3 rounded-2xl border border-zinc-700">
+            <div class="flex items-center justify-between px-4 py-3 rounded-xl bg-blue-600 text-white">
                 <div class="flex items-center space-x-3">
-                    <i class="fa-solid fa-bicycle text-xl"></i>
-                    <span class="text-sm font-medium">Bicicleta (Menor Rota)</span>
+                    <i class="fa-solid fa-bicycle text-2xl"></i>
+                    <span class="text-base font-semibold">Bike (Caminho Direto e Livre)</span>
                 </div>
-                <span class="text-base font-bold" id="timeBike">--</span>
+                <span class="text-lg font-extrabold" id="timeBike">--</span>
             </div>
         </div>
 
-        <!-- Botão Iniciar -->
-        <button onclick="startNavigation()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-3.5 px-4 rounded-2xl flex items-center justify-center space-x-2 font-medium text-base shadow-lg transition">
-            <i class="fa-solid fa-location-arrow"></i>
+        <button onclick="startNavigation()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 px-4 rounded-2xl flex items-center justify-center space-x-3 font-bold text-lg shadow-xl transition">
+            <i class="fa-solid fa-location-arrow text-xl"></i>
             <span>Iniciar Navegação</span>
         </button>
     </div>
 
     <!-- TELA 3: NAVEGAÇÃO EM ANDAMENTO -->
-    <div id="view-navigation" class="absolute inset-0 z-30 pointer-events-none flex flex-col justify-between p-3 pb-6 hidden">
-        <div class="flex flex-col space-y-2">
-            <!-- Botão Reorganizar Rota (aparece ao distanciar ou se solicitado) -->
+    <div id="view-navigation" class="absolute inset-0 z-30 pointer-events-none flex flex-col justify-between p-4 pb-8 hidden">
+        <div class="flex flex-col space-y-3">
             <div id="reorganize-container" class="pointer-events-auto flex justify-center mx-3 hidden">
-                <button onclick="reorganizeRoute()" class="bg-amber-600 hover:bg-amber-500 text-white font-medium text-sm px-5 py-2.5 rounded-full shadow-2xl flex items-center space-x-2 border border-amber-500 transition animate-bounce">
-                    <i class="fa-solid fa-route"></i>
+                <button onclick="reorganizeRoute()" class="bg-amber-600 hover:bg-amber-500 text-white font-bold text-base px-6 py-3 rounded-full shadow-2xl flex items-center space-x-3 border border-amber-500 transition animate-bounce">
+                    <i class="fa-solid fa-route text-lg"></i>
                     <span>Reorganizar Rota</span>
                 </button>
             </div>
 
-            <!-- Painel Superior de Instruções -->
-            <div class="pointer-events-auto bg-[#183b35] border border-emerald-700/50 rounded-3xl p-4 shadow-2xl flex items-center justify-between mx-1 mt-2">
-                <div class="flex items-center space-x-3">
-                    <div class="w-14 h-14 rounded-2xl bg-emerald-600 flex items-center justify-center text-white text-3xl shadow">
+            <div class="pointer-events-auto bg-[#183b35] border-2 border-emerald-600 rounded-3xl p-5 shadow-2xl flex items-center justify-between mx-1 mt-2">
+                <div class="flex items-center space-x-4">
+                    <div class="w-16 h-16 rounded-2xl bg-emerald-600 flex items-center justify-center text-white text-3xl shadow">
                         <i class="fa-solid fa-arrow-turn-up"></i>
                     </div>
                     <div>
-                        <div id="nav-step-dist" class="text-xl font-bold text-gray-100">120 m</div>
-                        <div id="nav-street-name" class="text-sm font-medium text-zinc-300">Siga em frente</div>
+                        <div id="nav-step-dist" class="text-2xl font-black text-gray-100">0 m</div>
+                        <div id="nav-street-name" class="text-base font-semibold text-zinc-200">Siga em frente</div>
                     </div>
                 </div>
-                <button onclick="centerOnUser()" class="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center text-blue-400 shadow-lg text-xl pointer-events-auto border border-zinc-700" title="Centralizar">
+                <button onclick="centerOnUser()" class="w-14 h-14 bg-zinc-800 rounded-full flex items-center justify-center text-blue-400 shadow-lg text-2xl pointer-events-auto border border-zinc-700" title="Centralizar">
                     <i class="fa-solid fa-compass"></i>
                 </button>
             </div>
         </div>
 
-        <div id="nav-bottom-panel" class="pointer-events-auto mx-3 mb-2 bg-zinc-800 border border-zinc-700 rounded-3xl p-4 flex items-center justify-between shadow-2xl">
-            <button onclick="cancelNavigation()" id="nav-cancel-btn" class="w-12 h-12 rounded-full bg-zinc-700 flex items-center justify-center text-red-400 text-xl border border-zinc-600">
+        <div id="nav-bottom-panel" class="pointer-events-auto mx-2 mb-2 bg-zinc-800 border border-zinc-700 rounded-3xl p-5 flex items-center justify-between shadow-2xl">
+            <button onclick="cancelNavigation()" id="nav-cancel-btn" class="w-14 h-14 rounded-full bg-zinc-700 flex items-center justify-center text-red-400 text-2xl border border-zinc-600">
                 <i class="fa-solid fa-xmark"></i>
             </button>
             <div class="text-center">
-                <div id="nav-time" class="text-2xl font-bold">-- min</div>
-                <div id="nav-distance" class="text-xs text-zinc-400 font-medium">-- km</div>
+                <div id="nav-time" class="text-3xl font-black">-- min</div>
+                <div id="nav-distance" class="text-sm text-zinc-300 font-semibold">-- km</div>
             </div>
-            <div id="nav-speed-box" class="w-16 h-12 rounded-2xl bg-zinc-900 flex flex-col items-center justify-center border border-zinc-700 text-blue-400">
-                <span id="current-speed" class="text-base font-bold">0</span>
-                <span class="text-[9px] text-zinc-400 uppercase tracking-tighter">km/h</span>
+            <div id="nav-speed-box" class="w-20 h-14 rounded-2xl bg-zinc-900 flex flex-col items-center justify-center border border-zinc-700 text-blue-400">
+                <span id="current-speed" class="text-xl font-black">0</span>
+                <span class="text-[10px] text-zinc-400 uppercase tracking-tighter font-bold">km/h</span>
             </div>
         </div>
     </div>
@@ -200,17 +207,21 @@
         let searchTimeout = null;
         let currentTheme = 'dark';
         let isNavigating = false;
-        let currentBearing = 0;
+        let currentHeading = 0;
         let routeCoordinates = [];
         let navigationInterval = null;
+        let traveledLine = null;
+        let remainingLine = null;
+        let hasArrived = false;
 
         function initMap() {
             userLatLng = L.latLng(-23.5505, -46.6333);
             map = L.map('map', { zoomControl: false, attributionControl: false }).setView(userLatLng, 16);
             setMapTheme(currentTheme);
 
-            updateUserMarker(userLatLng, 0);
+            updateUserMarker(userLatLng);
             startRealGeolocation();
+            initCompassSensor();
 
             map.on('click', function(e) {
                 if (isNavigating) return;
@@ -224,6 +235,43 @@
             });
         }
 
+        function initCompassSensor() {
+            if (window.DeviceOrientationEvent) {
+                window.addEventListener('deviceorientation', (event) => {
+                    let heading = event.alpha;
+                    if (heading !== null) {
+                        if (event.webkitCompassHeading !== undefined) {
+                            heading = event.webkitCompassHeading;
+                        }
+                        currentHeading = heading;
+                        if (userLatLng && isFollowingUser) {
+                            applyMapRotation(currentHeading);
+                        }
+                    }
+                }, true);
+            }
+        }
+
+        function requestCompassPermission() {
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission().then(response => {
+                    if (response === 'granted') {
+                        centerOnUser();
+                    }
+                }).catch(console.error);
+            } else {
+                centerOnUser();
+            }
+        }
+
+        function applyMapRotation(heading) {
+            const mapElement = document.getElementById('map');
+            if (mapElement) {
+                const tilt = isNavigating ? 40 : 0;
+                mapElement.style.transform = `translate(-50%, -50%) rotateX(${tilt}deg) rotate(${-heading}deg)`;
+            }
+        }
+
         function toggleTheme() {
             currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
             setMapTheme(currentTheme);
@@ -232,10 +280,11 @@
 
         function setMapTheme(theme) {
             if (tileLayer) map.removeLayer(tileLayer);
+            // Uso de camadas focadas estritamente em ruas e construções limpas
             if (theme === 'dark') {
-                tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 });
+                tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_nolabels/{z}/{x}/{y}{r}.png', { maxZoom: 20 });
             } else {
-                tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 20 });
+                tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', { maxZoom: 20 });
             }
             tileLayer.addTo(map);
         }
@@ -257,32 +306,32 @@
 
             if (theme === 'light') {
                 body.className = "h-full w-full flex flex-col relative bg-zinc-100 text-zinc-900 overflow-hidden";
-                searchBar.className = "flex-1 bg-white shadow-2xl rounded-full flex items-center px-4 py-3 border border-zinc-200";
-                suggestions.className = "absolute left-4 right-20 mt-16 bg-white border border-zinc-200 rounded-2xl shadow-2xl hidden max-h-60 overflow-y-auto z-30 pointer-events-auto text-zinc-900";
-                themeBtn.className = "w-12 h-12 bg-white text-orange-500 shadow-2xl rounded-full flex items-center justify-center text-xl border border-zinc-200 shrink-0 active:scale-95 transition";
+                searchBar.className = "flex-1 bg-white shadow-2xl rounded-full flex items-center px-5 py-4 border border-zinc-200";
+                suggestions.className = "absolute left-4 right-20 mt-20 bg-white border border-zinc-200 rounded-3xl shadow-2xl hidden max-h-72 overflow-y-auto z-30 pointer-events-auto text-zinc-900";
+                themeBtn.className = "w-14 h-14 bg-white text-orange-500 shadow-2xl rounded-full flex items-center justify-center text-2xl border border-zinc-200 shrink-0 active:scale-95 transition";
                 themeIcon.className = "fa-solid fa-sun";
-                centerBtn.className = "w-12 h-12 bg-white text-blue-600 shadow-2xl rounded-full flex items-center justify-center text-xl border border-zinc-200 active:scale-95 transition";
-                sheet.className = "absolute inset-x-0 bottom-4 z-20 mx-3 bg-white rounded-3xl shadow-2xl p-4 border border-zinc-200 panel-slide translate-y-[120%] flex flex-col max-h-[80vh] text-zinc-900";
-                sheetHandle.className = "w-12 h-1.5 bg-zinc-300 rounded-full mx-auto mb-3";
-                sheetClose.className = "w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-zinc-900";
-                vehicleContainer.className = "grid grid-cols-1 gap-1.5 mb-4 bg-zinc-100 p-2 rounded-2xl border border-zinc-200";
-                navBottomPanel.className = "pointer-events-auto mx-3 mb-2 bg-white border border-zinc-200 rounded-3xl p-4 flex items-center justify-between shadow-2xl text-zinc-900";
-                navCancelBtn.className = "w-12 h-12 rounded-full bg-zinc-100 flex items-center justify-center text-red-500 text-xl border border-zinc-200";
-                navSpeedBox.className = "w-16 h-12 rounded-2xl bg-zinc-100 flex flex-col items-center justify-center border border-zinc-200 text-blue-600";
+                centerBtn.className = "w-14 h-14 bg-white text-blue-600 shadow-2xl rounded-full flex items-center justify-center text-2xl border border-zinc-200 active:scale-95 transition";
+                sheet.className = "absolute inset-x-0 bottom-4 z-20 mx-3 bg-white rounded-3xl shadow-2xl p-5 border border-zinc-200 panel-slide translate-y-[120%] flex flex-col max-h-[80vh] text-zinc-900";
+                sheetHandle.className = "w-14 h-2 bg-zinc-300 rounded-full mx-auto mb-4";
+                sheetClose.className = "w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-zinc-900 text-lg";
+                vehicleContainer.className = "grid grid-cols-1 gap-2 mb-5 bg-zinc-100 p-3 rounded-2xl border border-zinc-200";
+                navBottomPanel.className = "pointer-events-auto mx-2 mb-2 bg-white border border-zinc-200 rounded-3xl p-5 flex items-center justify-between shadow-2xl text-zinc-900";
+                navCancelBtn.className = "w-14 h-14 rounded-full bg-zinc-100 flex items-center justify-center text-red-500 text-2xl border border-zinc-200";
+                navSpeedBox.className = "w-20 h-14 rounded-2xl bg-zinc-100 flex flex-col items-center justify-center border border-zinc-200 text-blue-600";
             } else {
                 body.className = "h-full w-full flex flex-col relative bg-zinc-900 text-gray-100 overflow-hidden";
-                searchBar.className = "flex-1 bg-zinc-800 shadow-2xl rounded-full flex items-center px-4 py-3 border border-zinc-700/65";
-                suggestions.className = "absolute left-4 right-20 mt-16 bg-zinc-800 border border-zinc-700 rounded-2xl shadow-2xl hidden max-h-60 overflow-y-auto z-30 pointer-events-auto text-gray-100";
-                themeBtn.className = "w-12 h-12 bg-zinc-800 text-yellow-400 shadow-2xl rounded-full flex items-center justify-center text-xl border border-zinc-700 shrink-0 active:scale-95 transition";
+                searchBar.className = "flex-1 bg-zinc-800 shadow-2xl rounded-full flex items-center px-5 py-4 border border-zinc-700/80";
+                suggestions.className = "absolute left-4 right-20 mt-20 bg-zinc-800 border border-zinc-700 rounded-3xl shadow-2xl hidden max-h-72 overflow-y-auto z-30 pointer-events-auto text-gray-100";
+                themeBtn.className = "w-14 h-14 bg-zinc-800 text-yellow-400 shadow-2xl rounded-full flex items-center justify-center text-2xl border border-zinc-700 shrink-0 active:scale-95 transition";
                 themeIcon.className = "fa-solid fa-moon";
-                centerBtn.className = "w-12 h-12 bg-zinc-800 text-blue-400 shadow-2xl rounded-2xl flex items-center justify-center text-xl border border-zinc-700 active:scale-95 transition";
-                sheet.className = "absolute inset-x-0 bottom-4 z-20 mx-3 bg-zinc-800 rounded-3xl shadow-2xl p-4 border border-zinc-700 panel-slide translate-y-[120%] flex flex-col max-h-[80vh] text-gray-100";
-                sheetHandle.className = "w-12 h-1.5 bg-zinc-600 rounded-full mx-auto mb-3";
-                sheetClose.className = "w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-300 hover:text-white";
-                vehicleContainer.className = "grid grid-cols-1 gap-1.5 mb-4 bg-zinc-900 p-2 rounded-2xl border border-zinc-700";
-                navBottomPanel.className = "pointer-events-auto mx-3 mb-2 bg-zinc-800 border border-zinc-700 rounded-3xl p-4 flex items-center justify-between shadow-2xl text-gray-100";
-                navCancelBtn.className = "w-12 h-12 rounded-full bg-zinc-700 flex items-center justify-center text-red-400 text-xl border border-zinc-600";
-                navSpeedBox.className = "w-16 h-12 rounded-2xl bg-zinc-900 flex flex-col items-center justify-center border border-zinc-700 text-blue-400";
+                centerBtn.className = "w-14 h-14 bg-zinc-800 text-blue-400 shadow-2xl rounded-2xl flex items-center justify-center text-2xl border border-zinc-700 active:scale-95 transition";
+                sheet.className = "absolute inset-x-0 bottom-4 z-20 mx-3 bg-zinc-800 rounded-3xl shadow-2xl p-5 border border-zinc-700 panel-slide translate-y-[120%] flex flex-col max-h-[80vh] text-gray-100";
+                sheetHandle.className = "w-14 h-2 bg-zinc-600 rounded-full mx-auto mb-4";
+                sheetClose.className = "w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-300 hover:text-white text-lg";
+                vehicleContainer.className = "grid grid-cols-1 gap-2 mb-5 bg-zinc-900 p-3 rounded-2xl border border-zinc-700";
+                navBottomPanel.className = "pointer-events-auto mx-2 mb-2 bg-zinc-800 border border-zinc-700 rounded-3xl p-5 flex items-center justify-between shadow-2xl text-gray-100";
+                navCancelBtn.className = "w-14 h-14 rounded-full bg-zinc-700 flex items-center justify-center text-red-400 text-2xl border border-zinc-600";
+                navSpeedBox.className = "w-20 h-14 rounded-2xl bg-zinc-900 flex flex-col items-center justify-center border border-zinc-700 text-blue-400";
             }
         }
 
@@ -292,19 +341,9 @@
                     (position) => {
                         const newLat = position.coords.latitude;
                         const newLng = position.coords.longitude;
-                        
-                        if (userLatLng) {
-                            const dLon = (newLng - userLatLng.lng) * Math.PI / 180;
-                            const lat1 = userLatLng.lat * Math.PI / 180;
-                            const lat2 = newLat * Math.PI / 180;
-                            const y = Math.sin(dLon) * Math.cos(lat2);
-                            const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
-                            let brng = Math.atan2(y, x) * 180 / Math.PI;
-                            currentBearing = (brng + 360) % 360;
-                        }
-
                         userLatLng = L.latLng(newLat, newLng);
-                        updateUserMarker(userLatLng, currentBearing);
+
+                        updateUserMarker(userLatLng);
                         
                         if (position.coords.speed !== null && position.coords.speed >= 0) {
                             const speedKmH = Math.round(position.coords.speed * 3.6);
@@ -313,24 +352,21 @@
 
                         if (isFollowingUser) {
                             map.setView(userLatLng, isNavigating ? 19 : 17, { animate: true });
-                            if (isNavigating) {
-                                document.getElementById('map').style.transform = `translate(-50%, -50%) rotateX(40deg) rotate(${-currentBearing}deg)`;
-                            }
+                            applyMapRotation(currentHeading);
                         }
 
                         if (isNavigating && routeCoordinates.length > 0) {
                             updateRouteProgress(userLatLng);
+                            checkArrival(userLatLng);
                         }
                     },
-                    (err) => {
-                        console.warn("Aguardando sinal GPS...");
-                    },
-                    { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 }
+                    (err) => { console.warn("Aguardando GPS..."); },
+                    { enableHighAccuracy: true, maximumAge: 500, timeout: 5000 }
                 );
             }
         }
 
-        function updateUserMarker(latlng, bearing) {
+        function updateUserMarker(latlng) {
             const iconHtml = `
                 <div class="user-gps-container">
                     <div class="user-pulse"></div>
@@ -338,21 +374,9 @@
                 </div>`;
 
             if (!userMarker) {
-                const icon = L.divIcon({
-                    className: '',
-                    html: iconHtml,
-                    iconSize: [48, 48],
-                    iconAnchor: [24, 24]
-                });
+                const icon = L.divIcon({ className: '', html: iconHtml, iconSize: [64, 64], iconAnchor: [32, 32] });
                 userMarker = L.marker(latlng, { icon: icon, zIndexOffset: 999999 }).addTo(map);
             } else {
-                const icon = L.divIcon({
-                    className: '',
-                    html: iconHtml,
-                    iconSize: [48, 48],
-                    iconAnchor: [24, 24]
-                });
-                userMarker.setIcon(icon);
                 userMarker.setLatLng(latlng);
             }
         }
@@ -361,11 +385,7 @@
             isFollowingUser = true;
             if (userLatLng) {
                 map.setView(userLatLng, isNavigating ? 19 : 17, { animate: true });
-                if (isNavigating) {
-                    document.getElementById('map').style.transform = `translate(-50%, -50%) rotateX(40deg) rotate(${-currentBearing}deg)`;
-                } else {
-                    document.getElementById('map').style.transform = `translate(-50%, -50%) rotateX(0deg) rotate(0deg)`;
-                }
+                applyMapRotation(currentHeading);
             }
         }
 
@@ -389,8 +409,8 @@
                     if (data && data.length > 0) {
                         data.forEach(item => {
                             const div = document.createElement('div');
-                            div.className = `px-4 py-3 ${currentTheme === 'light' ? 'hover:bg-zinc-100 border-zinc-200' : 'hover:bg-zinc-700 border-zinc-700'} border-b text-sm cursor-pointer flex items-center space-x-2`;
-                            div.innerHTML = `<i class="fa-solid fa-circle text-blue-500 text-xs mr-1"></i><span class="truncate">${item.display_name}</span>`;
+                            div.className = `px-5 py-4 ${currentTheme === 'light' ? 'hover:bg-zinc-100 border-zinc-200' : 'hover:bg-zinc-700 border-zinc-700'} border-b text-base cursor-pointer flex items-center space-x-3`;
+                            div.innerHTML = `<i class="fa-solid fa-circle text-blue-500 text-sm mr-1"></i><span class="truncate font-medium">${item.display_name}</span>`;
                             div.onclick = () => {
                                 document.getElementById('searchInput').value = item.display_name.split(',')[0];
                                 box.classList.add('hidden');
@@ -424,11 +444,7 @@
             
             if (destinationMarker) map.removeLayer(destinationMarker);
             destinationMarker = L.circleMarker(latlng, {
-                radius: 8,
-                color: '#ffffff',
-                fillColor: '#ea4335',
-                fillOpacity: 1,
-                weight: 2
+                radius: 12, color: '#ffffff', fillColor: '#ea4335', fillOpacity: 1, weight: 3
             }).addTo(map);
 
             document.getElementById('view-home').classList.add('hidden');
@@ -451,34 +467,27 @@
         }
 
         function formatMinutesToHours(totalMinutes) {
-            if (totalMinutes < 60) {
-                return `${Math.max(1, totalMinutes)} min`;
-            }
+            if (totalMinutes < 60) return `${Math.max(1, totalMinutes)} min`;
             const hours = Math.floor(totalMinutes / 60);
             const minutes = Math.round(totalMinutes % 60);
-            if (minutes === 0) {
-                return `${hours} h`;
-            }
-            return `${hours} h ${minutes} min`;
+            return minutes === 0 ? `${hours} h` : `${hours} h ${minutes} min`;
         }
 
         async function calculateBikeTimeAndRoute() {
             if (!userLatLng || !destinationLatLng) return;
-
             try {
-                const res = await fetch(`https://router.project-osrm.org/route/v1/bike/${userLatLng.lng},${userLatLng.lat};${destinationLatLng.lng},${destinationLatLng.lat}?overview=false`);
+                const res = await fetch(`https://router.project-osrm.org/route/v1/bike/${userLatLng.lng},${userLatLng.lat};${destinationLatLng.lng},${destinationLatLng.lat}?overview=false&alternatives=false`);
                 const data = await res.json();
                 if (data && data.routes && data.routes.length > 0) {
                     const summary = data.routes[0];
-                    const totalMinutes = Math.round((summary.duration / 60) * 2.2);
+                    const totalMinutes = Math.round((summary.duration / 60) * 1.8);
                     document.getElementById('timeBike').innerText = formatMinutesToHours(totalMinutes);
                 }
-            } catch(e) {
-                console.error("Erro no cálculo de tempo", e);
-            }
+            } catch(e) { console.error("Erro no tempo", e); }
         }
 
         function startNavigation() {
+            hasArrived = false;
             isNavigating = true;
             isFollowingUser = true;
             closeSheet();
@@ -486,7 +495,7 @@
                 document.getElementById('view-navigation').classList.remove('hidden');
                 if (userLatLng) {
                     map.setView(userLatLng, 19, { animate: true });
-                    document.getElementById('map').style.transform = `translate(-50%, -50%) rotateX(40deg) rotate(${-currentBearing}deg)`;
+                    applyMapRotation(currentHeading);
                 }
             }, true);
 
@@ -499,9 +508,6 @@
             }, 100);
         }
 
-        let traveledLine = null;
-        let remainingLine = null;
-
         function calculateRoute(onComplete, isPreview = false) {
             if (!userLatLng || !destinationLatLng) return;
             if (isPreview) document.getElementById('loadingOverlay').classList.remove('hidden');
@@ -510,13 +516,16 @@
             if (traveledLine) map.removeLayer(traveledLine);
             if (remainingLine) map.removeLayer(remainingLine);
 
-            // Garante prioridade para menor rota de bicicleta (OSRM default otimiza por menor distância/tempo no perfil)
             routingControl = L.Routing.control({
                 waypoints: [userLatLng, destinationLatLng],
-                router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1', profile: 'bike' }),
+                router: L.Routing.osrmv1({ 
+                    serviceUrl: 'https://router.project-osrm.org/route/v1', 
+                    profile: 'bike',
+                    options: { geometries: 'geojson' }
+                }),
                 routeWhileDragging: false,
                 show: false,
-                lineOptions: { styles: [{ color: isPreview ? '#2563eb' : 'transparent', opacity: 0.9, weight: 6 }] },
+                lineOptions: { styles: [{ color: isPreview ? '#2563eb' : 'transparent', opacity: 0.9, weight: 8 }] },
                 fitSelectedRoutes: isPreview
             }).addTo(map);
 
@@ -525,19 +534,11 @@
                 
                 const routes = e.routes;
                 if (routes && routes.length > 0) {
-                    const summary = routes[0].summary;
-                    const totalMinutes = Math.round((summary.totalTime / 60) * 2.2);
-                    const totalKm = (summary.totalDistance / 1000).toFixed(1);
-
-                    document.getElementById('nav-time').innerText = formatMinutesToHours(totalMinutes);
-                    document.getElementById('nav-distance').innerText = `${totalKm} km`;
-
                     routeCoordinates = routes[0].coordinates;
                     if (isNavigating) {
                         updateRouteProgress(userLatLng);
                     }
                 }
-
                 if (onComplete) onComplete();
             });
 
@@ -561,10 +562,22 @@
                 }
             }
 
-            // Se a menor distância até a rota ativa for maior que ~30 metros, exibe o botão de reorganizar
-            const distanceMeters = minDistance * 111320; // conversão grosseira para metros
+            let remainingDistanceMeters = 0;
+            for (let i = closestIndex; i < routeCoordinates.length - 1; i++) {
+                const p1 = routeCoordinates[i];
+                const p2 = routeCoordinates[i+1];
+                remainingDistanceMeters += L.latLng(p1.lat, p1.lng).distanceTo(L.latLng(p2.lat, p2.lng));
+            }
+
+            const totalKm = (remainingDistanceMeters / 1000).toFixed(1);
+            const remainingMinutes = Math.max(1, Math.round((remainingDistanceMeters / 1000) / 12 * 60));
+
+            document.getElementById('nav-time').innerText = formatMinutesToHours(remainingMinutes);
+            document.getElementById('nav-distance').innerText = `${totalKm} km`;
+
+            const distanceMeters = minDistance * 111320;
             const reorganizeContainer = document.getElementById('reorganize-container');
-            if (distanceMeters > 35) {
+            if (distanceMeters > 30) {
                 reorganizeContainer.classList.remove('hidden');
             } else {
                 reorganizeContainer.classList.add('hidden');
@@ -576,8 +589,23 @@
             if (traveledLine) map.removeLayer(traveledLine);
             if (remainingLine) map.removeLayer(remainingLine);
 
-            traveledLine = L.polyline(traveledCoords, { color: '#71717a', weight: 6, opacity: 0.8 }).addTo(map);
-            remainingLine = L.polyline(remainingCoords, { color: '#2563eb', weight: 6, opacity: 0.9 }).addTo(map);
+            traveledLine = L.polyline(traveledCoords, { color: '#71717a', weight: 8, opacity: 0.8 }).addTo(map);
+            remainingLine = L.polyline(remainingCoords, { color: '#2563eb', weight: 9, opacity: 0.95 }).addTo(map);
+        }
+
+        function checkArrival(currentLatLng) {
+            if (hasArrived || !destinationLatLng) return;
+            
+            const distanceToDestination = currentLatLng.distanceTo(destinationLatLng);
+            if (distanceToDestination <= 20) {
+                hasArrived = true;
+                document.getElementById('arrivalModal').classList.remove('hidden');
+            }
+        }
+
+        function closeArrivalModal() {
+            document.getElementById('arrivalModal').classList.add('hidden');
+            cancelNavigation();
         }
 
         function reorganizeRoute() {
@@ -591,14 +619,16 @@
         function cancelNavigation() {
             isNavigating = false;
             isFollowingUser = true;
+            hasArrived = false;
             if (navigationInterval) {
                 clearInterval(navigationInterval);
                 navigationInterval = null;
             }
-            document.getElementById('map').style.transform = `translate(-50%, -50%) rotateX(0deg) rotate(0deg)`;
+            applyMapRotation(0);
             document.getElementById('view-navigation').classList.add('hidden');
             document.getElementById('view-home').classList.remove('hidden');
             document.getElementById('reorganize-container').classList.add('hidden');
+            document.getElementById('arrivalModal').classList.add('hidden');
             
             if (routingControl) map.removeControl(routingControl);
             if (destinationMarker) map.removeLayer(destinationMarker);
