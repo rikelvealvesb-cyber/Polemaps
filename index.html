@@ -19,13 +19,17 @@
         .leaflet-control-attribution, .leaflet-control-zoom { display: none !important; }
         .leaflet-routing-container { display: none !important; }
 
+        /* Mapa dimensionado e centralizado para evitar cortes nas laterais ao rotacionar */
         #map {
-            width: 100%;
-            height: 100%;
+            width: 150vw;
+            height: 150vh;
             position: absolute;
-            inset: 0;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transform-origin: center center;
             z-index: 0;
-            transition: transform 0.3s ease-out;
+            transition: transform 0.2s ease-out;
         }
 
         .user-gps-container {
@@ -302,12 +306,10 @@
                         if (isFollowingUser) {
                             map.setView(userLatLng, isNavigating ? 19 : 17, { animate: true });
                             if (isNavigating) {
-                                // Gira o mapa em tempo real para a direção do movimento
-                                document.getElementById('map').style.transform = `rotate(${-currentBearing}deg)`;
+                                document.getElementById('map').style.transform = `translate(-50%, -50%) rotate(${-currentBearing}deg)`;
                             }
                         }
 
-                        // Atualiza as cores da rota (percorrida em cinza, restante em azul)
                         if (isNavigating && routeCoordinates.length > 0) {
                             updateRouteProgress(userLatLng);
                         }
@@ -354,9 +356,9 @@
             if (userLatLng) {
                 map.setView(userLatLng, isNavigating ? 19 : 17, { animate: true });
                 if (isNavigating) {
-                    document.getElementById('map').style.transform = `rotate(${-currentBearing}deg)`;
+                    document.getElementById('map').style.transform = `translate(-50%, -50%) rotate(${-currentBearing}deg)`;
                 } else {
-                    document.getElementById('map').style.transform = `rotate(0deg)`;
+                    document.getElementById('map').style.transform = `translate(-50%, -50%) rotate(0deg)`;
                 }
             }
         }
@@ -478,7 +480,7 @@
                 document.getElementById('view-navigation').classList.remove('hidden');
                 if (userLatLng) {
                     map.setView(userLatLng, 19, { animate: true });
-                    document.getElementById('map').style.transform = `rotate(${-currentBearing}deg)`;
+                    document.getElementById('map').style.transform = `translate(-50%, -50%) rotate(${-currentBearing}deg)`;
                 }
             }, true);
         }
@@ -499,7 +501,6 @@
                 router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1', profile: 'bike' }),
                 routeWhileDragging: false,
                 show: false,
-                // Deixamos a linha padrão invisível se estiver navegando, pois desenharemos as duas customizadas (cinza/azul)
                 lineOptions: { styles: [{ color: isPreview ? '#2563eb' : 'transparent', opacity: 0.9, weight: 6 }] },
                 fitSelectedRoutes: isPreview
             }).addTo(map);
@@ -516,7 +517,6 @@
                     document.getElementById('nav-time').innerText = formatMinutesToHours(totalMinutes);
                     document.getElementById('nav-distance').innerText = `${totalKm} km`;
 
-                    // Armazena todas as coordenadas da rota gerada
                     routeCoordinates = routes[0].coordinates;
                     if (isNavigating) {
                         updateRouteProgress(userLatLng);
@@ -534,7 +534,6 @@
         function updateRouteProgress(currentLatLng) {
             if (routeCoordinates.length === 0) return;
 
-            // Encontra o ponto mais próximo na rota para separar o que já foi percorrido
             let closestIndex = 0;
             let minDistance = Infinity;
 
@@ -553,16 +552,14 @@
             if (traveledLine) map.removeLayer(traveledLine);
             if (remainingLine) map.removeLayer(remainingLine);
 
-            // Linha percorrida fica cinza
             traveledLine = L.polyline(traveledCoords, { color: '#71717a', weight: 6, opacity: 0.8 }).addTo(map);
-            // Linha restante fica azul
             remainingLine = L.polyline(remainingCoords, { color: '#2563eb', weight: 6, opacity: 0.9 }).addTo(map);
         }
 
         function cancelNavigation() {
             isNavigating = false;
             isFollowingUser = true;
-            document.getElementById('map').style.transform = `rotate(0deg)`;
+            document.getElementById('map').style.transform = `translate(-50%, -50%) rotate(0deg)`;
             document.getElementById('view-navigation').classList.add('hidden');
             document.getElementById('view-home').classList.remove('hidden');
             
