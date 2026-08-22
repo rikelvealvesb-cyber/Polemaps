@@ -195,6 +195,7 @@
         let isNavigating = false;
         let currentBearing = 0;
         let routeCoordinates = [];
+        let navigationInterval = null;
 
         function initMap() {
             userLatLng = L.latLng(-23.5505, -46.6333);
@@ -483,6 +484,15 @@
                     document.getElementById('map').style.transform = `translate(-50%, -50%) rotate(${-currentBearing}deg)`;
                 }
             }, true);
+
+            // Inicia o intervalo de meio em meio segundo para manter o mapa focado e centralizado no usuário durante a rota
+            if (navigationInterval) clearInterval(navigationInterval);
+            navigationInterval = setInterval(() => {
+                if (isNavigating && userLatLng) {
+                    isFollowingUser = true;
+                    centerOnUser();
+                }
+            }, 500);
         }
 
         let traveledLine = null;
@@ -559,6 +569,10 @@
         function cancelNavigation() {
             isNavigating = false;
             isFollowingUser = true;
+            if (navigationInterval) {
+                clearInterval(navigationInterval);
+                navigationInterval = null;
+            }
             document.getElementById('map').style.transform = `translate(-50%, -50%) rotate(0deg)`;
             document.getElementById('view-navigation').classList.add('hidden');
             document.getElementById('view-home').classList.remove('hidden');
