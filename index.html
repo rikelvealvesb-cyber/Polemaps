@@ -34,26 +34,29 @@
 
         .user-gps-container {
             position: relative;
-            width: 56px;
-            height: 56px;
+            width: 64px;
+            height: 64px;
             display: flex;
             align-items: center;
             justify-content: center;
+            perspective: 300px;
         }
 
         .nav-arrow-marker {
-            width: 44px;
-            height: 44px;
+            width: 48px;
+            height: 48px;
             background: #2563eb;
             border: 3px solid #ffffff;
             border-radius: 50%;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-size: 20px;
-            transition: transform 0.1s linear;
+            transform: rotateX(25deg);
+            transform-origin: center;
+            transition: transform 0.15s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
         .panel-slide { transition: transform 0.3s cubic-bezier(0.1, 0.9, 0.2, 1); }
@@ -144,6 +147,10 @@
         <div id="suggestionsBox" class="absolute left-4 right-20 top-20 bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl hidden max-h-72 overflow-y-auto z-30 pointer-events-auto box-border text-gray-100"></div>
 
         <div class="pointer-events-auto flex justify-end space-x-3 px-2 mb-28">
+            <!-- BOTÃO MUDANÇA DE TEMA (CLARO/ESCURO) -->
+            <button onclick="toggleMapTheme()" id="themeBtn" class="w-14 h-14 bg-zinc-900 text-amber-400 shadow-2xl rounded-full flex items-center justify-center text-xl border border-zinc-800 active:scale-95 transition" title="Alternar Tema do Mapa">
+                <i id="themeIcon" class="fa-solid fa-moon"></i>
+            </button>
             <button onclick="centerOnUser()" id="centerBtn" class="w-14 h-14 bg-zinc-900 text-blue-400 shadow-2xl rounded-full flex items-center justify-center text-2xl border border-zinc-800 active:scale-95 transition" title="Centralizar">
                 <i class="fa-solid fa-location-crosshairs"></i>
             </button>
@@ -190,13 +197,6 @@
     <!-- TELA 3: NAVEGAÇÃO EM ANDAMENTO -->
     <div id="view-navigation" class="absolute inset-0 z-30 pointer-events-none flex flex-col justify-end p-4 box-border hidden">
         <div class="flex flex-col space-y-3 w-full">
-            <div id="reorganize-container" class="pointer-events-auto flex justify-center w-full hidden">
-                <button onclick="reorganizeRoute()" class="bg-amber-600 hover:bg-amber-500 text-white font-bold text-base px-6 py-3 rounded-full shadow-2xl flex items-center space-x-3 border border-amber-500 transition animate-bounce">
-                    <i class="fa-solid fa-route text-lg"></i>
-                    <span>Reorganizar Rota</span>
-                </button>
-            </div>
-
             <!-- PAINEL INFERIOR -->
             <div id="nav-bottom-panel" class="pointer-events-auto bg-zinc-900 border border-zinc-800 rounded-3xl p-4 flex flex-col space-y-3 shadow-2xl box-border w-full text-gray-100">
                 <div class="flex items-center justify-between">
@@ -235,6 +235,7 @@
         let searchTimeout = null;
         let isNavigating = false;
         let currentHeading = 0;
+        let displayedHeading = 0;
         let routeCoordinates = [];
         let navigationInterval = null;
         let hasArrived = false;
@@ -247,8 +248,10 @@
         let navigationTotalSeconds = 0;
         let maxSpeedRecorded = 0;
         let minSpeedRecorded = Infinity;
+        let isDarkTheme = true;
 
         const NAVIGATION_ZOOM = 20.5;
+        const PITCH_ANGLE = 60; // Inclinado para efeito de profundidade 3D
 
         function initMap() {
             map = new maplibregl.Map({
@@ -257,7 +260,7 @@
                 center: [-46.6333, -23.5505],
                 zoom: NAVIGATION_ZOOM,
                 maxZoom: 22,
-                pitch: 50,
+                pitch: PITCH_ANGLE,
                 bearing: 0,
                 attributionControl: false
             });
@@ -277,6 +280,31 @@
             });
         }
 
+        function toggleMapTheme() {
+            isDarkTheme = !isDarkTheme;
+            const themeIcon = document.getElementById('themeIcon');
+            const themeBtn = document.getElementById('themeBtn');
+            
+            if (isDarkTheme) {
+                map.setStyle('https://tiles.openfreemap.org/styles/liberty');
+                themeIcon.className = "fa-solid fa-moon";
+                themeBtn.classList.remove('text-blue-400');
+                themeBtn.classList.add('text-amber-400');
+            } else {
+                map.setStyle('https://tiles.openfreemap.org/styles/positron');
+                themeIcon.className = "fa-solid fa-sun";
+                themeBtn.classList.remove('text-amber-400');
+                themeBtn.classList.add('text-blue-400');
+            }
+
+            // Re-adiciona as camadas de rotas após mudança de estilo do mapa
+            map.once('style.load', () => {
+                if (routeCoordinates.length > 0) {
+                    drawRouteOnMap(routeCoordinates);
+                }
+            });
+        }
+
         function startRealGeolocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.watchPosition(
@@ -288,11 +316,18 @@
                         if (lastUserCoords) {
                             const dLat = newLat - lastUserCoords.lat;
                             const dLng = newLng - lastUserCoords.lng;
-                            // Apenas atualiza o ângulo de direção se houver deslocamento real significativo
-                            if (Math.hypot(dLat, dLng) > 0.000005) {
+                            // Precisão rigorosa na direção com deslocamento mínimo
+                            if (Math.hypot(dLat, dLng) > 0.000002) {
                                 let angle = Math.atan2(dLng, dLat) * (180 / Math.PI);
                                 if (angle < 0) angle += 360;
-                                currentHeading = angle;
+                                
+                                // Tratamento de transição suave de ângulo (evita salto de 0 a 360)
+                                let diff = angle - currentHeading;
+                                if (diff > 180) diff -= 360;
+                                if (diff < -180) diff += 360;
+                                currentHeading += diff * 0.35;
+                                if (currentHeading < 0) currentHeading += 360;
+                                if (currentHeading >= 360) currentHeading -= 360;
                             }
                         }
                         lastUserCoords = { lat: newLat, lng: newLng };
@@ -303,7 +338,7 @@
                         if (position.coords.speed !== null && position.coords.speed >= 0) {
                             currentSpeedKmH = Math.round(position.coords.speed * 3.6);
                         } else {
-                            currentSpeedKmH = 0; // Correção: Velocidade 0 quando parado ou sem dados de speed do GPS
+                            currentSpeedKmH = 0;
                         }
                         document.getElementById('current-speed').innerText = currentSpeedKmH;
 
@@ -313,12 +348,21 @@
                         }
 
                         if (isFollowingUser) {
+                            // Rotação fluida e acelerada do mapa para a direção da rua
+                            let currentBearing = map.getBearing();
+                            let bearingDiff = currentHeading - currentBearing;
+                            if (bearingDiff > 180) bearingDiff -= 360;
+                            if (bearingDiff < -180) bearingDiff += 360;
+                            
+                            let smoothedBearing = currentBearing + bearingDiff * 0.15;
+
                             map.easeTo({
                                 center: userLatLng,
                                 zoom: NAVIGATION_ZOOM,
-                                bearing: currentHeading,
-                                pitch: 50,
-                                duration: 200
+                                bearing: smoothedBearing,
+                                pitch: PITCH_ANGLE,
+                                duration: 120,
+                                easing: (t) => t * (2 - t)
                             });
                         }
 
@@ -328,7 +372,7 @@
                         }
                     },
                     (err) => { console.warn("Aguardando GPS..."); },
-                    { enableHighAccuracy: true, maximumAge: 500, timeout: 5000 }
+                    { enableHighAccuracy: true, maximumAge: 300, timeout: 5000 }
                 );
             }
         }
@@ -338,7 +382,7 @@
                 userMarkerElement = document.createElement('div');
                 userMarkerElement.className = 'user-gps-container';
                 userMarkerElement.innerHTML = `
-                    <div class="nav-arrow-marker" id="nav-arrow" style="transform: rotate(${heading}deg);">
+                    <div class="nav-arrow-marker" id="nav-arrow" style="transform: rotate(${heading}deg) rotateX(25deg);">
                         <i class="fa-solid fa-location-arrow"></i>
                     </div>`;
 
@@ -348,7 +392,7 @@
             } else {
                 userMarkerObj.setLngLat(lngLat);
                 const arrow = userMarkerElement.querySelector('#nav-arrow');
-                if (arrow) arrow.style.transform = `rotate(${heading}deg)`;
+                if (arrow) arrow.style.transform = `rotate(${heading}deg) rotateX(25deg)`;
             }
         }
 
@@ -359,7 +403,7 @@
                     center: userLatLng,
                     zoom: NAVIGATION_ZOOM,
                     bearing: currentHeading,
-                    pitch: 50,
+                    pitch: PITCH_ANGLE,
                     duration: 500
                 });
             }
@@ -461,6 +505,7 @@
             document.getElementById('searchInput').value = '';
             document.getElementById('suggestionsBox').classList.add('hidden');
             if (destinationMarkerObj) destinationMarkerObj.remove();
+            if (map.getLayer('route-passed-layer')) map.removeLayer('route-passed-layer');
             if (map.getLayer('route-layer')) map.removeLayer('route-layer');
             if (map.getSource('route-source')) map.removeSource('route-source');
             destinationLngLat = null;
@@ -487,7 +532,7 @@
             sheet.classList.remove('translate-y-[120%]');
             sheet.classList.add('translate-y-0');
             
-            map.easeTo({ center: lngLat, zoom: NAVIGATION_ZOOM, duration: 600 });
+            map.easeTo({ center: lngLat, zoom: NAVIGATION_ZOOM, pitch: PITCH_ANGLE, duration: 600 });
             calculateBikeTimeAndRoute();
         }
 
@@ -546,7 +591,7 @@
             if (navigationInterval) clearInterval(navigationInterval);
             navigationInterval = setInterval(() => {
                 if (isNavigating && userLatLng && isFollowingUser) {
-                    map.easeTo({ center: userLatLng, zoom: NAVIGATION_ZOOM, bearing: currentHeading, pitch: 50, duration: 150 });
+                    map.easeTo({ center: userLatLng, zoom: NAVIGATION_ZOOM, bearing: currentHeading, pitch: PITCH_ANGLE, duration: 150 });
                 }
             }, 200);
         }
@@ -565,7 +610,7 @@
                     initialRouteDistance = data.routes[0].distance;
                     expectedRouteDurationMin = Math.max(1, Math.round((data.routes[0].duration / 60) * 1.8));
                     
-                    drawRouteOnMap(routeCoordinates);
+                    drawRouteOnMap(routeCoordinates, 0);
                     if (onComplete) onComplete();
                 } else {
                     throw new Error("Sem rota");
@@ -577,31 +622,56 @@
                     [destinationLngLat[0], userLatLng[1]],
                     destinationLngLat
                 ];
-                drawRouteOnMap(routeCoordinates);
+                drawRouteOnMap(routeCoordinates, 0);
                 if (onComplete) onComplete();
             }
         }
 
-        function drawRouteOnMap(coords) {
-            const geojson = {
+        function drawRouteOnMap(coords, closestIndex = 0) {
+            const passedCoords = coords.slice(0, Math.max(1, closestIndex + 1));
+            const remainingCoords = coords.slice(Math.max(0, closestIndex));
+
+            const passedGeojson = {
                 type: 'Feature',
                 properties: {},
                 geometry: {
                     type: 'LineString',
-                    coordinates: coords
+                    coordinates: passedCoords
                 }
             };
 
-            if (map.getSource('route-source')) {
-                map.getSource('route-source').setData(geojson);
+            const remainingGeojson = {
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                    type: 'LineString',
+                    coordinates: remainingCoords
+                }
+            };
+
+            if (map.getSource('route-passed-source')) {
+                map.getSource('route-passed-source').setData(passedGeojson);
+                map.getSource('route-source').setData(remainingGeojson);
             } else {
-                map.addSource('route-source', { type: 'geojson', data: geojson });
+                map.addSource('route-passed-source', { type: 'geojson', data: passedGeojson });
+                map.addSource('route-source', { type: 'geojson', data: remainingGeojson });
+
+                // Traço por onde já passou (cinza escuro) - Largura maior
+                map.addLayer({
+                    id: 'route-passed-layer',
+                    type: 'line',
+                    source: 'route-passed-source',
+                    layout: { 'line-join': 'round', 'line-cap': 'round' },
+                    paint: { 'line-color': '#3f3f46', 'line-width': 12, 'line-opacity': 0.85 }
+                });
+
+                // Traço principal da rota ativa (azul) - Largura aumentada
                 map.addLayer({
                     id: 'route-layer',
                     type: 'line',
                     source: 'route-source',
                     layout: { 'line-join': 'round', 'line-cap': 'round' },
-                    paint: { 'line-color': '#3b82f6', 'line-width': 8, 'line-opacity': 0.95 }
+                    paint: { 'line-color': '#3b82f6', 'line-width': 12, 'line-opacity': 0.95 }
                 });
             }
         }
@@ -621,6 +691,8 @@
                 }
             }
 
+            drawRouteOnMap(routeCoordinates, closestIndex);
+
             let remainingDistanceMeters = 0;
             for (let i = closestIndex; i < routeCoordinates.length - 1; i++) {
                 const p1 = routeCoordinates[i];
@@ -635,14 +707,6 @@
             document.getElementById('nav-distance').innerText = `${totalKm} km`;
 
             updatePaceStatus(remainingDistanceMeters, remainingMinutes, currentSpeedKmH);
-
-            const distanceMeters = minDistance * 111320;
-            const reorganizeContainer = document.getElementById('reorganize-container');
-            if (distanceMeters > 35) {
-                reorganizeContainer.classList.remove('hidden');
-            } else {
-                reorganizeContainer.classList.add('hidden');
-            }
         }
 
         function updatePaceStatus(remainingMeters, remainingMin, currentSpeed) {
@@ -710,14 +774,6 @@
             cancelNavigation();
         }
 
-        function reorganizeRoute() {
-            if (!userLatLng || !destinationLngLat) return;
-            calculateRoute(() => {
-                document.getElementById('reorganize-container').classList.add('hidden');
-                centerOnUser();
-            }, false);
-        }
-
         function cancelNavigation() {
             isNavigating = false;
             isFollowingUser = true;
@@ -729,12 +785,13 @@
             document.getElementById('view-navigation').classList.add('hidden');
             document.getElementById('top-search-wrapper').classList.remove('hidden');
             document.getElementById('view-home').classList.remove('hidden');
-            document.getElementById('reorganize-container').classList.add('hidden');
             document.getElementById('arrivalModal').classList.add('hidden');
             document.getElementById('reportModal').classList.add('hidden');
             
             if (destinationMarkerObj) destinationMarkerObj.remove();
+            if (map.getLayer('route-passed-layer')) map.removeLayer('route-passed-layer');
             if (map.getLayer('route-layer')) map.removeLayer('route-layer');
+            if (map.getSource('route-passed-source')) map.removeSource('route-passed-source');
             if (map.getSource('route-source')) map.removeSource('route-source');
             
             destinationMarkerObj = null;
