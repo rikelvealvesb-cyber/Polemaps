@@ -248,7 +248,8 @@
         let maxSpeedRecorded = 0;
         let minSpeedRecorded = Infinity;
 
-        const NAVIGATION_ZOOM = 17.5;
+        // Zoom fixado bem próximo (alterado para 18.5)
+        const NAVIGATION_ZOOM = 18.5;
 
         function initMap() {
             map = new maplibregl.Map({
@@ -485,7 +486,7 @@
             sheet.classList.remove('translate-y-[120%]');
             sheet.classList.add('translate-y-0');
             
-            map.easeTo({ center: lngLat, zoom: 16, duration: 600 });
+            map.easeTo({ center: lngLat, zoom: NAVIGATION_ZOOM, duration: 600 });
             calculateBikeTimeAndRoute();
         }
 
@@ -570,7 +571,6 @@
                 }
             } catch(err) {
                 if (isPreview) document.getElementById('loadingOverlay').classList.add('hidden');
-                // Fallback offline simulando traçado urbano
                 routeCoordinates = [
                     userLatLng,
                     [destinationLngLat[0], userLatLng[1]],
