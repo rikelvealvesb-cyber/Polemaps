@@ -39,24 +39,24 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            perspective: 300px;
+            perspective: 350px;
         }
 
         .nav-arrow-marker {
-            width: 48px;
-            height: 48px;
+            width: 52px;
+            height: 52px;
             background: #2563eb;
-            border: 3px solid #ffffff;
+            border: 4px solid #ffffff;
             border-radius: 50%;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.7);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 20px;
-            transform: rotateX(25deg);
+            font-size: 22px;
+            transform: rotateX(35deg);
             transform-origin: center;
-            transition: transform 0.08s linear;
+            transition: transform 0.05s linear;
         }
 
         .panel-slide { transition: transform 0.3s cubic-bezier(0.1, 0.9, 0.2, 1); }
@@ -73,7 +73,7 @@
     <div id="free-roam-toast" class="absolute top-20 inset-x-6 z-40 bg-zinc-900/95 border border-zinc-700 rounded-2xl p-3 shadow-2xl flex items-center justify-between pointer-events-none opacity-0 transition-opacity duration-300 backdrop-blur-sm box-border">
         <div class="flex items-center space-x-3">
             <i class="fa-solid fa-hand text-amber-400 text-lg"></i>
-            <span class="text-xs font-semibold text-zinc-200">Modo livre ativado. Toque em centralizar para seguir a rota.</span>
+            <span class="text-xs font-semibold text-zinc-200">Modo livre ativado. Toque em centralizar para alinhar a rota.</span>
         </div>
     </div>
 
@@ -143,7 +143,7 @@
                 <button onclick="clearSearch()" class="text-zinc-400 mr-3 text-2xl hover:text-white transition">
                     <i class="fa-solid fa-arrow-left"></i>
                 </button>
-                <input type="text" id="searchInput" placeholder="Pesquisar rua, local ou número..." oninput="handleSearchInput(event)" onfocus="showHistorySuggestions()"
+                <input type="text" id="searchInput" placeholder="Digite rua, número, CEP ou local..." oninput="handleSearchInput(event)" onfocus="showHistorySuggestions()"
                        class="flex-1 bg-transparent text-inherit placeholder:text-zinc-500 focus:outline-none text-lg font-medium min-w-0">
                 <button class="text-zinc-400 mx-3 text-xl hover:text-white transition">
                     <i class="fa-solid fa-microphone"></i>
@@ -155,11 +155,11 @@
         <div id="suggestionsBox" class="absolute left-4 right-20 top-20 bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl hidden max-h-72 overflow-y-auto z-30 pointer-events-auto box-border text-gray-100"></div>
 
         <div class="pointer-events-auto flex justify-end space-x-3 px-2 mb-28">
-            <!-- BOTÃO MUDANÇA DE ESTILO (COM ÍCONE DE OLHO) -->
+            <!-- BOTÃO DE ESTILO VISUAL (COM ÍCONE DE OLHO) -->
             <button onclick="toggleMapTheme()" id="themeBtn" class="w-14 h-14 bg-zinc-900 text-blue-400 shadow-2xl rounded-full flex items-center justify-center text-xl border border-zinc-800 active:scale-95 transition" title="Alternar Estilo Visual (Olho)">
                 <i id="themeIcon" class="fa-solid fa-eye"></i>
             </button>
-            <button onclick="centerOnUser()" id="centerBtn" class="w-14 h-14 bg-zinc-900 text-blue-400 shadow-2xl rounded-full flex items-center justify-center text-2xl border border-zinc-800 active:scale-95 transition" title="Centralizar">
+            <button onclick="centerOnUser()" id="centerBtn" class="w-14 h-14 bg-zinc-900 text-blue-400 shadow-2xl rounded-full flex items-center justify-center text-2xl border border-zinc-800 active:scale-95 transition" title="Centralizar e Alinhar Rota">
                 <i class="fa-solid fa-location-crosshairs"></i>
             </button>
         </div>
@@ -168,7 +168,7 @@
     <!-- OVERLAY DE CARREGAMENTO -->
     <div id="loadingOverlay" class="absolute inset-0 bg-black/60 z-50 hidden flex flex-col items-center justify-center backdrop-blur-xs box-border">
         <div class="w-14 h-14 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p class="text-white font-semibold text-base tracking-wide">Calculando atalhos e rota livre...</p>
+        <p class="text-white font-semibold text-base tracking-wide">Calculando rota inteligente...</p>
     </div>
 
     <!-- TELA 2: FICHA DO LOCAL -->
@@ -244,7 +244,6 @@
         let isNavigating = false;
         let currentHeading = 0;
         let routeCoordinates = [];
-        let navigationInterval = null;
         let hasArrived = false;
         let lastUserCoords = null;
 
@@ -262,8 +261,8 @@
             'https://tiles.openfreemap.org/styles/dark'
         ];
 
-        const NAVIGATION_ZOOM = 20.5;
-        const PITCH_ANGLE = 60; // Inclinação 3D para o mapa e ícone
+        const NAVIGATION_ZOOM = 20; // Zoom fixado em 20 conforme solicitado
+        const PITCH_ANGLE = 65;     // Mergulho 3D acentuado
 
         function initMap() {
             map = new maplibregl.Map({
@@ -282,7 +281,6 @@
                 map.resize();
             });
 
-            // Se o usuário tocar ou interagir com o mapa, desativa o seguimento automático e avisa
             map.on('dragstart', () => {
                 if (isFollowingUser) {
                     isFollowingUser = false;
@@ -333,14 +331,14 @@
                         if (lastUserCoords) {
                             const dLat = newLat - lastUserCoords.lat;
                             const dLng = newLng - lastUserCoords.lng;
-                            if (Math.hypot(dLat, dLng) > 0.000001) {
+                            if (Math.hypot(dLat, dLng) > 0.0000008) {
                                 let angle = Math.atan2(dLng, dLat) * (180 / Math.PI);
                                 if (angle < 0) angle += 360;
                                 
                                 let diff = angle - currentHeading;
                                 if (diff > 180) diff -= 360;
                                 if (diff < -180) diff += 360;
-                                currentHeading += diff * 0.4;
+                                currentHeading += diff * 0.5;
                                 if (currentHeading < 0) currentHeading += 360;
                                 if (currentHeading >= 360) currentHeading -= 360;
                             }
@@ -368,12 +366,12 @@
                         }
                     },
                     (err) => { console.warn("Aguardando GPS..."); },
-                    { enableHighAccuracy: true, maximumAge: 100, timeout: 5000 }
+                    { enableHighAccuracy: true, maximumAge: 50, timeout: 5000 }
                 );
             }
         }
 
-        // Intervalo ultra fluido de 0.1s (100ms) para orientar o mapa e o marcador exatamente atrás/sobre a rota
+        // Loop ultrarrápido de 0.01 segundos (10ms) mantendo precisão extrema e alinhamento da rua reta para cima
         setInterval(() => {
             if (isFollowingUser && userLatLng) {
                 let currentBearing = map.getBearing();
@@ -381,25 +379,30 @@
                 if (bearingDiff > 180) bearingDiff -= 360;
                 if (bearingDiff < -180) bearingDiff += 360;
                 
-                let smoothedBearing = currentBearing + bearingDiff * 0.25;
+                let smoothedBearing = currentBearing + bearingDiff * 0.3;
+
+                // Centraliza ligeiramente acima do centro para posicionar o marcador na ponta do traço (terço inferior)
+                const point = map.project(userLatLng);
+                const adjustedPoint = [point.x, point.y + 110]; // Deslocamento vertical para fixar o marcador na ponta do traço conforme referência
+                const adjustedLngLat = map.unproject(adjustedPoint);
 
                 map.easeTo({
-                    center: userLatLng,
+                    center: adjustedLngLat,
                     zoom: NAVIGATION_ZOOM,
                     bearing: smoothedBearing,
                     pitch: PITCH_ANGLE,
-                    duration: 90,
+                    duration: 35,
                     easing: (t) => t
                 });
             }
-        }, 100);
+        }, 10);
 
         function updateUserMarker(lngLat, heading) {
             if (!userMarkerElement) {
                 userMarkerElement = document.createElement('div');
                 userMarkerElement.className = 'user-gps-container';
                 userMarkerElement.innerHTML = `
-                    <div class="nav-arrow-marker" id="nav-arrow" style="transform: rotate(${heading}deg) rotateX(25deg);">
+                    <div class="nav-arrow-marker" id="nav-arrow" style="transform: rotate(${heading}deg) rotateX(35deg);">
                         <i class="fa-solid fa-location-arrow"></i>
                     </div>`;
 
@@ -409,7 +412,7 @@
             } else {
                 userMarkerObj.setLngLat(lngLat);
                 const arrow = userMarkerElement.querySelector('#nav-arrow');
-                if (arrow) arrow.style.transform = `rotate(${heading}deg) rotateX(25deg)`;
+                if (arrow) arrow.style.transform = `rotate(${heading}deg) rotateX(35deg)`;
             }
         }
 
@@ -421,7 +424,7 @@
                     zoom: NAVIGATION_ZOOM,
                     bearing: currentHeading,
                     pitch: PITCH_ANGLE,
-                    duration: 400
+                    duration: 300
                 });
             }
         }
@@ -456,8 +459,9 @@
             }
         }
 
+        // Sistema de busca inteligente suportando ruas com número, endereços completos e CEP
         function handleSearchInput(e) {
-            const query = e.target.value;
+            const query = e.target.value.trim();
             clearTimeout(searchTimeout);
             const box = document.getElementById('suggestionsBox');
 
@@ -468,14 +472,27 @@
 
             searchTimeout = setTimeout(async () => {
                 try {
-                    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=br&addressdetails=1&q=${encodeURIComponent(query)}&limit=6`);
+                    let searchUrl = `https://nominatim.openstreetmap.org/search?format=json&countrycodes=br&addressdetails=1&q=${encodeURIComponent(query)}&limit=6`;
+                    
+                    // Se for formato de CEP (ex: 01001-000 ou 01001000)
+                    const cleanCep = query.replace(/\D/g, '');
+                    if (cleanCep.length === 8) {
+                        searchUrl = `https://nominatim.openstreetmap.org/search?format=json&countrycodes=br&postalcode=${cleanCep}&limit=5`;
+                    }
+
+                    const res = await fetch(searchUrl);
                     const data = await res.json();
                     
                     box.innerHTML = '';
                     if (data && data.length > 0) {
                         data.forEach(item => {
                             const displayName = item.display_name;
-                            const shortName = displayName.split(',')[0] + (item.address && item.address.house_number ? `, ${item.address.house_number}` : '');
+                            const addr = item.address || {};
+                            const road = addr.road || addr.street || displayName.split(',')[0];
+                            const number = addr.house_number ? `, ${addr.house_number}` : '';
+                            const city = addr.city || addr.town || addr.municipality || '';
+                            const shortName = `${road}${number}${city ? ' - ' + city : ''}`;
+                            
                             const lng = parseFloat(item.lon);
                             const lat = parseFloat(item.lat);
                             
@@ -515,7 +532,7 @@
                         box.classList.remove('hidden');
                     }
                 }
-            }, 350);
+            }, 300);
         }
 
         function clearSearch() {
@@ -639,7 +656,6 @@
 
         function drawRouteOnMap(coords, closestIndex = 0) {
             window.lastClosestIndex = closestIndex;
-            // Garante que o marcador azul fique logo atrás/exatamente no ponto atual da rota percorrida
             const safeIndex = Math.max(0, closestIndex);
             const passedCoords = coords.slice(0, safeIndex + 1);
             const remainingCoords = coords.slice(safeIndex);
@@ -669,7 +685,7 @@
                 map.addSource('route-passed-source', { type: 'geojson', data: passedGeojson });
                 map.addSource('route-source', { type: 'geojson', data: remainingGeojson });
 
-                // Traço cinza escuro onde já passou
+                // Traço percorrido em cinza escuro
                 map.addLayer({
                     id: 'route-passed-layer',
                     type: 'line',
@@ -678,7 +694,7 @@
                     paint: { 'line-color': '#3f3f46', 'line-width': 12, 'line-opacity': 0.85 }
                 });
 
-                // Traço principal azul da rota
+                // Traço principal da rota ativa em azul
                 map.addLayer({
                     id: 'route-layer',
                     type: 'line',
