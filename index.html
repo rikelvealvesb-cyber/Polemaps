@@ -248,7 +248,6 @@
         let maxSpeedRecorded = 0;
         let minSpeedRecorded = Infinity;
 
-        // Zoom fixado no limite máximo seguro e detalhado de proximidade
         const NAVIGATION_ZOOM = 20.5;
 
         function initMap() {
@@ -289,7 +288,8 @@
                         if (lastUserCoords) {
                             const dLat = newLat - lastUserCoords.lat;
                             const dLng = newLng - lastUserCoords.lng;
-                            if (Math.hypot(dLat, dLng) > 0.00001) {
+                            // Apenas atualiza o ângulo de direção se houver deslocamento real significativo
+                            if (Math.hypot(dLat, dLng) > 0.000005) {
                                 let angle = Math.atan2(dLng, dLat) * (180 / Math.PI);
                                 if (angle < 0) angle += 360;
                                 currentHeading = angle;
@@ -303,7 +303,7 @@
                         if (position.coords.speed !== null && position.coords.speed >= 0) {
                             currentSpeedKmH = Math.round(position.coords.speed * 3.6);
                         } else {
-                            currentSpeedKmH = 15;
+                            currentSpeedKmH = 0; // Correção: Velocidade 0 quando parado ou sem dados de speed do GPS
                         }
                         document.getElementById('current-speed').innerText = currentSpeedKmH;
 
@@ -653,9 +653,9 @@
             const kmNeeded = remainingMeters / 1000;
             const requiredSpeed = hoursNeeded > 0 ? (kmNeeded / hoursNeeded) : 12;
 
-            if (currentSpeed < 3 && currentSpeed >= 0) {
+            if (currentSpeed < 2 && currentSpeed >= 0) {
                 banner.className = "w-full py-2 px-3 rounded-xl bg-zinc-800 text-zinc-400 font-bold text-xs flex items-center justify-center space-x-2 border border-zinc-700 text-center";
-                textEl.innerText = "Em pausa ou andando muito devagar";
+                textEl.innerText = "Em pausa ou parado";
                 return;
             }
 
