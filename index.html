@@ -232,9 +232,11 @@
         let maxSpeedRecorded = 0;
         let minSpeedRecorded = Infinity;
         let styleIndex = 0;
+
+        // Estilos 2D OpenStreetMap padrão limpos (sem 3D/edifícios)
         const mapStyles = [
-            'https://tiles.openfreemap.org/styles/liberty',
             'https://tiles.openfreemap.org/styles/positron',
+            'https://tiles.openfreemap.org/styles/liberty',
             'https://tiles.openfreemap.org/styles/dark'
         ];
 
@@ -247,7 +249,7 @@
                 center: [-46.6333, -23.5505],
                 zoom: NAVIGATION_ZOOM,
                 maxZoom: 22,
-                pitch: 0,
+                pitch: 0, // Garante visão 2D chapada
                 bearing: 0,
                 attributionControl: false
             });
@@ -279,7 +281,6 @@
         }
 
         function initGeoJSONSources() {
-            // Fonte e camada GeoJSON nativa para o ponto azul do usuário (evita bugs de DOM)
             if (!map.getSource('user-source')) {
                 map.addSource('user-source', {
                     type: 'geojson',
@@ -289,7 +290,6 @@
                     }
                 });
 
-                // Círculo externo (borda branca e brilho)
                 map.addLayer({
                     id: 'user-halo-layer',
                     type: 'circle',
@@ -303,7 +303,6 @@
                     }
                 });
 
-                // Ponto azul central sólido
                 map.addLayer({
                     id: 'user-dot-layer',
                     type: 'circle',
@@ -348,14 +347,17 @@
                         if (lastUserCoords) {
                             const dLat = newLat - lastUserCoords.lat;
                             const dLng = newLng - lastUserCoords.lng;
-                            if (Math.hypot(dLat, dLng) > 0.0000008) {
+                            // Só recalcula o ângulo se houver deslocamento real para evitar oscilações parado
+                            if (Math.hypot(dLat, dLng) > 0.0000015) {
                                 let angle = Math.atan2(dLng, dLat) * (180 / Math.PI);
                                 if (angle < 0) angle += 360;
                                 
                                 let diff = angle - currentHeading;
                                 if (diff > 180) diff -= 360;
                                 if (diff < -180) diff += 360;
-                                currentHeading += diff * 0.4; // Suavização estável de direção
+                                
+                                // Suavização refinada para rotação estável sem tremores
+                                currentHeading += diff * 0.15; 
                                 if (currentHeading < 0) currentHeading += 360;
                                 if (currentHeading >= 360) currentHeading -= 360;
                             }
@@ -388,7 +390,7 @@
             }
         }
 
-        // Loop contínuo otimizado para alinhar a rota reta para cima sem oscilações
+        // Loop contínuo otimizado para alinhar a rota perfeitamente para cima na navegação
         setInterval(() => {
             if (isFollowingUser && userLatLng && map.getSource('user-source')) {
                 let currentBearing = map.getBearing();
@@ -396,9 +398,8 @@
                 if (bearingDiff > 180) bearingDiff -= 360;
                 if (bearingDiff < -180) bearingDiff += 360;
                 
-                let smoothedBearing = currentBearing + bearingDiff * 0.25;
+                let smoothedBearing = currentBearing + bearingDiff * 0.2;
 
-                // Posiciona o ponto azul perfeitamente no terço inferior da tela, alinhando a rua reta para cima
                 const point = map.project(userLatLng);
                 const adjustedPoint = [point.x, point.y + 160]; 
                 const adjustedLngLat = map.unproject(adjustedPoint);
@@ -642,6 +643,17 @@
                     initialRouteDistance = data.routes[0].distance;
                     expectedRouteDurationMin = Math.max(1, Math.round((data.routes[0].duration / 60) * 1.8));
                     
+                    // Alinha o heading inicial diretamente para o primeiro segmento da rota
+                    if (routeCoordinates.length > 1) {
+                        const p1 = routeCoordinates[0];
+                        const p2 = routeCoordinates[1];
+                        const dLng = p2[0] - p1[0];
+                        const dLat = p2[1] - p1[1];
+                        let initialAngle = Math.atan2(dLng, dLat) * (180 / Math.PI);
+                        if (initialAngle < 0) initialAngle += 360;
+                        currentHeading = initialAngle;
+                    }
+
                     drawRouteOnMap(routeCoordinates, 0);
                     if (onComplete) onComplete();
                 } else {
@@ -690,7 +702,6 @@
                 map.addSource('route-passed-source', { type: 'geojson', data: passedGeojson });
                 map.addSource('route-source', { type: 'geojson', data: remainingGeojson });
 
-                // Traço percorrido em cinza escuro
                 map.addLayer({
                     id: 'route-passed-layer',
                     type: 'line',
@@ -699,7 +710,6 @@
                     paint: { 'line-color': '#3f3f46', 'line-width': 12, 'line-opacity': 0.85 }
                 });
 
-                // Traço principal da rota ativa em azul
                 map.addLayer({
                     id: 'route-layer',
                     type: 'line',
@@ -717,12 +727,30 @@
             let minDistance = Infinity;
 
             for (let i = 0; i < routeCoordinates.length; i++) {
-                const pt = routeCoordinates[i]; // [lng, lat]
+                const pt = routeCoordinates[i]; 
                 const dist = Math.hypot(pt[1] - currentLatLng.lat, pt[0] - currentLatLng.lng);
                 if (dist < minDistance) {
                     minDistance = dist;
                     closestIndex = i;
                 }
+            }
+
+            // Alinha suavemente o heading na direção do próximo ponto do trajeto
+            if (closestIndex < routeCoordinates.length - 1) {
+                const p1 = routeCoordinates[closestIndex];
+                const p2 = routeCoordinates[closestIndex + 1];
+                const dLng = p2[0] - p1[0];
+                const dLat = p2[1] - p1[1];
+                let targetAngle = Math.atan2(dLng, dLat) * (180 / Math.PI);
+                if (targetAngle < 0) targetAngle += 360;
+
+                let diff = targetAngle - currentHeading;
+                if (diff > 180) diff -= 360;
+                if (diff < -180) diff += 360;
+                
+                currentHeading += diff * 0.2;
+                if (currentHeading < 0) currentHeading += 360;
+                if (currentHeading >= 360) currentHeading -= 360;
             }
 
             drawRouteOnMap(routeCoordinates, closestIndex);
