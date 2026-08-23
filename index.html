@@ -32,23 +32,6 @@
             left: 0;
         }
 
-        /* Ponto azul simples com animação de pulso para localização */
-        .user-dot-marker {
-            width: 26px;
-            height: 26px;
-            background: #2563eb;
-            border: 4px solid #ffffff;
-            border-radius: 50%;
-            box-shadow: 0 0 15px rgba(37, 99, 235, 0.9), 0 4px 10px rgba(0,0,0,0.5);
-            animation: pulse-dot 1.8s infinite;
-        }
-
-        @keyframes pulse-dot {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); }
-            70% { transform: scale(1.05); box-shadow: 0 0 0 12px rgba(37, 99, 235, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
-        }
-
         .panel-slide { transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
         .fade-in { animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         
@@ -151,7 +134,7 @@
         <div id="suggestionsBox" class="absolute left-4 right-20 top-20 bg-zinc-900/95 backdrop-blur-md border border-zinc-800 rounded-3xl shadow-2xl hidden max-h-72 overflow-y-auto z-30 pointer-events-auto box-border text-gray-100 fade-in"></div>
 
         <div class="pointer-events-auto flex justify-end space-x-3 px-2 mb-28">
-            <!-- BOTÃO DE ESTILO VISUAL (COM ÍCONE DE OLHO E EFEITOS) -->
+            <!-- BOTÃO DE ESTILO VISUAL (COM ÍCONE DE OLHO) -->
             <button onclick="toggleMapTheme()" id="themeBtn" class="w-14 h-14 bg-zinc-900/95 backdrop-blur-md text-blue-400 shadow-2xl rounded-full flex items-center justify-center text-xl border border-zinc-800 hover:border-zinc-700 active:scale-90 transition transform duration-200" title="Alternar Estilo Visual (Olho)">
                 <i id="themeIcon" class="fa-solid fa-eye transition-transform duration-300 hover:scale-110"></i>
             </button>
@@ -180,7 +163,7 @@
             </button>
         </div>
 
-        <p class="text-sm text-zinc-400 mb-4">PoleMaps • Navegação 2D OpenFreeMap</p>
+        <p class="text-sm text-zinc-400 mb-4">PoleMaps • Navegação 2D OpenStreetMap</p>
 
         <div id="vehicle-container" class="grid grid-cols-1 gap-2 mb-5 bg-zinc-950 p-3 rounded-2xl border border-zinc-800/80 box-border shadow-inner">
             <div class="flex items-center justify-between px-4 py-3 rounded-xl bg-blue-600 text-white shadow-md">
@@ -231,8 +214,6 @@
     <script>
         let map;
         let userLatLng = [-46.6333, -23.5505]; // [lng, lat]
-        let userMarkerElement = null;
-        let userMarkerObj = null;
         let destinationLngLat = null;
         let destinationMarkerObj = null;
         let isFollowingUser = true;
@@ -258,7 +239,6 @@
         ];
 
         const NAVIGATION_ZOOM = 20; // Zoom fixado em 20
-        const PITCH_ANGLE = 0;       // Mapa 2D puro
 
         function initMap() {
             map = new maplibregl.Map({
@@ -267,12 +247,13 @@
                 center: [-46.6333, -23.5505],
                 zoom: NAVIGATION_ZOOM,
                 maxZoom: 22,
-                pitch: PITCH_ANGLE,
+                pitch: 0,
                 bearing: 0,
                 attributionControl: false
             });
 
             map.on('load', () => {
+                initGeoJSONSources();
                 startRealGeolocation();
                 map.resize();
             });
@@ -297,6 +278,45 @@
             });
         }
 
+        function initGeoJSONSources() {
+            // Fonte e camada GeoJSON nativa para o ponto azul do usuário (evita bugs de DOM)
+            if (!map.getSource('user-source')) {
+                map.addSource('user-source', {
+                    type: 'geojson',
+                    data: {
+                        type: 'Feature',
+                        geometry: { type: 'Point', coordinates: userLatLng }
+                    }
+                });
+
+                // Círculo externo (borda branca e brilho)
+                map.addLayer({
+                    id: 'user-halo-layer',
+                    type: 'circle',
+                    source: 'user-source',
+                    paint: {
+                        'circle-radius': 12,
+                        'circle-color': '#ffffff',
+                        'circle-opacity': 0.9,
+                        'circle-stroke-width': 2,
+                        'circle-stroke-color': '#1d4ed8'
+                    }
+                });
+
+                // Ponto azul central sólido
+                map.addLayer({
+                    id: 'user-dot-layer',
+                    type: 'circle',
+                    source: 'user-source',
+                    paint: {
+                        'circle-radius': 8,
+                        'circle-color': '#2563eb',
+                        'circle-opacity': 1
+                    }
+                });
+            }
+        }
+
         function showFreeRoamToast() {
             const toast = document.getElementById('free-roam-toast');
             toast.style.opacity = '1';
@@ -310,6 +330,7 @@
             map.setStyle(mapStyles[styleIndex]);
 
             map.once('style.load', () => {
+                initGeoJSONSources();
                 if (routeCoordinates.length > 0) {
                     drawRouteOnMap(routeCoordinates, window.lastClosestIndex || 0);
                 }
@@ -334,14 +355,14 @@
                                 let diff = angle - currentHeading;
                                 if (diff > 180) diff -= 360;
                                 if (diff < -180) diff += 360;
-                                currentHeading += diff * 0.6;
+                                currentHeading += diff * 0.4; // Suavização estável de direção
                                 if (currentHeading < 0) currentHeading += 360;
                                 if (currentHeading >= 360) currentHeading -= 360;
                             }
                         }
                         lastUserCoords = { lat: newLat, lng: newLng };
 
-                        updateUserMarker(userLatLng);
+                        updateUserPosition(userLatLng);
 
                         let currentSpeedKmH = 0;
                         if (position.coords.speed !== null && position.coords.speed >= 0) {
@@ -367,41 +388,38 @@
             }
         }
 
-        // Loop ultrarrápido de 0.01 segundos (10ms) mantendo precisão e alinhamento da rua reta para cima
+        // Loop contínuo otimizado para alinhar a rota reta para cima sem oscilações
         setInterval(() => {
-            if (isFollowingUser && userLatLng) {
+            if (isFollowingUser && userLatLng && map.getSource('user-source')) {
                 let currentBearing = map.getBearing();
                 let bearingDiff = currentHeading - currentBearing;
                 if (bearingDiff > 180) bearingDiff -= 360;
                 if (bearingDiff < -180) bearingDiff += 360;
                 
-                let smoothedBearing = currentBearing + bearingDiff * 0.35;
+                let smoothedBearing = currentBearing + bearingDiff * 0.25;
 
+                // Posiciona o ponto azul perfeitamente no terço inferior da tela, alinhando a rua reta para cima
                 const point = map.project(userLatLng);
-                const adjustedPoint = [point.x, point.y + 140]; 
+                const adjustedPoint = [point.x, point.y + 160]; 
                 const adjustedLngLat = map.unproject(adjustedPoint);
 
                 map.easeTo({
                     center: adjustedLngLat,
                     zoom: NAVIGATION_ZOOM,
                     bearing: smoothedBearing,
-                    pitch: PITCH_ANGLE,
-                    duration: 30,
+                    pitch: 0,
+                    duration: 40,
                     easing: (t) => t
                 });
             }
-        }, 10);
+        }, 15);
 
-        function updateUserMarker(lngLat) {
-            if (!userMarkerElement) {
-                userMarkerElement = document.createElement('div');
-                userMarkerElement.className = 'user-dot-marker';
-
-                userMarkerObj = new maplibregl.Marker({ element: userMarkerElement })
-                    .setLngLat(lngLat)
-                    .addTo(map);
-            } else {
-                userMarkerObj.setLngLat(lngLat);
+        function updateUserPosition(lngLat) {
+            if (map.getSource('user-source')) {
+                map.getSource('user-source').setData({
+                    type: 'Feature',
+                    geometry: { type: 'Point', coordinates: lngLat }
+                });
             }
         }
 
@@ -412,8 +430,8 @@
                     center: userLatLng,
                     zoom: NAVIGATION_ZOOM,
                     bearing: currentHeading,
-                    pitch: PITCH_ANGLE,
-                    duration: 300
+                    pitch: 0,
+                    duration: 400
                 });
             }
         }
@@ -553,7 +571,7 @@
             sheet.classList.remove('translate-y-[120%]');
             sheet.classList.add('translate-y-0');
             
-            map.easeTo({ center: lngLat, zoom: NAVIGATION_ZOOM, pitch: PITCH_ANGLE, duration: 600 });
+            map.easeTo({ center: lngLat, zoom: NAVIGATION_ZOOM, pitch: 0, duration: 600 });
             calculateBikeTimeAndRoute();
         }
 
