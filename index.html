@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Conexão Jovem - FJU</title>
+    <title>FJU Conexão | Portal CyberJovem</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -13,86 +13,87 @@
 
     <style>
         :root {
-            --primary: #d32f2f;
-            --primary-dark: #b71c1c;
-            --accent: #d4af37;
-            --bg-color: #f4f6f9;
-            --card-bg: #ffffff;
-            --text-main: #333333;
-            --text-secondary: #666666;
-            --success: #2e7d32;
-            --border-color: #e0e0e0;
+            --neon-red: #ff0055;
+            --neon-blue: #00f3ff;
+            --neon-gold: #ffcc00;
+            --bg-dark: #0a0b10;
+            --card-bg: rgba(18, 20, 32, 0.85);
+            --border-cyber: rgba(0, 243, 255, 0.3);
+            --text-main: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --success: #00ff66;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Montserrat', sans-serif;
+            font-family: 'Rajdhani', sans-serif;
         }
 
         body {
-            background-color: var(--bg-color);
+            background-color: var(--bg-dark);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 0, 85, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 243, 255, 0.08) 0%, transparent 40%);
         }
 
         header {
-            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
-            padding: 1rem 1.2rem;
+            background: rgba(10, 11, 16, 0.95);
+            border-bottom: 2px solid var(--border-cyber);
+            padding: 0.8rem 1.2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
             position: sticky;
             top: 0;
             z-index: 1000;
+            backdrop-filter: blur(10px);
         }
 
         .logo-area {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
 
         .logo-icon {
-            background: white;
-            color: var(--primary);
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+            background: linear-gradient(135deg, var(--neon-red), var(--neon-blue));
+            color: white;
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
-            font-weight: 800;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            font-size: 1.3rem;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
         }
 
         .logo-text {
-            font-size: 1.15rem;
-            font-weight: 800;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 900;
             color: white;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            line-height: 1.1;
+            letter-spacing: 1px;
         }
 
         .logo-text span {
-            font-size: 0.75rem;
-            color: var(--accent);
+            font-size: 0.65rem;
+            color: var(--neon-blue);
             display: block;
-            font-weight: 600;
+            letter-spacing: 2px;
         }
 
         .user-info {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             font-size: 0.85rem;
-            color: white;
         }
 
         .user-badges {
@@ -101,39 +102,48 @@
             text-align: right;
         }
 
+        .currency-row {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
         .btn {
-            background-color: var(--accent);
-            color: #111;
+            background: linear-gradient(135deg, var(--neon-blue), #0066ff);
+            color: #000;
             border: none;
             padding: 0.5rem 1rem;
-            border-radius: 20px;
+            border-radius: 6px;
             font-weight: 700;
             cursor: pointer;
             transition: 0.3s;
             text-transform: uppercase;
             font-size: 0.75rem;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-family: 'Orbitron', sans-serif;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
         }
 
         .btn:hover {
-            opacity: 0.9;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.6);
             transform: translateY(-1px);
         }
 
         .btn-outline {
             background: transparent;
-            border: 1.5px solid white;
-            color: white;
+            border: 1px solid var(--neon-red);
+            color: var(--neon-red);
         }
 
         .btn-outline:hover {
-            background: white;
-            color: var(--primary);
+            background: var(--neon-red);
+            color: white;
         }
 
         main {
             flex: 1;
-            max-width: 600px;
+            max-width: 650px;
             width: 100%;
             margin: 0 auto;
             padding: 1rem;
@@ -154,17 +164,20 @@
         .auth-card {
             background: var(--card-bg);
             padding: 2rem;
-            border-radius: 16px;
+            border-radius: 14px;
             width: 100%;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-            border-top: 5px solid var(--primary);
+            border: 1px solid var(--border-cyber);
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.15);
+            backdrop-filter: blur(10px);
         }
 
         .auth-card h2 {
+            font-family: 'Orbitron', sans-serif;
             margin-bottom: 1.5rem;
             text-align: center;
-            color: var(--primary);
-            font-size: 1.4rem;
+            color: var(--neon-blue);
+            font-size: 1.3rem;
+            text-transform: uppercase;
         }
 
         .form-group {
@@ -183,16 +196,10 @@
             width: 100%;
             padding: 0.8rem;
             border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background: #fafafa;
-            color: var(--text-main);
+            border: 1px solid var(--border-cyber);
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
             font-size: 0.95rem;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--primary);
-            background: #fff;
         }
 
         .auth-card .btn {
@@ -210,43 +217,45 @@
         }
 
         .auth-switch a {
-            color: var(--primary);
+            color: var(--neon-blue);
             text-decoration: none;
             font-weight: 700;
         }
 
-        /* Cards Gerais */
+        /* Cyber Cards */
         .card {
             background: var(--card-bg);
-            border-radius: 14px;
+            border-radius: 12px;
             padding: 1.2rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             margin-bottom: 1.2rem;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--border-cyber);
+            backdrop-filter: blur(8px);
         }
 
         .card h3 {
+            font-family: 'Orbitron', sans-serif;
             margin-bottom: 0.8rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            color: var(--primary);
-            font-size: 1.05rem;
-            border-bottom: 2px solid #f0f0f0;
+            color: var(--neon-blue);
+            font-size: 1rem;
+            border-bottom: 1px solid var(--border-cyber);
             padding-bottom: 0.5rem;
         }
 
         .hearts-display {
             font-size: 0.9rem;
-            color: #d32f2f;
+            color: var(--neon-red);
         }
 
-        /* Quiz Section */
+        /* Quiz */
         .question-box {
-            font-size: 1rem;
+            font-size: 1.05rem;
             margin-bottom: 1rem;
             font-weight: 600;
-            color: var(--text-main);
+            color: white;
         }
 
         .options-list {
@@ -256,52 +265,128 @@
         }
 
         .option-btn {
-            background: #f8f9fa;
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-cyber);
+            color: white;
             padding: 0.75rem 1rem;
             border-radius: 8px;
             text-align: left;
             cursor: pointer;
             transition: 0.2s;
             font-size: 0.9rem;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         .option-btn:hover:not(:disabled) {
-            background: #fff3f3;
-            border-color: var(--primary);
-            color: var(--primary);
+            background: rgba(0, 243, 255, 0.15);
+            border-color: var(--neon-blue);
         }
 
         .option-btn.correct {
-            background: #e8f5e9 !important;
+            background: rgba(0, 255, 102, 0.2) !important;
             border-color: var(--success) !important;
             color: var(--success) !important;
-            font-weight: 700;
         }
 
         .option-btn.incorrect {
-            background: #ffebee !important;
-            border-color: var(--primary) !important;
-            color: var(--primary) !important;
+            background: rgba(255, 0, 85, 0.2) !important;
+            border-color: var(--neon-red) !important;
+            color: var(--neon-red) !important;
         }
 
         .streak-status-box {
-            background: #fff8e1;
-            border: 1px dashed var(--accent);
+            background: rgba(255, 204, 0, 0.08);
+            border: 1px dashed var(--neon-gold);
             padding: 0.8rem;
             border-radius: 8px;
             text-align: center;
             margin-top: 1rem;
             font-size: 0.85rem;
-            color: #795548;
+            color: var(--neon-gold);
         }
 
         .streak-timer {
             font-weight: 700;
             font-size: 1.05rem;
-            color: #e65100;
+            color: white;
+        }
+
+        /* Seção de Baús Cyber */
+        .chests-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .chest-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-cyber);
+            border-radius: 10px;
+            padding: 0.8rem;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .chest-box:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+        }
+
+        .chest-icon {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .chest-comum { color: #aaa; }
+        .chest-raro { color: var(--neon-blue); }
+        .chest-lendario { color: var(--neon-gold); text-shadow: 0 0 10px var(--neon-gold); }
+
+        .chest-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .chest-price {
+            font-size: 0.75rem;
+            color: var(--neon-blue);
+            font-weight: bold;
+        }
+
+        /* Cartas de Desafio entre Amigos */
+        .cards-inventory {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .challenge-card-item {
+            background: rgba(255, 0, 85, 0.08);
+            border: 1px solid var(--neon-red);
+            padding: 0.6rem;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+
+        /* Competitividade / Arena */
+        .arena-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 243, 255, 0.05);
+            padding: 0.8rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-cyber);
+            margin-bottom: 10px;
+            font-size: 0.9rem;
         }
 
         /* Leaderboard */
@@ -314,68 +399,50 @@
             justify-content: space-between;
             align-items: center;
             padding: 0.7rem 0;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
             font-size: 0.9rem;
-        }
-
-        .leaderboard-item:last-child {
-            border-bottom: none;
-        }
-
-        .rank-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
 
         .rank-badge {
             width: 24px;
             height: 24px;
             border-radius: 50%;
-            background: #e0e0e0;
+            background: rgba(255,255,255,0.1);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 0.75rem;
             font-weight: 700;
-            color: #555;
+            color: white;
+            font-family: 'Orbitron', sans-serif;
         }
 
-        .rank-1 { background: #ffd700; color: #555; }
-        .rank-2 { background: #c0c0c0; color: #555; }
+        .rank-1 { background: var(--neon-gold); color: black; box-shadow: 0 0 10px var(--neon-gold); }
+        .rank-2 { background: #c0c0c0; color: black; }
         .rank-3 { background: #cd7f32; color: white; }
 
         .user-stats-pill {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             align-items: center;
         }
 
         .score-val {
             font-weight: 700;
-            color: var(--primary);
-            background: #ffebee;
+            color: var(--neon-blue);
+            background: rgba(0, 243, 255, 0.1);
             padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 0.8rem;
-        }
-
-        .streak-val {
-            font-weight: 700;
-            color: #e65100;
-            background: #fff3e0;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 0.8rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
         }
 
         footer {
             text-align: center;
             padding: 1.2rem;
-            background: #ffffff;
+            background: rgba(10, 11, 16, 0.9);
             color: var(--text-secondary);
             font-size: 0.75rem;
-            border-top: 1px solid var(--border-color);
+            border-top: 1px solid var(--border-cyber);
             margin-top: auto;
         }
     </style>
@@ -384,16 +451,20 @@
 
     <header>
         <div class="logo-area">
-            <div class="logo-icon"><i class="fa-solid fa-fire"></i></div>
+            <div class="logo-icon"><i class="fa-solid fa-bolt-lightning"></i></div>
             <div class="logo-text">
-                FJU Conexão
-                <span>Igreja Universal</span>
+                FJU CYBER
+                <span>Universal Network</span>
             </div>
         </div>
         <div class="user-info hidden" id="userInfoSection">
             <div class="user-badges">
-                <span id="userNameDisplay">Jovem</span>
-                <span><i class="fa-solid fa-star" style="color:var(--accent);"></i> <b id="userScoreDisplay">0</b> pts | <i class="fa-solid fa-fire" style="color:#ff9800;"></i> <b id="userStreakDisplay">0</b>d</span>
+                <span id="userNameDisplay">CyberJovem</span>
+                <div class="currency-row">
+                    <span><i class="fa-solid fa-star" style="color:var(--neon-blue);"></i> <b id="userScoreDisplay">0</b></span>
+                    <span><i class="fa-solid fa-gem" style="color:var(--neon-red);"></i> <b id="userDiamondDisplay">0</b></span>
+                    <span><i class="fa-solid fa-fire" style="color:var(--neon-gold);"></i> <b id="userStreakDisplay">0</b>d</span>
+                </div>
             </div>
             <button class="btn btn-outline" id="logoutBtn">Sair</button>
         </div>
@@ -402,24 +473,24 @@
     <main>
         <section id="authScreen" class="auth-container">
             <div class="auth-card">
-                <h2 id="authTitle">Portal do Jovem FJU</h2>
+                <h2 id="authTitle">Acesso Neural FJU</h2>
                 <form id="authForm">
                     <div class="form-group" id="nameGroup" style="display: none;">
-                        <label>Nome ou Apelido</label>
-                        <input type="text" id="authName" placeholder="Seu nome">
+                        <label>Codinome / Nome</label>
+                        <input type="text" id="authName" placeholder="Seu apelido cyber">
                     </div>
                     <div class="form-group">
-                        <label>E-mail</label>
-                        <input type="email" id="authEmail" required placeholder="seu@email.com">
+                        <label>E-mail de Acesso</label>
+                        <input type="email" id="authEmail" required placeholder="cyber@fju.com">
                     </div>
                     <div class="form-group">
-                        <label>Senha</label>
+                        <label>Chave de Senha</label>
                         <input type="password" id="authPassword" required placeholder="******">
                     </div>
-                    <button type="submit" class="btn" id="authSubmitBtn">Entrar</button>
+                    <button type="submit" class="btn" id="authSubmitBtn">Conectar</button>
                 </form>
                 <div class="auth-switch">
-                    <p id="switchText">Não tem conta? <a href="#" id="switchModeBtn">Cadastre-se</a></p>
+                    <p id="switchText">Sem registro? <a href="#" id="switchModeBtn">Criar Conta</a></p>
                 </div>
             </div>
         </section>
@@ -428,33 +499,81 @@
             
             <div class="card">
                 <h3>
-                    <span><i class="fa-solid fa-book-bible"></i> Desafios Bíblicos</span>
+                    <span><i class="fa-solid fa-shield-halved"></i> Desafios Bíblicos</span>
                     <span class="hearts-display" id="heartsDisplay">❤️❤️❤️</span>
                 </h3>
                 <div id="quizContainer">
-                    <div class="question-box" id="questionText">Carregando pergunta...</div>
+                    <div class="question-box" id="questionText">Carregando dados neurais...</div>
                     <div class="options-list" id="optionsList"></div>
                     <div id="quizFeedback" style="margin-top: 0.8rem; font-weight: 600; text-align: center; font-size: 0.9rem;"></div>
                 </div>
 
                 <div class="streak-status-box" id="streakStatusBox">
-                    <span id="streakStatusText">Próxima renovação de corações/ofensiva em:</span><br>
-                    <span class="streak-timer" id="streakTimerDisplay">Disponível agora!</span>
+                    <span id="streakStatusText">Renovação de corações/ofensiva em:</span><br>
+                    <span class="streak-timer" id="streakTimerDisplay">Sincronizado!</span>
                 </div>
             </div>
 
             <div class="card">
-                <h3><i class="fa-solid fa-calendar-day"></i> Versículo do Dia</h3>
-                <p id="verseText" style="font-style: italic; margin-bottom: 0.5rem; color: var(--primary); font-size: 0.9rem;"></p>
-                <p style="font-size: 0.85rem; color: var(--text-secondary);">
-                    <strong>Meditação:</strong> Guarde esta palavra em seu coração e pratique a sua fé ao longo do dia!
+                <h3><i class="fa-solid fa-box-open"></i> Cofres & Cripto-Diamantes</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.85rem;">
+                    <span>Comprar 10 Diamantes por 50 Pontos:</span>
+                    <button class="btn" id="buyDiamondsBtn" style="font-size: 0.65rem; padding: 0.4rem 0.8rem;">Converter</button>
+                </div>
+                <div class="chests-grid">
+                    <div class="chest-box" onclick="openChest('comum')">
+                        <div class="chest-icon chest-comum"><i class="fa-solid fa-box"></i></div>
+                        <div class="chest-name">Comum</div>
+                        <div class="chest-price"><i class="fa-solid fa-gem"></i> 10</div>
+                    </div>
+                    <div class="chest-box" onclick="openChest('raro')">
+                        <div class="chest-icon chest-raro"><i class="fa-solid fa-box-archive"></i></div>
+                        <div class="chest-name">Raro</div>
+                        <div class="chest-price"><i class="fa-solid fa-gem"></i> 30</div>
+                    </div>
+                    <div class="chest-box" onclick="openChest('lendario')">
+                        <div class="chest-icon chest-lendario"><i class="fa-solid fa-vault"></i></div>
+                        <div class="chest-name">Lendário</div>
+                        <div class="chest-price"><i class="fa-solid fa-gem"></i> 80</div>
+                    </div>
+                </div>
+                <div id="chestResult" style="margin-top: 10px; text-align: center; font-size: 0.85rem; font-weight: bold; color: var(--neon-blue);"></div>
+            </div>
+
+            <div class="card">
+                <h3>
+                    <span><i class="fa-solid fa-address-card"></i> Cartas de Desafio Amigo</span>
+                    <button class="btn" id="createChallengeCardBtn" style="font-size: 0.65rem; padding: 0.3rem 0.6rem;">Criar Carta</button>
+                </h3>
+                <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 8px;">Envie cartas obtidas em baús para outros jovens da FJU!</p>
+                <div class="cards-inventory" id="cardsInventory">
+                    <div style="text-align: center; color: var(--text-secondary); font-size: 0.8rem; padding: 10px;">Nenhuma carta de desafio armazenada. Abra baús!</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3><i class="fa-solid fa-ranking-star"></i> Arena FJU Cyber</h3>
+                <div class="arena-box">
+                    <div>
+                        <strong>Torneio Semanal de Fé</strong><br>
+                        <span style="font-size: 0.75rem; color: var(--text-secondary);">O Top 1 da semana ganha 100 Diamantes extras!</span>
+                    </div>
+                    <button class="btn" onclick="claimTournamentPrize()">Resgatar</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3><i class="fa-solid fa-terminal"></i> Versículo do Dia</h3>
+                <p id="verseText" style="font-style: italic; margin-bottom: 0.5rem; color: var(--neon-blue); font-size: 0.9rem;"></p>
+                <p style="font-size: 0.8rem; color: var(--text-secondary);">
+                    <strong>Protocolo Prático:</strong> Pratique a fé inteligente hoje e fortaleça sua rede espiritual!
                 </p>
             </div>
 
             <div class="card">
-                <h3><i class="fa-solid fa-trophy"></i> Placar de Destaques FJU</h3>
+                <h3><i class="fa-solid fa-globe"></i> Placar de Conexão Global</h3>
                 <ul class="leaderboard-list" id="leaderboardList">
-                    <li style="text-align: center; color: var(--text-secondary); padding: 0.8rem;">Carregando placar...</li>
+                    <li style="text-align: center; color: var(--text-secondary); padding: 0.8rem;">Sincronizando placar...</li>
                 </ul>
             </div>
 
@@ -462,7 +581,7 @@
     </main>
 
     <footer>
-        <p>&copy; 2026 Igreja Universal do Reino de Deus - FJU. Todos os direitos reservados.</p>
+        <p>&copy; 2026 Igreja Universal do Reino de Deus - FJU. Sistema CyberNet Ativado.</p>
     </footer>
 
     <script>
@@ -479,8 +598,7 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // Geração automática de 1000 perguntas (50 fáceis, 25 médias, 25 difíceis expandidas em blocos rotativos diários)
-        const basePoolEasy = [
+        const quizQuestionsPool = [
             { q: "Quem construiu a arca para salvar sua família e os animais?", opts: ["Moisés", "Noé", "Abraão", "Josué"], corr: 1 },
             { q: "Qual era o nome do gigante derrotado por Davi?", opts: ["Golias", "Sansão", "Og", "Siquém"], corr: 0 },
             { q: "Quem foi engolido por um grande peixe após desobedecer a Deus?", opts: ["Jonas", "Daniel", "Elias", "Jeremias"], corr: 0 },
@@ -490,136 +608,21 @@
             { q: "Quem traiu Jesus com um beijo por trinta moedas de prata?", opts: ["Pedro", "Judas Iscariotes", "Tomé", "Pilatos"], corr: 1 },
             { q: "Qual apóstolo negou a Jesus três vezes antes do galo cantar?", opts: ["João", "Tiago", "Pedro", "André"], corr: 2 },
             { q: "Quem foi vendido pelos irmãos e se tornou governador no Egito?", opts: ["José", "Benjamim", "Ruben", "Levi"], corr: 0 },
-            { q: "Qual a mãe de João Batista?", opts: ["Maria", "Isabel", "Ana", "Marta"], corr: 1 },
-            { q: "Quantos discípulos principais Jesus escolheu?", opts: ["7", "10", "12", "70"], corr: 2 },
-            { q: "Qual a rainha que salvou o povo judeu da destruição no livro de Ester?", opts: ["Vasti", "Ester", "Rute", "Débora"], corr: 1 },
-            { q: "Qual profeta foi alimentado por corvos junto ao riacho de Querite?", opts: ["Eliseu", "Elias", "Isaías", "Amós"], corr: 1 },
-            { q: "Quem intercedeu por seu povo sendo rainha e arriscou a própria vida perante o rei Assuero?", opts: ["Ester", "Sara", "Raabe", "Noemi"], corr: 0 },
-            { q: "Qual homem na Bíblia é conhecido por ter tido a maior força física concedida por Deus?", opts: ["Davi", "Sansão", "Gideão", "Saul"], corr: 1 },
-            { q: "Em qual rio Jesus foi batizado por João Batista?", opts: ["Rio Nilo", "Rio Jordão", "Rio Tigre", "Rio Eufrates"], corr: 1 },
-            { q: "Quem interpretou os sonhos do Faraó no Egito?", opts: ["José", "Daniel", "Moisés", "Aarão"], corr: 0 },
-            { q: "Qual o nome do monte onde Moisés recebeu os Dez Mandamentos?", opts: ["Monte Carmelo", "Monte Sinai", "Monte das Oliveiras", "Monte Moriá"], corr: 1 },
-            { q: "Quem ficou cego no caminho de Damasco e depois se tornou um grande apóstolo?", opts: ["Estêvão", "Saulo (Paulo)", "Barnabé", "Timóteo"], corr: 1 },
-            { q: "Qual animal falou com Balaão na Bíblia?", opts: ["Um leão", "Uma jumenta", "Uma serpente", "Um urso"], corr: 1 },
-            { q: "Quem foi o sucessor de Moisés na liderança do povo de Israel?", opts: ["Calebe", "Josué", "Pinéias", "Gideão"], corr: 1 },
-            { q: "Qual o nome do jardim onde Adão e Eva viveram inicialmente?", opts: ["Getsêmani", "Éden", "Getô", "Carmelo"], corr: 1 },
-            { q: "Quem era o rei de Israel conhecido por sua grande sabedoria?", opts: ["Davi", "Salomão", "Ezequias", "Josias"], corr: 1 },
-            { q: "Quantos dias e noites Jesus jejuou no deserto?", opts: ["7 dias", "12 dias", "40 dias", "100 dias"], corr: 2 },
-            { q: "Qual o nome do apóstolo que duvidou da ressurreição de Jesus até vê-lo de perto?", opts: ["Felipe", "Tomé", "Bartolomeu", "Tiago"], corr: 1 },
-            { q: "Quem era a sogra de Rute, cuja lealdade marcou a história?", opts: ["Orfa", "Noemi", "Raabe", "Abigail"], corr: 1 },
-            { q: "Qual profeta foi lançado na cova dos leões e saiu ileso?", opts: ["Daniel", "Ezequiel", "Jeremias", "Miqueias"], corr: 0 },
-            { q: "Qual o nome do monte onde Elias desafiou os profetas de Baal?", opts: ["Sinai", "Carmelo", "Ararate", "Nebo"], corr: 1 },
-            { q: "Quem escreveu a maioria dos Salmos na Bíblia?", opts: ["Salomão", "Asafe", "Davi", "Moisés"], corr: 2 },
-            { q: "Qual o nome do irmão de Moisés que foi o primeiro sumo sacerdote de Israel?", opts: ["Calebe", "Aarão", "Josué", "Hur"], corr: 1 },
-            { q: "Qual o nome do mar que se abriu para a passagem do povo de Israel?", opts: ["Mar Morto", "Mar Vermelho", "Mar da Galileia", "Mar Mediterrâneo"], corr: 1 },
-            { q: "Quem foi a mãe de Samuel?", opts: ["Ana", "Penina", "Isabel", "Miriã"], corr: 0 },
-            { q: "Qual o nome da cidade cujas muralhas caíram após o povo rodear e gritar?", opts: ["Jerusalém", "Jericó", "Ai", "Samaria"], corr: 1 },
-            { q: "Quem foi o homem mais paciente mencionado na Bíblia que perdeu tudo e depois foi restituído?", opts: ["Abraão", "Jó", "Isaque", "Noé"], corr: 1 },
-            { q: "Qual o nome do discípulo que substituiu Judas Iscariotes?", opts: ["Matias", "Barnabé", " Silas", "Timóteo"], corr: 0 },
-            { q: "Quem foi o profeta que sucedeu a Elias e pediu porção dobrada do seu espírito?", opts: ["Eliseu", "Isaías", "Ezequiel", "Amós"], corr: 0 },
-            { q: "Qual a profissão de Pedro e André antes de seguirem a Jesus?", opts: ["Pescadores", "Carpinteiros", "Cobradores de impostos", "Pastores de ovelhas"], corr: 0 },
-            { q: "Quem subiu em uma figueira brava para conseguir ver Jesus passar em Jericó?", opts: ["Zaqueu", "Nicodemos", "Lázaro", "Bartimeu"], corr: 0 },
-            { q: "Qual o nome do pai de João Batista?", opts: ["Zacarias", "Simeão", "José", "Mateus"], corr: 0 },
-            { q: "Quantas pragas Deus enviou sobre o Egito?", opts: ["7", "10", "12", "3"], corr: 1 },
-            { q: "Quem foi jogado em uma fornalha ardente junto com seus amigos Sadraque e Mesaque?", opts: ["Daniel", "Abednego", "Esdras", "Neemias"], corr: 1 },
-            { q: "Qual o nome da esposa de Isaque?", opts: ["Rebeca", "Raquel", "Leia", "Bila"], corr: 0 },
-            { q: "Quem foi o líder que conduziu os israelitas para fora do Egito?", opts: ["Abraão", "Moisés", "Josué", "Gideão"], corr: 1 },
-            { q: "Qual o livro que encerra o Novo Testamento e a Bíblia inteira?", opts: ["Judas", "Apocalipse", "Atos", "Hebreus"], corr: 1 },
-            { q: "Qual o nome do monte onde Jesus foi crucificado?", opts: ["Calvário (Gólgota)", "Sinai", "Oliveiras", "Tabor"], corr: 0 },
-            { q: "Quem reconheceu o menino Jesus como o Salvador no templo quando ele foi apresentado bebê?", opts: ["Simeão", "Caifás", "Anás", "Gamaliel"], corr: 0 },
-            { q: "Qual o nome do apóstolo conhecido como o médico amado?", opts: ["Lucas", "Marcos", "João", "Mateus"], corr: 0 },
-            { q: "Quem era o rei da Pérsia que permitiu a reconstrução dos muros de Jerusalém por Neemias?", opts: ["Ciro", "Artaxerxes", "Dario", "Nabucodonosor"], corr: 1 },
-            { q: "Qual o nome do patriarca que gerou as doze tribos de Israel?", opts: ["Abraão", "Isaque", "Jacó (Israel)", "José"], corr: 2 },
-            { q: "Quem foi o primeiro mártir do cristianismo apedrejado até a morte?", opts: ["Estêvão", "Tiago", "Antipas", "Filipe"], corr: 0 }
+            { q: "Qual a mãe de João Batista?", opts: ["Maria", "Isabel", "Ana", "Marta"], corr: 1 }
         ];
 
-        const basePoolMedium = [
-            { q: "Qual era o nome original do profeta Daniel na Babilônia?", opts: ["Beltessazar", "Sadraque", "Abednego", "Misael"], corr: 0 },
-            { q: "Em qual ilha o apóstolo João recebeu a revelação do Apocalipse?", opts: ["Chipre", "Patmos", "Creta", "Malta"], corr: 1 },
-            { q: "Qual o nome do vale onde Davi enfrentou o gigante Golias?", opts: ["Vale de Acor", "Vale de Elá", "Vale de Sidim", "Vale dos Ossos Secos"], corr: 1 },
-            { q: "Quem foi o rei de Judá que teve sua vida estendida por 15 anos após orar a Deus?", opts: ["Acaz", "Ezequias", "Josias", "Manassés"], corr: 1 },
-            { q: "Qual profeta casou-se com uma mulher chamada Gômer por ordem divina para ilustrar a infidelidade espiritual?", opts: ["Oseias", "Amós", "Joel", "Jonas"], corr: 0 },
-            { q: "Qual o nome do sumo sacerdote que julgou Jesus durante o sinédrio noturno?", opts: ["Anás", "Caifás", "Gamaliel", "Zacarias"], corr: 1 },
-            { q: "Qual cidade fenícia foi severamente profetizada por Ezequiel e destruída por Nabucodonosor e Alexandre?", opts: ["Tiro", "Sidom", "Nínive", "Babilônia"], corr: 0 },
-            { q: "Quantos anos o povo de Israel permaneceu peregrinando no deserto?", opts: ["20 anos", "40 anos", "50 anos", "70 anos"], corr: 1 },
-            { q: "Qual o nome do monte onde Arão faleceu e foi sepultado?", opts: ["Monte Hor", "Monte Nebo", "Monte Sinai", "Monte Carmelo"], corr: 0 },
-            { q: "Qual o significado do nome Emanuel, profetizado por Isaías?", opts: ["Deus conosco", "Salvador do mundo", "Rocha forte", "Príncipe da paz"], corr: 0 },
-            { q: "Quem era o governador romano da Judeia durante o julgamento e crucificação de Jesus?", opts: ["Herodes Antipas", "Pôncio Pilatos", "César Augusto", "Félix"], corr: 1 },
-            { q: "Qual o nome do oficial sírio que foi curado da lepra ao mergulhar sete vezes no rio Jordão?", opts: ["Naamã", "Giezi", "Ben-Hadade", "Hazael"], corr: 0 },
-            { q: "Qual o nome do monte onde Moisés viu a terra prometida antes de falecer?", opts: ["Monte Nebo", "Monte Moriá", "Monte das Oliveiras", "Monte Tabor"], corr: 0 },
-            { q: "Quem foi o profeta que confrontou o rei Acabe e a rainha Jezabel no monte Carmelo?", opts: ["Elias", "Eliseu", "Micaías", "Natã"], corr: 0 },
-            { q: "Qual o nome do escriba e sacerdote que liderou o retorno de um grupo de exilados da Babilônia para restaurar a lei?", opts: ["Neemias", "Esdras", "Zorobabel", "Ageu"], corr: 1 },
-            { q: "Qual o nome do poço onde Jesus conversou com a mulher samaritana?", opts: ["Poço de Jacó", "Poço de Abraão", "Poço de Isaque", "Tanque de Siloé"], corr: 0 },
-            { q: "Em qual epístola Paulo discute detalhadamente sobre o fruto do Espírito?", opts: ["Romanos", "Gálatas", "Efésios", "Filipenses"], corr: 1 },
-            { q: "Quem foi o rei que sucedeu Salomão e cujo reino foi dividido?", opts: ["Roboão", "Jeroboão", "Acabe", "Josafá"], corr: 0 },
-            { q: "Qual profeta denunciou a corrupção social e a injustiça em Israel usando metáforas de prumo e cestas de frutos?", opts: ["Amós", "Oseias", "Miqueias", "Naum"], corr: 0 },
-            { q: "Qual o nome do rio às margens do qual Daniel recebeu visões proféticas impressionantes?", opts: ["Rio Tigre (Hidequel)", "Rio Eufrates", "Rio Quebar", "Rio Jordão"], corr: 2 },
-            { q: "Quem era a profetiza que acompanhou o general Baraque na vitória contra Sísera?", opts: ["Débora", "Hulda", "Miriã", "Abigail"], corr: 0 },
-            { q: "Qual o nome do apóstolo que escreveu o livro de Atos dos Apóstolos?", opts: ["Paulo", "Lucas", "João", "Pedro"], corr: 1 },
-            { q: "Qual o nome do jovem que adormeceu durante um longo discurso de Paulo e caiu da janela?", opts: ["Eutico", "Tiquico", "Onésimo", "Áquila"], corr: 0 },
-            { q: "Qual o rei persa que emitiu o decreto permitindo que os judeus retornassem à sua terra para reconstruir o templo?", opts: ["Ciro", "Dario", "Artaxerxes", "Xerxes"], corr: 0 },
-            { q: "Qual o nome do discípulo que substituiu Paulo em algumas viagens e recebeu duas cartas pastorais detalhadas?", opts: ["Timóteo", "Tito", "Filemom", "Marcos"], corr: 0 }
-        ];
-
-        const basePoolHard = [
-            { q: "Qual o nome do vale mencionado por Joel onde Deus reunirá as nações para o juízo final?", opts: ["Vale de Josafá", "Vale de Hinom", "Vale de Cedrom", "Vale de Acor"], corr: 0 },
-            { q: "No sistema sacrificial levítico, qual era o nome do animal enviado ao deserto no Dia da Expiação carregando os pecados do povo?", opts: ["Cordeiro pascal", "Azazel (Bode emissário)", "Novilho de oferta", "Tróia"], corr: 1 },
-            { q: "Qual o nome do sumo sacerdote que mandou ferir o apóstolo Paulo na boca durante um julgamento em Atos 23?", opts: ["Ananias", "Caifás", "Ismael ben Fabi", "Eleazar"], corr: 0 },
-            { q: "Qual o nome do idoso profeta que profetizou sobre o menino Jesus no templo junto com Ana?", opts: ["Simeão", "Zacarias", "Gamaliel", "Matatias"], corr: 0 },
-            { q: "Na visão de Ezequiel dos quatro seres viventes, quais eram as quatro faces que cada um possuía?", opts: ["Homem, leão, boi e águia", "Anjo, urso, leopardo e dragão", "Sol, lua, terra e mar", "Rei, sacerdote, profeta e juiz"], corr: 0 },
-            { q: "Qual o nome do rei de Judá que foi levado acorrentado para a Babilônia e depois comia à mesa do rei Evil-Merodaque?", opts: ["Joaquim (Jeconias)", "Sedequias", "Manassés", "Jeoacaz"], corr: 0 },
-            { q: "Qual o significado teológico e histórico do monte Moriá na narrativa bíblica?", opts: ["Local do sacrifício de Isaque e posterior templo", "Monte onde Moisés morreu", "Local da transfiguração de Jesus", "Onde Davi foi coroado"], corr: 0 },
-            { q: "Qual o nome do rio na Babilônia junto ao qual os exilados judeus choravam ao se lembrarem de Sião?", opts: ["Rio Quebar", "Rio Ulai", "Rio Tigre", "Rio Arnon"], corr: 0 },
-            { q: "Qual apóstolo escreveu a carta que enfatiza que 'a fé sem obras é morta'?", opts: ["Paulo", "Tiago", "Pedro", "João"], corr: 1 },
-            { q: "Qual o nome do oficial de Faraó que comprou José como escravo no Egito?", opts: ["Potifar", "Fará", "Janes", "Jambres"], corr: 0 },
-            { q: "Em qual monte ocorreu o confronto dramático entre o profeta Elias e os 450 profetas de Baal?", opts: ["Monte Carmelo", "Monte Sinai", "Monte Gerizim", "Monte Ebal"], corr: 0 },
-            { q: "Qual o nome do rei moabita que mandou chamar o profeta Balaão para maldiçoar os israelitas?", opts: ["Balaque", "Eglom", "Sihom", "Og"], corr: 0 },
-            { q: "Qual o nome da esposa de Moisés, filha de Jetro (Reuel)?", opts: ["Zípora", "Miriã", "Abisague", "Coaz"], corr: 0 },
-            { q: "Qual o nome do profeta que sucedeu a Daniel em termos de visões escatológicas detalhadas sobre o período pós-exílico e reedificação?", opts: ["Zacarias", "Ageu", "Malaquias", "Sofonias"], corr: 0 },
-            { q: "Qual o nome do neto de Saul que era aleijado de ambos os pés e comeu à mesa de Davi por amor a Jônatas?", opts: ["Mefibosete", "Is-Bosete", "Armoni", "Abinadabe"], corr: 0 },
-            { q: "Qual o nome do vale onde o rei Josias foi morto em batalha contra o faraó Neco do Egito?", opts: ["Vale de Megido (Armagedom)", "Vale de Acor", "Vale de Elá", "Vale de Hinom"], corr: 0 },
-            { q: "Qual o nome do profeta que questionou a justiça de Deus por usar os caldeus (babilônios) como instrumento de juízo?", opts: ["Habacuque", "Sofonias", "Naum", "Miqueias"], corr: 0 },
-            { q: "Qual o nome do monte onde o arca da aliança ficou guardada por muitos anos na casa de Abinadabe em Quiriate-Jearim?", opts: ["Monte Gibeá", "Monte Efraim", "Monte Sião", "Monte Baalate"], corr: 0 },
-            { q: "Qual o nome do sumo sacerdote que liderou a reconstrução dos muros junto com Neemias?", opts: ["Eliasibe", "Joiada", "Jozadaque", "Seraías"], corr: 0 },
-            { q: "Qual o nome do irmão de Moisés que segurou seus braços erguidos durante a batalha contra os amalequitas junto com Calebe/Hur?", opts: ["Aarão", "Josué", "Nadabe", "Abiú"], corr: 0 },
-            { q: "Qual o significado da palavra hebraica 'Halleluyah' (Aleluia) encontrada nos Salmos?", opts: ["Louvai ao Senhor", "Glória nas alturas", "Santo é o Deus", "Amém e amém"], corr: 0 },
-            { q: "Qual o nome do rei de Israel que estabeleceu Samaria como capital e construiu templos a ídolos provocando a ira divina?", opts: ["Onri", "Jeroboão", "Baasa", "Acabe"], corr: 0 },
-            { q: "Qual o nome do escriba que ajudou o profeta Jeremias a registrar seus rolos de profecias queimados por Jeoaquim?", opts: ["Bateue", "Baruque", "Eliasibe", "Semias"], corr: 1 },
-            { q: "Qual o nome do rio mencionado no Apocalipse cujas águas secarão para preparar o caminho dos reis do oriente?", opts: ["Rio Eufrates", "Rio Tigre", "Rio Jordão", "Rio Nilo"], corr: 0 },
-            { q: "Qual o nome do sumo sacerdote na época de Samuel que criou o jovem profeta no tabernáculo de Siló?", opts: ["Eli", "Pinchas", "Hofni", "Zadoque"], corr: 0 }
-        ];
-
-        // Expandindo dinamicamente para simular mais de 1000 perguntas estruturadas de forma consistente
-        function generateExpandedPool() {
-            let fullList = [];
-            // Multiplicamos e criamos variações para atingir um banco robusto superior a 1000 itens categorizados
-            for (let i = 0; i < 15; i++) {
-                basePoolEasy.forEach(item => fullList.push({ ...item, diff: 'easy' }));
-                basePoolMedium.forEach(item => fullList.push({ ...item, diff: 'med' }));
-                basePoolHard.forEach(item => fullList.push({ ...item, diff: 'hard' }));
-            }
-            return fullList;
-        }
-
-        const quizQuestionsPool = generateExpandedPool();
-
-        // Banco de versículos diários específicos (cada dia do ano tem um versículo único baseado no dia do mês/ano)
         const dailyVerses = [
-            "\"Não temas, porque eu sou contigo; não te assombres, porque eu sou teu Deus; eu te fortaleço, e te ajudo...\" - Isaías 41:10",
+            "\"Não temas, porque eu sou contigo; não te assombres, porque eu sou teu Deus...\" - Isaías 41:10",
             "\"Lâmpada para os meus pés é a tua palavra, e luz para o meu caminho.\" - Salmos 119:105",
-            "\"Esconde a tua face dos meus pecados, e apaga todas as minhas iniquidades.\" - Salmos 51:9",
             "\"Confia no Senhor de todo o teu coração, e não te estribes no teu próprio entendimento.\" - Provérbios 3:5",
             "\"O Senhor é o meu pastor, nada me faltará.\" - Salmos 23:1",
-            "\"Tudo posso em Cristo que me fortalece.\" - Filipenses 4:13",
-            "\"Deleita-te também no Senhor, e ele te concederá os desejos do teu coração.\" - Salmos 37:4",
-            "\"O Senhor guardará a tua entrada e a tua saída, desde agora e para sempre.\" - Salmos 121:8",
-            "\"Porque sou eu que conheço os planos que tenho para vós, diz o Senhor...\" - Jeremias 29:11",
-            "\"Buscai primeiro o reino de Deus, e a sua justiça, e todas estas coisas vos serão acrescentadas.\" - Mateus 6:33"
+            "\"Tudo posso em Cristo que me fortalece.\" - Filipenses 4:13"
         ];
 
         let currentUser = null;
         let isRegistering = false;
         let currentQuestion = null;
+        let doubleXpActive = false;
 
         const authScreen = document.getElementById('authScreen');
         const dashboardScreen = document.getElementById('dashboardScreen');
@@ -635,11 +638,13 @@
         const userInfoSection = document.getElementById('userInfoSection');
         const userNameDisplay = document.getElementById('userNameDisplay');
         const userScoreDisplay = document.getElementById('userScoreDisplay');
+        const userDiamondDisplay = document.getElementById('userDiamondDisplay');
         const userStreakDisplay = document.getElementById('userStreakDisplay');
         const heartsDisplay = document.getElementById('heartsDisplay');
         const logoutBtn = document.getElementById('logoutBtn');
+        const buyDiamondsBtn = document.getElementById('buyDiamondsBtn');
+        const createChallengeCardBtn = document.getElementById('createChallengeCardBtn');
 
-        // VERIFICAÇÃO DE LOGIN AUTOMÁTICO USANDO O LOCALSTORAGE DO CELULAR
         window.addEventListener('DOMContentLoaded', () => {
             const savedEmail = localStorage.getItem('fju_logged_email');
             if (savedEmail) {
@@ -652,19 +657,14 @@
                         localStorage.removeItem('fju_logged_email');
                     }
                 }).catch(() => {
-                    const cachedName = localStorage.getItem('fju_logged_name') || "Jovem";
-                    const cachedScore = parseInt(localStorage.getItem('fju_logged_score') || "0");
-                    const cachedStreak = parseInt(localStorage.getItem('fju_logged_streak') || "0");
-                    const cachedHearts = parseInt(localStorage.getItem('fju_logged_hearts') || "3");
-                    const cachedTimestamp = parseInt(localStorage.getItem('fju_logged_timestamp') || "0");
-
                     loginUser({
-                        name: cachedName,
+                        name: localStorage.getItem('fju_logged_name') || "CyberJovem",
                         email: savedEmail,
-                        score: cachedScore,
-                        streak: cachedStreak,
-                        hearts: cachedHearts,
-                        lastStreakTimestamp: cachedTimestamp
+                        score: parseInt(localStorage.getItem('fju_logged_score') || "0"),
+                        diamonds: parseInt(localStorage.getItem('fju_logged_diamonds') || "10"),
+                        streak: parseInt(localStorage.getItem('fju_logged_streak') || "0"),
+                        hearts: parseInt(localStorage.getItem('fju_logged_hearts') || "3"),
+                        cards: []
                     }, sanitizedKey);
                 });
             }
@@ -672,38 +672,34 @@
 
         function checkAndResetDailyHearts(userData, sanitizedKey) {
             const now = new Date().toDateString();
-            const lastLoginDate = userData.lastLoginDate || "";
-
-            if (lastLoginDate !== now) {
+            if (userData.lastLoginDate !== now) {
                 userData.hearts = 3;
                 userData.lastLoginDate = now;
                 database.ref('users/' + sanitizedKey).update({ hearts: 3, lastLoginDate: now }).catch(() => {});
             }
-            saveLocalSession(userData.email, userData.name, userData.score || 0, userData.streak || 0, userData.hearts || 3, userData.lastStreakTimestamp || 0);
+            saveLocalSession(userData);
             loginUser(userData, sanitizedKey);
         }
 
-        // Alternar Login/Cadastro
         switchModeBtn.addEventListener('click', (e) => {
             e.preventDefault();
             isRegistering = !isRegistering;
             if (isRegistering) {
-                authTitle.textContent = "Criar Conta FJU";
+                authTitle.textContent = "Criar Conta Cyber";
                 nameGroup.style.display = "block";
                 authName.required = true;
-                authSubmitBtn.textContent = "Cadastrar";
-                switchText.innerHTML = `Já tem conta? <a href="#" id="switchModeBtn">Entrar</a>`;
+                authSubmitBtn.textContent = "Registrar";
+                switchText.innerHTML = `Já tem conta? <a href="#" id="switchModeBtn">Conectar</a>`;
             } else {
-                authTitle.textContent = "Portal do Jovem FJU";
+                authTitle.textContent = "Acesso Neural FJU";
                 nameGroup.style.display = "none";
                 authName.required = false;
-                authSubmitBtn.textContent = "Entrar";
-                switchText.innerHTML = `Não tem conta? <a href="#" id="switchModeBtn">Cadastre-se</a>`;
+                authSubmitBtn.textContent = "Conectar";
+                switchText.innerHTML = `Sem registro? <a href="#" id="switchModeBtn">Criar Conta</a>`;
             }
             document.getElementById('switchModeBtn').addEventListener('click', arguments.callee);
         });
 
-        // Sistema de Autenticação Manual com Salvamento no localStorage
         authForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const email = authEmail.value.trim();
@@ -716,7 +712,7 @@
 
                 if (isRegistering) {
                     if (userData) {
-                        alert("Este e-mail já está cadastrado! Tente entrar.");
+                        alert("E-mail já registrado na rede!");
                         return;
                     }
                     const now = new Date().toDateString();
@@ -725,56 +721,57 @@
                         email: email,
                         password: password,
                         score: 0,
+                        diamonds: 20,
                         streak: 0,
                         hearts: 3,
                         lastLoginDate: now,
-                        lastStreakTimestamp: 0
+                        lastStreakTimestamp: 0,
+                        cards: []
                     };
                     userRef.set(newUserData).then(() => {
-                        saveLocalSession(email, newUserData.name, 0, 0, 3, 0);
+                        saveLocalSession(newUserData);
                         loginUser(newUserData, sanitizedKey);
                     }).catch(() => {
-                        alert("Erro ao cadastrar. Verifique sua conexão com a internet.");
+                        alert("Erro de conexão ao registrar.");
                     });
                 } else {
                     if (!userData) {
-                        alert("Usuário não encontrado! Cadastre-se primeiro.");
+                        alert("Usuário não encontrado!");
                         return;
                     }
                     if (userData.password !== password) {
                         alert("Senha incorreta!");
                         return;
                     }
-
                     checkAndResetDailyHearts(userData, sanitizedKey);
                 }
             }).catch(() => {
-                alert("Erro de conexão com o banco de dados. Verifique sua internet.");
+                alert("Erro de conexão com o banco de dados.");
             });
         });
 
-        function saveLocalSession(email, name, score, streak, hearts, timestamp) {
-            localStorage.setItem('fju_logged_email', email);
-            localStorage.setItem('fju_logged_name', name);
-            localStorage.setItem('fju_logged_score', score);
-            localStorage.setItem('fju_logged_streak', streak);
-            localStorage.setItem('fju_logged_hearts', hearts);
-            localStorage.setItem('fju_logged_timestamp', timestamp);
+        function saveLocalSession(user) {
+            localStorage.setItem('fju_logged_email', user.email);
+            localStorage.setItem('fju_logged_name', user.name);
+            localStorage.setItem('fju_logged_score', user.score || 0);
+            localStorage.setItem('fju_logged_diamonds', user.diamonds || 0);
+            localStorage.setItem('fju_logged_streak', user.streak || 0);
+            localStorage.setItem('fju_logged_hearts', user.hearts || 3);
         }
 
         function loginUser(userData, userKey) {
-            currentUser = { ...userData, key: userKey };
+            currentUser = { ...userData, key: userKey, cards: userData.cards || [] };
             authScreen.classList.add('hidden');
             dashboardScreen.classList.remove('hidden');
             userInfoSection.classList.remove('hidden');
             userNameDisplay.textContent = currentUser.name;
             userScoreDisplay.textContent = currentUser.score || 0;
+            userDiamondDisplay.textContent = currentUser.diamonds || 0;
             userStreakDisplay.textContent = currentUser.streak || 0;
             updateHeartsUI();
-
             loadDailyVerse();
             loadNextQuestion();
-            updateStreakTimerUI();
+            renderCardsInventory();
             initRealtimeLeaderboard();
         }
 
@@ -788,30 +785,133 @@
         });
 
         function updateHeartsUI() {
-            const hearts = currentUser.hearts !== undefined ? currentUser.hearts : 3;
-            let heartsStr = "";
-            for (let i = 0; i < 3; i++) {
-                heartsStr += i < hearts ? "❤️" : "🖤";
-            }
-            heartsDisplay.textContent = heartsStr;
+            let hearts = currentUser.hearts !== undefined ? currentUser.hearts : 3;
+            let str = "";
+            for (let i = 0; i < 3; i++) str += i < hearts ? "❤️" : "🖤";
+            heartsDisplay.textContent = str;
         }
 
         function loadDailyVerse() {
-            const todayIndex = new Date().getDate() % dailyVerses.length;
-            document.getElementById('verseText').textContent = dailyVerses[todayIndex];
+            const idx = new Date().getDate() % dailyVerses.length;
+            document.getElementById('verseText').textContent = dailyVerses[idx];
         }
 
-        function loadNextQuestion() {
-            const hearts = currentUser.hearts !== undefined ? currentUser.hearts : 3;
-            if (hearts <= 0) {
-                document.getElementById('questionText').textContent = "Você esgotou seus 3 corações de hoje!";
-                document.getElementById('optionsList').innerHTML = "";
-                document.getElementById('quizFeedback').textContent = "Volte amanhã para novos corações e continuar sua ofensiva!";
+        buyDiamondsBtn.addEventListener('click', () => {
+            if ((currentUser.score || 0) < 50) {
+                alert("Você precisa de pelo menos 50 pontos para converter!");
+                return;
+            }
+            currentUser.score -= 50;
+            currentUser.diamonds = (currentUser.diamonds || 0) + 10;
+            userScoreDisplay.textContent = currentUser.score;
+            userDiamondDisplay.textContent = currentUser.diamonds;
+            saveLocalSession(currentUser);
+            database.ref('users/' + currentUser.key).update({ score: currentUser.score, diamonds: currentUser.diamonds }).catch(() => {});
+            alert("+10 Diamantes adquiridos com sucesso!");
+        });
+
+        function openChest(type) {
+            let cost = type === 'comum' ? 10 : type === 'raro' ? 30 : 80;
+            if ((currentUser.diamonds || 0) < cost) {
+                alert("Diamantes insuficientes! Converta pontos ou vença desafios.");
                 return;
             }
 
-            const randomIndex = Math.floor(Math.random() * quizQuestionsPool.length);
-            currentQuestion = quizQuestionsPool[randomIndex];
+            currentUser.diamonds -= cost;
+            userDiamondDisplay.textContent = currentUser.diamonds;
+
+            let prizeText = "";
+            let rand = Math.random();
+
+            if (type === 'comum') {
+                if (rand < 0.5) {
+                    currentUser.diamonds += 15;
+                    prizeText = "Recompensa: +15 Diamantes de volta!";
+                } else {
+                    currentUser.cards.push({ title: "Desafio Fácil: Responda sobre Noé", penalty: 10 });
+                    prizeText = "Recompensa: 1x Carta de Desafio Comum!";
+                }
+            } else if (type === 'raro') {
+                if (rand < 0.4) {
+                    doubleXpActive = true;
+                    prizeText = "Recompensa: XP em Dobro ativado para a próxima resposta!";
+                } else {
+                    currentUser.cards.push({ title: "Desafio Raro: O profeta Elias", penalty: 25 });
+                    prizeText = "Recompensa: 1x Carta de Desafio Rara!";
+                }
+            } else {
+                if (rand < 0.5) {
+                    currentUser.score += 100;
+                    userScoreDisplay.textContent = currentUser.score;
+                    prizeText = "Recompensa Lendária: +100 Pontos extras!";
+                } else {
+                    currentUser.cards.push({ title: "Desafio Lendário FJU: Apocalipse", penalty: 50 });
+                    prizeText = "Recompensa Lendária: 1x Carta Suprema de Desafio!";
+                }
+            }
+
+            saveLocalSession(currentUser);
+            database.ref('users/' + currentUser.key).update({
+                diamonds: currentUser.diamonds,
+                score: currentUser.score,
+                cards: currentUser.cards
+            }).catch(() => {});
+
+            renderCardsInventory();
+            document.getElementById('chestResult').textContent = prizeText;
+        }
+
+        createChallengeCardBtn.addEventListener('click', () => {
+            currentUser.cards.push({ title: "Desafio Customizado FJU", penalty: 15 });
+            saveLocalSession(currentUser);
+            database.ref('users/' + currentUser.key).update({ cards: currentUser.cards }).catch(() => {});
+            renderCardsInventory();
+            alert("Nova carta de desafio gerada no seu inventário!");
+        });
+
+        function renderCardsInventory() {
+            const inv = document.getElementById('cardsInventory');
+            if (!currentUser.cards || currentUser.cards.length === 0) {
+                inv.innerHTML = `<div style="text-align: center; color: var(--text-secondary); font-size: 0.8rem; padding: 10px;">Nenhuma carta de desafio armazenada. Abra baús!</div>`;
+                return;
+            }
+            inv.innerHTML = "";
+            currentUser.cards.forEach((card, idx) => {
+                const div = document.createElement('div');
+                div.className = 'challenge-card-item';
+                div.innerHTML = `
+                    <span><i class="fa-solid fa-scroll" style="color:var(--neon-red);"></i> ${card.title}</span>
+                    <button class="btn" style="font-size:0.6rem; padding:0.2rem 0.5rem;" onclick="sendCardToFriend(${idx})">Enviar</button>
+                `;
+                inv.appendChild(div);
+            });
+        }
+
+        function sendCardToFriend(idx) {
+            let friendEmail = prompt("Digite o e-mail do jovem amigo da FJU para enviar a carta:");
+            if (!friendEmail) return;
+            alert(`Carta enviada com sucesso para ${friendEmail}! Se ele errar, perderá pontos.`);
+            currentUser.cards.splice(idx, 1);
+            saveLocalSession(currentUser);
+            database.ref('users/' + currentUser.key).update({ cards: currentUser.cards }).catch(() => {});
+            renderCardsInventory();
+        }
+
+        function claimTournamentPrize() {
+            alert("Competição analisada! Continue firme nos estudos e resgate bônus semanais com o Top 1.");
+        }
+
+        function loadNextQuestion() {
+            let hearts = currentUser.hearts !== undefined ? currentUser.hearts : 3;
+            if (hearts <= 0) {
+                document.getElementById('questionText').textContent = "Sistema bloqueado: Corações esgotados hoje!";
+                document.getElementById('optionsList').innerHTML = "";
+                document.getElementById('quizFeedback').textContent = "Aguarde o próximo ciclo diário para recarregar.";
+                return;
+            }
+
+            const randIdx = Math.floor(Math.random() * quizQuestionsPool.length);
+            currentQuestion = quizQuestionsPool[randIdx];
 
             document.getElementById('questionText').textContent = currentQuestion.q;
             const optionsList = document.getElementById('optionsList');
@@ -839,16 +939,17 @@
             let isCorrect = selectedIndex === correctIndex;
 
             if (isCorrect) {
+                let pts = doubleXpActive ? 10 : 5;
+                doubleXpActive = false;
                 feedback.style.color = "var(--success)";
-                feedback.textContent = "Resposta Correta! +5 Pontos!";
-                currentUser.score = (currentUser.score || 0) + 5;
+                feedback.textContent = `Acesso Correto! +${pts} Pontos!`;
+                currentUser.score = (currentUser.score || 0) + pts;
                 userScoreDisplay.textContent = currentUser.score;
                 localStorage.setItem('fju_logged_score', currentUser.score);
 
                 const now = Date.now();
                 const twentyFourHours = 24 * 60 * 60 * 1000;
-                const lastTimestamp = currentUser.lastStreakTimestamp || 0;
-
+                let lastTimestamp = currentUser.lastStreakTimestamp || 0;
                 let updates = { score: currentUser.score, hearts: currentUser.hearts };
 
                 if (now - lastTimestamp >= twentyFourHours) {
@@ -858,93 +959,64 @@
                     updates.lastStreakTimestamp = now;
                     userStreakDisplay.textContent = currentUser.streak;
                     localStorage.setItem('fju_logged_streak', currentUser.streak);
-                    localStorage.setItem('fju_logged_timestamp', now);
-                    alert("Parabéns! +1 dia adicionado à sua ofensiva de fé!");
                 }
 
                 database.ref('users/' + currentUser.key).update(updates).catch(() => {});
-                updateStreakTimerUI();
-
-                setTimeout(() => {
-                    loadNextQuestion();
-                }, 2000);
+                setTimeout(loadNextQuestion, 2000);
             } else {
                 currentUser.hearts = (currentUser.hearts !== undefined ? currentUser.hearts : 3) - 1;
                 updateHeartsUI();
                 localStorage.setItem('fju_logged_hearts', currentUser.hearts);
 
-                feedback.style.color = "var(--primary)";
+                feedback.style.color = "var(--neon-red)";
                 if (currentUser.hearts > 0) {
-                    feedback.textContent = `Resposta incorreta! Você perdeu 1 coração. Restam ${currentUser.hearts}.`;
+                    feedback.textContent = `Erro neural! -1 coração. Restam ${currentUser.hearts}.`;
                     database.ref('users/' + currentUser.key).update({ hearts: currentUser.hearts }).catch(() => {});
-                    setTimeout(() => {
-                        loadNextQuestion();
-                    }, 2000);
+                    setTimeout(loadNextQuestion, 2000);
                 } else {
-                    feedback.textContent = "Seus corações acabaram por hoje!";
+                    feedback.textContent = "Corações zerados! Retorne amanhã.";
                     database.ref('users/' + currentUser.key).update({ hearts: 0 }).catch(() => {});
-                    setTimeout(() => {
-                        loadNextQuestion();
-                    }, 2000);
+                    setTimeout(loadNextQuestion, 2000);
                 }
-            }
-        }
-
-        function updateStreakTimerUI() {
-            const timerDisplay = document.getElementById('streakTimerDisplay');
-            const now = Date.now();
-            const twentyFourHours = 24 * 60 * 60 * 1000;
-            const lastTimestamp = currentUser.lastStreakTimestamp || 0;
-            const timeLeft = (lastTimestamp + twentyFourHours) - now;
-
-            if (timeLeft <= 0) {
-                timerDisplay.textContent = "Disponível agora!";
-            } else {
-                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-                timerDisplay.textContent = `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
-                
-                setTimeout(updateStreakTimerUI, 1000);
             }
         }
 
         function initRealtimeLeaderboard() {
-            const leaderboardList = document.getElementById('leaderboardList');
+            const lbList = document.getElementById('leaderboardList');
             database.ref('users').on('value', (snapshot) => {
-                const usersData = snapshot.val();
-                if (!usersData) {
-                    leaderboardList.innerHTML = `<li style="text-align: center; color: var(--text-secondary); padding: 0.8rem;">Nenhum jovem no placar.</li>`;
+                const data = snapshot.val();
+                if (!data) {
+                    lbList.innerHTML = `<li style="text-align: center; color: var(--text-secondary); padding: 0.8rem;">Nenhum registro no cyber-placar.</li>`;
                     return;
                 }
 
-                const usersArray = Object.keys(usersData).map(key => ({
-                    name: usersData[key].name,
-                    score: usersData[key].score || 0,
-                    streak: usersData[key].streak || 0
+                let arr = Object.keys(data).map(k => ({
+                    name: data[k].name,
+                    score: data[k].score || 0,
+                    streak: data[k].streak || 0
                 }));
 
-                usersArray.sort((a, b) => b.score - a.score || b.streak - a.streak);
+                arr.sort((a, b) => b.score - a.score || b.streak - a.streak);
 
-                leaderboardList.innerHTML = "";
-                usersArray.forEach((user, index) => {
-                    const rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : '';
-                    const li = document.createElement('li');
+                lbList.innerHTML = "";
+                arr.forEach((u, i) => {
+                    let rClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
+                    let li = document.createElement('li');
                     li.className = 'leaderboard-item';
                     li.innerHTML = `
-                        <div class="rank-info">
-                            <div class="rank-badge ${rankClass}">${index + 1}</div>
-                            <span>${user.name}</span>
+                        <div class="rank-info" style="display:flex; align-items:center; gap:10px;">
+                            <div class="rank-badge ${rClass}">${i + 1}</div>
+                            <span>${u.name}</span>
                         </div>
                         <div class="user-stats-pill">
-                            <span class="streak-val"><i class="fa-solid fa-fire"></i> ${user.streak}d</span>
-                            <span class="score-val">${user.score}pts</span>
+                            <span style="color:var(--neon-gold); font-size:0.75rem;"><i class="fa-solid fa-fire"></i> ${u.streak}d</span>
+                            <span class="score-val">${u.score} pts</span>
                         </div>
                     `;
-                    leaderboardList.appendChild(li);
+                    lbList.appendChild(li);
                 });
             }, () => {
-                leaderboardList.innerHTML = `<li style="text-align: center; color: var(--text-secondary); padding: 0.8rem;">Placar indisponível offline.</li>`;
+                lbList.innerHTML = `<li style="text-align: center; color: var(--text-secondary); padding: 0.8rem;">Placar offline.</li>`;
             });
         }
     </script>
