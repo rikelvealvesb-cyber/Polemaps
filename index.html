@@ -1,784 +1,757 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>PoleMaps</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conexão Jovem - FJU</title>
     
-    <!-- Leaflet CSS & JS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap');
-        body { font-family: 'Roboto', sans-serif; overflow: hidden; user-select: none; position: fixed; inset: 0; perspective: 1200px; }
-        
-        .leaflet-control-attribution, .leaflet-control-zoom { display: none !important; }
-        .leaflet-routing-container { display: none !important; }
+        :root {
+            --primary: #d32f2f;
+            --primary-dark: #b71c1c;
+            --accent: #d4af37;
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --text-secondary: #666666;
+            --success: #2e7d32;
+            --border-color: #e0e0e0;
+        }
 
-        #map-container {
-            width: 100vw;
-            height: 100vh;
-            position: absolute;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            padding: 1rem 1.2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
+            position: sticky;
             top: 0;
-            left: 0;
-            overflow: hidden;
-            z-index: 0;
+            z-index: 1000;
         }
 
-        #map {
-            width: 250vw;
-            height: 250vw;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotateX(45deg);
-            transform-origin: center center;
-            transition: transform 0.1s linear;
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        /* Tema Cinza Suave Estilo Waze / Google Maps */
-        .leaflet-tile-pane { filter: grayscale(100%) contrast(1.15) brightness(1.05); }
-
-        .user-gps-container {
-            position: relative;
-            width: 72px;
-            height: 72px;
+        .logo-icon {
+            background: white;
+            color: var(--primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 800;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
-        .user-pulse {
-            width: 80px; height: 80px;
-            background: rgba(59, 130, 246, 0.4);
+        .logo-text {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            line-height: 1.1;
+        }
+
+        .logo-text span {
+            font-size: 0.75rem;
+            color: var(--accent);
+            display: block;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            color: white;
+        }
+
+        .user-badges {
+            display: flex;
+            flex-direction: column;
+            text-align: right;
+        }
+
+        .btn {
+            background-color: var(--accent);
+            color: #111;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1.5px solid white;
+            color: white;
+        }
+
+        .btn-outline:hover {
+            background: white;
+            color: var(--primary);
+        }
+
+        main {
+            flex: 1;
+            max-width: 600px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Auth Screen */
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 80vh;
+        }
+
+        .auth-card {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 16px;
+            width: 100%;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            border-top: 5px solid var(--primary);
+        }
+
+        .auth-card h2 {
+            margin-bottom: 1.5rem;
+            text-align: center;
+            color: var(--primary);
+            font-size: 1.4rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: #fafafa;
+            color: var(--text-main);
+            font-size: 0.95rem;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #fff;
+        }
+
+        .auth-card .btn {
+            width: 100%;
+            margin-top: 1rem;
+            padding: 0.8rem;
+            font-size: 0.9rem;
+        }
+
+        .auth-switch {
+            text-align: center;
+            margin-top: 1.2rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .auth-switch a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        /* Cards Gerais */
+        .card {
+            background: var(--card-bg);
+            border-radius: 14px;
+            padding: 1.2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+            margin-bottom: 1.2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .card h3 {
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary);
+            font-size: 1.05rem;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 0.5rem;
+        }
+
+        /* Quiz Section */
+        .question-box {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .option-btn {
+            background: #f8f9fa;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .option-btn.correct {
+            background: #e8f5e9 !important;
+            border-color: var(--success) !important;
+            color: var(--success) !important;
+            font-weight: 700;
+        }
+
+        .option-btn.incorrect {
+            background: #ffebee !important;
+            border-color: var(--primary) !important;
+            color: var(--primary) !important;
+        }
+
+        .streak-status-box {
+            background: #fff8e1;
+            border: 1px dashed var(--accent);
+            padding: 0.8rem;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            color: #795548;
+        }
+
+        .streak-timer {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: #e65100;
+        }
+
+        /* Leaderboard */
+        .leaderboard-list {
+            list-style: none;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.7rem 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.9rem;
+        }
+
+        .leaderboard-item:last-child {
+            border-bottom: none;
+        }
+
+        .rank-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .rank-badge {
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
-            position: absolute;
-            animation: pulse-ring 2s infinite;
+            background: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #555;
         }
 
-        .user-dot {
-            width: 36px; height: 36px;
-            background: #3b82f6;
-            border: 5px solid #ffffff;
-            border-radius: 50%;
-            position: absolute;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+        .rank-1 { background: #ffd700; color: #555; }
+        .rank-2 { background: #c0c0c0; color: #555; }
+        .rank-3 { background: #cd7f32; color: white; }
+
+        .user-stats-pill {
+            display: flex;
+            gap: 8px;
+            align-items: center;
         }
 
-        @keyframes pulse-ring {
-            0% { transform: scale(0.5); opacity: 1; }
-            100% { transform: scale(2.4); opacity: 0; }
+        .score-val {
+            font-weight: 700;
+            color: var(--primary);
+            background: #ffebee;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
         }
 
-        .panel-slide { transition: transform 0.3s cubic-bezier(0.1, 0.9, 0.2, 1); }
+        .streak-val {
+            font-weight: 700;
+            color: #e65100;
+            background: #fff3e0;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.2rem;
+            background: #ffffff;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: auto;
+        }
     </style>
 </head>
-<body id="app-body" class="h-full w-full flex flex-col relative bg-zinc-900 text-gray-100 overflow-hidden box-border">
+<body>
 
-    <!-- MAPA -->
-    <div id="map-container">
-        <div id="map"></div>
-    </div>
-
-    <!-- MODAL DE CHEGADA -->
-    <div id="arrivalModal" class="absolute inset-0 bg-black/75 z-50 hidden flex flex-col items-center justify-center p-6 backdrop-blur-xs box-border">
-        <div class="bg-zinc-800 border border-zinc-700 rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl flex flex-col items-center text-gray-100">
-            <div class="w-20 h-20 bg-emerald-600 text-white rounded-full flex items-center justify-center text-4xl mb-4 shadow-lg animate-bounce">
-                <i class="fa-solid fa-flag-checkered"></i>
+    <header>
+        <div class="logo-area">
+            <div class="logo-icon"><i class="fa-solid fa-fire"></i></div>
+            <div class="logo-text">
+                FJU Conexão
+                <span>Igreja Universal</span>
             </div>
-            <h2 class="text-3xl font-extrabold mb-2">Você chegou!</h2>
-            <p class="text-zinc-400 text-base mb-6">Destino alcançado com sucesso pelo PoleMaps.</p>
-            <button onclick="showReportModal()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 text-lg rounded-2xl shadow-xl transition">
-                Ver Relatório do Percurso
-            </button>
         </div>
-    </div>
-
-    <!-- MODAL DE RELATÓRIO DE PERCURSO -->
-    <div id="reportModal" class="absolute inset-0 bg-black/85 z-50 hidden flex flex-col items-center justify-center p-6 backdrop-blur-xs box-border">
-        <div class="bg-zinc-800 border border-zinc-700 rounded-3xl p-6 w-full max-w-sm shadow-2xl flex flex-col text-gray-100">
-            <div class="flex items-center space-x-3 mb-4">
-                <div class="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center text-2xl shadow">
-                    <i class="fa-solid fa-chart-line"></i>
-                </div>
-                <div>
-                    <h2 class="text-2xl font-black">Relatório Final</h2>
-                    <p class="text-xs text-zinc-400">Resumo da sua atividade no PoleMaps</p>
-                </div>
+        <div class="user-info hidden" id="userInfoSection">
+            <div class="user-badges">
+                <span id="userNameDisplay">Jovem</span>
+                <span><i class="fa-solid fa-star" style="color:var(--accent);"></i> <b id="userScoreDisplay">0</b> pts | <i class="fa-solid fa-fire" style="color:#ff9800;"></i> <b id="userStreakDisplay">0</b>d</span>
             </div>
+            <button class="btn btn-outline" id="logoutBtn">Sair</button>
+        </div>
+    </header>
 
-            <div class="grid grid-cols-1 gap-3 mb-6">
-                <div class="bg-zinc-900 border border-zinc-700/80 p-4 rounded-2xl flex items-center justify-between">
-                    <div class="flex items-center space-x-3 text-zinc-400">
-                        <i class="fa-regular fa-clock text-xl text-blue-400"></i>
-                        <span class="font-medium text-sm">Tempo Total</span>
+    <main>
+        <section id="authScreen" class="auth-container">
+            <div class="auth-card">
+                <h2 id="authTitle">Portal do Jovem FJU</h2>
+                <form id="authForm">
+                    <div class="form-group" id="nameGroup" style="display: none;">
+                        <label>Nome ou Apelido</label>
+                        <input type="text" id="authName" placeholder="Seu nome">
                     </div>
-                    <span id="report-time" class="text-lg font-black text-white">--</span>
-                </div>
-
-                <div class="bg-zinc-900 border border-zinc-700/80 p-4 rounded-2xl flex items-center justify-between">
-                    <div class="flex items-center space-x-3 text-zinc-400">
-                        <i class="fa-solid fa-gauge-high text-xl text-emerald-400"></i>
-                        <span class="font-medium text-sm">Velocidade Máxima</span>
+                    <div class="form-group">
+                        <label>E-mail</label>
+                        <input type="email" id="authEmail" required placeholder="seu@email.com">
                     </div>
-                    <span id="report-max-speed" class="text-lg font-black text-emerald-400">-- km/h</span>
-                </div>
-
-                <div class="bg-zinc-900 border border-zinc-700/80 p-4 rounded-2xl flex items-center justify-between">
-                    <div class="flex items-center space-x-3 text-zinc-400">
-                        <i class="fa-solid fa-gauge text-xl text-amber-400"></i>
-                        <span class="font-medium text-sm">Velocidade Mínima</span>
+                    <div class="form-group">
+                        <label>Senha</label>
+                        <input type="password" id="authPassword" required placeholder="******">
                     </div>
-                    <span id="report-min-speed" class="text-lg font-black text-amber-400">-- km/h</span>
+                    <button type="submit" class="btn" id="authSubmitBtn">Entrar</button>
+                </form>
+                <div class="auth-switch">
+                    <p id="switchText">Não tem conta? <a href="#" id="switchModeBtn">Cadastre-se</a></p>
+                </div>
+            </div>
+        </section>
+
+        <section id="dashboardScreen" class="hidden">
+            
+            <div class="card">
+                <h3><i class="fa-solid fa-book-bible"></i> Desafios Bíblicos (Modo Infinito)</h3>
+                <div id="quizContainer">
+                    <div class="question-box" id="questionText">Carregando pergunta...</div>
+                    <div class="options-list" id="optionsList"></div>
+                    <div id="quizFeedback" style="margin-top: 0.8rem; font-weight: 600; text-align: center; font-size: 0.9rem;"></div>
+                </div>
+
+                <div class="streak-status-box" id="streakStatusBox">
+                    <span id="streakStatusText">Próxima ofensiva disponível em:</span><br>
+                    <span class="streak-timer" id="streakTimerDisplay">Disponível agora!</span>
                 </div>
             </div>
 
-            <button onclick="closeReportAndFinish()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 text-lg rounded-2xl shadow-xl transition">
-                Concluir e Sair
-            </button>
-        </div>
-    </div>
-
-    <!-- TELA PRINCIPAL -->
-    <div id="view-home" class="absolute inset-0 z-10 flex flex-col justify-between pointer-events-none p-4 box-border">
-        <div id="top-search-wrapper" class="pointer-events-auto flex items-center space-x-3 mt-2 w-full transition-all duration-300">
-            <div id="search-bar-container" class="flex-1 bg-zinc-800 shadow-2xl rounded-full flex items-center px-5 py-3.5 border border-zinc-700/80 box-border text-gray-100">
-                <button onclick="clearSearch()" class="text-zinc-400 mr-3 text-2xl hover:text-white transition">
-                    <i class="fa-solid fa-arrow-left"></i>
-                </button>
-                <input type="text" id="searchInput" placeholder="Pesquisar rua ou local (ou histórico)..." oninput="handleSearchInput(event)" onfocus="showHistorySuggestions()"
-                       class="flex-1 bg-transparent text-inherit placeholder:text-zinc-500 focus:outline-none text-lg font-medium min-w-0">
-                <button class="text-zinc-400 mx-3 text-xl hover:text-white transition">
-                    <i class="fa-solid fa-microphone"></i>
-                </button>
-                <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-sm text-white shadow shrink-0">US</div>
-            </div>
-        </div>
-
-        <div id="suggestionsBox" class="absolute left-4 right-20 top-20 bg-zinc-800 border border-zinc-700 rounded-3xl shadow-2xl hidden max-h-72 overflow-y-auto z-30 pointer-events-auto box-border text-gray-100"></div>
-
-        <div class="pointer-events-auto flex justify-end space-x-3 px-2 mb-28">
-            <button onclick="centerOnUser()" id="centerBtn" class="w-14 h-14 bg-zinc-800 text-blue-400 shadow-2xl rounded-full flex items-center justify-center text-2xl border border-zinc-700 active:scale-95 transition" title="Centralizar">
-                <i class="fa-solid fa-location-crosshairs"></i>
-            </button>
-        </div>
-    </div>
-
-    <!-- OVERLAY DE CARREGAMENTO -->
-    <div id="loadingOverlay" class="absolute inset-0 bg-black/60 z-50 hidden flex flex-col items-center justify-center backdrop-blur-xs box-border">
-        <div class="w-14 h-14 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p class="text-white font-semibold text-base tracking-wide">Calculando atalhos e rota livre...</p>
-    </div>
-
-    <!-- TELA 2: FICHA DO LOCAL -->
-    <div id="view-place-sheet" class="absolute inset-x-0 bottom-4 z-20 mx-3 bg-zinc-800 rounded-3xl shadow-2xl p-5 border border-zinc-700 panel-slide translate-y-[120%] flex flex-col max-h-[80vh] box-border text-gray-100">
-        <div id="sheet-handle" class="w-14 h-2 bg-zinc-600 rounded-full mx-auto mb-4"></div>
-        
-        <div class="flex justify-between items-start mb-2">
-            <div>
-                <h2 id="sheet-title" class="text-2xl font-bold">Local Selecionado</h2>
-            </div>
-            <button onclick="closeSheet()" id="sheet-close-btn" class="w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-300 hover:text-white text-lg shrink-0">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-
-        <p class="text-sm text-zinc-400 mb-4">PoleMaps • Navegação 3D Offline Ready</p>
-
-        <div id="vehicle-container" class="grid grid-cols-1 gap-2 mb-5 bg-zinc-900 p-3 rounded-2xl border border-zinc-700 box-border">
-            <div class="flex items-center justify-between px-4 py-3 rounded-xl bg-blue-600 text-white">
-                <div class="flex items-center space-x-3">
-                    <i class="fa-solid fa-bicycle text-2xl"></i>
-                    <span class="text-base font-semibold">Bike (Caminho Direto e Livre)</span>
-                </div>
-                <span class="text-lg font-extrabold" id="timeBike">--</span>
-            </div>
-        </div>
-
-        <button onclick="startNavigation()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 px-4 rounded-2xl flex items-center justify-center space-x-3 font-bold text-lg shadow-xl transition">
-            <i class="fa-solid fa-location-arrow text-xl"></i>
-            <span>Iniciar Navegação</span>
-        </button>
-    </div>
-
-    <!-- TELA 3: NAVEGAÇÃO EM ANDAMENTO -->
-    <div id="view-navigation" class="absolute inset-0 z-30 pointer-events-none flex flex-col justify-end p-4 box-border hidden">
-        <div class="flex flex-col space-y-3 w-full">
-            <div id="reorganize-container" class="pointer-events-auto flex justify-center w-full hidden">
-                <button onclick="reorganizeRoute()" class="bg-amber-600 hover:bg-amber-500 text-white font-bold text-base px-6 py-3 rounded-full shadow-2xl flex items-center space-x-3 border border-amber-500 transition animate-bounce">
-                    <i class="fa-solid fa-route text-lg"></i>
-                    <span>Reorganizar Rota</span>
-                </button>
+            <div class="card">
+                <h3><i class="fa-solid fa-calendar-star"></i> Versículo da Semana</h3>
+                <p style="font-style: italic; margin-bottom: 0.5rem; color: var(--primary); font-size: 0.9rem;">
+                    "Não temas, porque eu sou contigo; não te assombres, porque eu sou teu Deus; eu te fortaleço, e te ajudo..." - Isaías 41:10
+                </p>
+                <p style="font-size: 0.85rem; color: var(--text-secondary);">
+                    <strong>Missão Prática:</strong> Compartilhe uma palavra de fé com alguém hoje e convide para a reunião da FJU!
+                </p>
             </div>
 
-            <!-- PAINEL INFERIOR -->
-            <div id="nav-bottom-panel" class="pointer-events-auto bg-zinc-800 border border-zinc-700 rounded-3xl p-4 flex flex-col space-y-3 shadow-2xl box-border w-full text-gray-100">
-                <div class="flex items-center justify-between">
-                    <button onclick="cancelNavigation()" id="nav-cancel-btn" class="w-14 h-14 rounded-full bg-zinc-700 flex items-center justify-center text-red-400 text-2xl border border-zinc-600 shrink-0">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                    <div class="text-center px-2">
-                        <div id="nav-time" class="text-3xl font-black">-- min</div>
-                        <div id="nav-distance" class="text-sm text-zinc-400 font-semibold">-- km</div>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <div id="nav-speed-box" class="w-20 h-14 rounded-2xl bg-zinc-900 flex flex-col items-center justify-center border border-zinc-700 text-blue-400 shrink-0">
-                            <span id="current-speed" class="text-xl font-black">0</span>
-                            <span class="text-[10px] text-zinc-500 uppercase tracking-tighter font-bold">km/h</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ALERTA DE RITMO / VELOCIDADE MÉDIA -->
-                <div id="pace-status-banner" class="w-full py-2 px-3 rounded-xl bg-blue-950/60 text-blue-300 font-bold text-xs flex items-center justify-center space-x-2 border border-blue-800/60 text-center">
-                    <i class="fa-solid fa-gauge-high text-sm"></i>
-                    <span id="pace-status-text">Aguardando dados de movimento...</span>
-                </div>
+            <div class="card">
+                <h3><i class="fa-solid fa-trophy"></i> Placar de Destaques FJU</h3>
+                <ul class="leaderboard-list" id="leaderboardList">
+                    <li style="text-align: center; color: var(--text-secondary); padding: 0.8rem;">Carregando placar...</li>
+                </ul>
             </div>
-        </div>
-    </div>
+
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Igreja Universal do Reino de Deus - FJU. Todos os direitos reservados.</p>
+    </footer>
 
     <script>
-        let map;
-        let tileLayer;
-        let userLatLng = null;
-        let userMarker = null;
-        let destinationLatLng = null;
-        let destinationMarker = null;
-        let routingControl = null;
-        let isFollowingUser = true;
-        let searchTimeout = null;
-        let isNavigating = false;
-        let currentHeading = 0;
-        let routeCoordinates = [];
-        let navigationInterval = null;
-        let traveledLine = null;
-        let remainingLine = null;
-        let hasArrived = false;
-        let lastUserCoords = null;
+        const firebaseConfig = {
+            apiKey: "AIzaSyCTkq0uXy5kHg9N8rj9--Dooh8cuguYxPE",
+            authDomain: "subjectrobot-49600.firebaseapp.com",
+            databaseURL: "https://subjectrobot-49600-default-rtdb.firebaseio.com",
+            projectId: "subjectrobot-49600",
+            storageBucket: "subjectrobot-49600.appspot.com",
+            messagingSenderId: "731604558049",
+            appId: "1:731604558049:android:7f47b30b289445814017a0"
+        };
 
-        let initialRouteDistance = 0;
-        let expectedRouteDurationMin = 0;
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
-        let navigationStartTime = null;
-        let navigationTotalSeconds = 0;
-        let maxSpeedRecorded = 0;
-        let minSpeedRecorded = Infinity;
+        const quizQuestionsPool = [
+            { question: "Quem foi o jovem que derrotou o gigante Golias com uma funda e uma pedra?", options: ["Saul", "Davi", "Salomão", "Samuel"], correct: 1 },
+            { question: "Qual apóstolo andou sobre as águas junto com Jesus por alguns instantes?", options: ["João", "Tiago", "Pedro", "André"], correct: 2 },
+            { question: "Quantos dias e noites choveu durante o dilúvio na época de Noé?", options: ["7 dias e 7 noites", "40 dias e 40 noites", "100 dias e 100 noites", "3 dias e 3 noites"], correct: 1 },
+            { question: "Quem foi engolido por um grande peixe após desobedecer a voz de Deus?", options: ["Jonas", "Daniel", "Moisés", "Elias"], correct: 0 },
+            { question: "Qual era o nome da esposa de Abraão?", options: ["Maria", "Sara", "Rebeca", "Raquel"], correct: 1 },
+            { question: "Qual foi o primeiro milagre de Jesus registrado na Bíblia?", options: ["Curar um cego", "Transformar água em vinho", "Multiplicar os pães", "Andar sobre as águas"], correct: 1 },
+            { question: "Quem interpretou os sonhos do Faraó no Egito e se tornou governador?", options: ["José", "José de Arimateia", "Josué", "Gideão"], correct: 0 }
+        ];
 
-        const NAVIGATION_ZOOM = 19;
+        let currentUser = null;
+        let isRegistering = false;
+        let currentQuestion = null;
 
-        function initMap() {
-            userLatLng = L.latLng(-23.5505, -46.6333);
-            map = L.map('map', { zoomControl: false, attributionControl: false, maxZoom: 19 }).setView(userLatLng, NAVIGATION_ZOOM);
-            setMapTheme();
+        const authScreen = document.getElementById('authScreen');
+        const dashboardScreen = document.getElementById('dashboardScreen');
+        const authForm = document.getElementById('authForm');
+        const authTitle = document.getElementById('authTitle');
+        const nameGroup = document.getElementById('nameGroup');
+        const authName = document.getElementById('authName');
+        const authEmail = document.getElementById('authEmail');
+        const authPassword = document.getElementById('authPassword');
+        const authSubmitBtn = document.getElementById('authSubmitBtn');
+        const switchText = document.getElementById('switchText');
+        const switchModeBtn = document.getElementById('switchModeBtn');
+        const userInfoSection = document.getElementById('userInfoSection');
+        const userNameDisplay = document.getElementById('userNameDisplay');
+        const userScoreDisplay = document.getElementById('userScoreDisplay');
+        const userStreakDisplay = document.getElementById('userStreakDisplay');
+        const logoutBtn = document.getElementById('logoutBtn');
 
-            updateUserMarker(userLatLng);
-            startRealGeolocation();
-            initCompassSensor();
-
-            map.on('click', function(e) {
-                if (isNavigating) return;
-                selectLocation(e.latlng, "Local Selecionado");
-            });
-
-            map.on('dragstart', function() {
-                isFollowingUser = false;
-            });
-            map.on('zoomstart', function() {
-                isFollowingUser = false;
-            });
-        }
-
-        function initCompassSensor() {
-            if (window.DeviceOrientationEvent) {
-                window.addEventListener('deviceorientation', (event) => {
-                    let heading = event.alpha;
-                    if (heading !== null) {
-                        if (event.webkitCompassHeading !== undefined) {
-                            heading = event.webkitCompassHeading;
-                        }
-                        if (currentHeading === 0 && heading) {
-                            currentHeading = heading;
-                        }
-                        if (userLatLng && isFollowingUser) {
-                            applyMapTransform(currentHeading);
-                        }
-                    }
-                }, true);
-            }
-        }
-
-        function applyMapTransform(heading) {
-            const mapElement = document.getElementById('map');
-            if (mapElement) {
-                mapElement.style.transform = `translate(-50%, -50%) rotateX(45deg) rotate(${-heading}deg)`;
-            }
-        }
-
-        function setMapTheme() {
-            if (tileLayer) map.removeLayer(tileLayer);
-            // CartoDB Positron configurado com tom cinza neutro e moderno
-            tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, maxNativeZoom: 19 });
-            tileLayer.addTo(map);
-        }
-
-        function startRealGeolocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.watchPosition(
-                    (position) => {
-                        const newLat = position.coords.latitude;
-                        const newLng = position.coords.longitude;
-                        const newPoint = L.latLng(newLat, newLng);
-
-                        if (lastUserCoords) {
-                            const dLat = newLat - lastUserCoords.lat;
-                            const dLng = newLng - lastUserCoords.lng;
-                            if (Math.hypot(dLat, dLng) > 0.00001) {
-                                let angle = Math.atan2(dLng, dLat) * (180 / Math.PI);
-                                if (angle < 0) angle += 360;
-                                currentHeading = angle;
-                            }
-                        }
-                        lastUserCoords = newPoint;
-                        userLatLng = newPoint;
-
-                        updateUserMarker(userLatLng);
-                        
-                        let currentSpeedKmH = 0;
-                        if (position.coords.speed !== null && position.coords.speed >= 0) {
-                            currentSpeedKmH = Math.round(position.coords.speed * 3.6);
-                        } else if (lastUserCoords && userLatLng) {
-                            currentSpeedKmH = 15; 
-                        }
-                        document.getElementById('current-speed').innerText = currentSpeedKmH;
-
-                        if (isNavigating) {
-                            if (currentSpeedKmH > maxSpeedRecorded) {
-                                maxSpeedRecorded = currentSpeedKmH;
-                            }
-                            if (currentSpeedKmH > 0 && currentSpeedKmH < minSpeedRecorded) {
-                                minSpeedRecorded = currentSpeedKmH;
-                            }
-                        }
-
-                        if (isFollowingUser) {
-                            map.setView(userLatLng, NAVIGATION_ZOOM, { animate: false });
-                            applyMapTransform(currentHeading);
-                        }
-
-                        if (isNavigating && routeCoordinates.length > 0) {
-                            updateRouteProgress(userLatLng, currentSpeedKmH);
-                            checkArrival(userLatLng);
-                        }
-                    },
-                    (err) => { console.warn("Aguardando GPS..."); },
-                    { enableHighAccuracy: true, maximumAge: 500, timeout: 5000 }
-                );
-            }
-        }
-
-        function updateUserMarker(latlng) {
-            const iconHtml = `
-                <div class="user-gps-container">
-                    <div class="user-pulse"></div>
-                    <div class="user-dot"></div>
-                </div>`;
-
-            if (!userMarker) {
-                const icon = L.divIcon({ className: '', html: iconHtml, iconSize: [72, 72], iconAnchor: [36, 36] });
-                userMarker = L.marker(latlng, { icon: icon, zIndexOffset: 999999 }).addTo(map);
-            } else {
-                userMarker.setLatLng(latlng);
-            }
-        }
-
-        function centerOnUser() {
-            isFollowingUser = true;
-            if (userLatLng) {
-                map.setView(userLatLng, NAVIGATION_ZOOM, { animate: true });
-                applyMapTransform(currentHeading);
-            }
-        }
-
-        function saveToHistory(name, lat, lon) {
-            let history = JSON.parse(localStorage.getItem('polemaps_history') || '[]');
-            history = history.filter(item => item.name !== name);
-            history.unshift({ name, lat, lon });
-            if (history.length > 10) history.pop();
-            localStorage.setItem('polemaps_history', JSON.stringify(history));
-        }
-
-        function showHistorySuggestions() {
-            const box = document.getElementById('suggestionsBox');
-            let history = JSON.parse(localStorage.getItem('polemaps_history') || '[]');
-            
-            if (history.length > 0) {
-                box.innerHTML = `<div class="px-5 py-2 text-xs font-bold text-zinc-500 uppercase tracking-wider">Locais Salvos (Offline Ready)</div>`;
-                history.forEach(item => {
-                    const div = document.createElement('div');
-                    div.className = `px-5 py-3.5 hover:bg-zinc-700 border-b border-zinc-700 text-base cursor-pointer flex items-center space-x-3`;
-                    div.innerHTML = `<i class="fa-solid fa-clock-rotate-left text-blue-400 mr-1"></i><span class="truncate font-medium">${item.name}</span>`;
-                    div.onclick = () => {
-                        document.getElementById('searchInput').value = item.name;
-                        box.classList.add('hidden');
-                        selectLocation(L.latLng(item.lat, item.lon), item.name);
-                    };
-                    box.appendChild(div);
-                });
-                box.classList.remove('hidden');
-            }
-        }
-
-        function handleSearchInput(e) {
-            const query = e.target.value;
-            clearTimeout(searchTimeout);
-            const box = document.getElementById('suggestionsBox');
-
-            if (!query || query.length < 3) {
-                showHistorySuggestions();
-                return;
-            }
-
-            searchTimeout = setTimeout(async () => {
-                try {
-                    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=br&q=${encodeURIComponent(query)}&limit=5`);
-                    const data = await res.json();
-                    
-                    box.innerHTML = '';
-                    if (data && data.length > 0) {
-                        data.forEach(item => {
-                            const fullName = item.display_name.split(',')[0];
-                            const div = document.createElement('div');
-                            div.className = `px-5 py-4 hover:bg-zinc-700 border-b border-zinc-700 text-base cursor-pointer flex items-center space-x-3`;
-                            div.innerHTML = `<i class="fa-solid fa-location-dot text-blue-400 text-sm mr-1"></i><span class="truncate font-medium">${item.display_name}</span>`;
-                            div.onclick = () => {
-                                document.getElementById('searchInput').value = fullName;
-                                box.classList.add('hidden');
-                                saveToHistory(fullName, parseFloat(item.lat), parseFloat(item.lon));
-                                selectLocation(L.latLng(parseFloat(item.lat), parseFloat(item.lon)), fullName);
-                            };
-                            box.appendChild(div);
-                        });
-                        box.classList.remove('hidden');
+        // VERIFICAÇÃO DE LOGIN AUTOMÁTICO USANDO O LOCALSTORAGE DO CELULAR
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedEmail = localStorage.getItem('fju_logged_email');
+            if (savedEmail) {
+                const sanitizedKey = savedEmail.replace(/[.$#[\]/]/g, "_");
+                database.ref('users/' + sanitizedKey).once('value').then((snapshot) => {
+                    const userData = snapshot.val();
+                    if (userData) {
+                        loginUser(userData, sanitizedKey);
                     } else {
-                        box.classList.add('hidden');
+                        localStorage.removeItem('fju_logged_email');
                     }
-                } catch(err) {
-                    let history = JSON.parse(localStorage.getItem('polemaps_history') || '[]');
-                    let matched = history.filter(h => h.name.toLowerCase().includes(query.toLowerCase()));
-                    box.innerHTML = '';
-                    if(matched.length > 0) {
-                        matched.forEach(item => {
-                            const div = document.createElement('div');
-                            div.className = `px-5 py-4 border-b border-zinc-700 text-base cursor-pointer flex items-center space-x-3`;
-                            div.innerHTML = `<i class="fa-solid fa-wifi-slash text-orange-400"></i><span class="truncate font-medium">${item.name} (Modo Offline)</span>`;
-                            div.onclick = () => {
-                                document.getElementById('searchInput').value = item.name;
-                                box.classList.add('hidden');
-                                selectLocation(L.latLng(item.lat, item.lon), item.name);
-                            };
-                            box.appendChild(div);
-                        });
-                        box.classList.remove('hidden');
-                    }
-                }
-            }, 300);
-        }
+                }).catch(() => {
+                    // Se falhar offline, tenta carregar dados mínimos salvos no localStorage para não travar
+                    const cachedName = localStorage.getItem('fju_logged_name') || "Jovem";
+                    const cachedScore = parseInt(localStorage.getItem('fju_logged_score') || "0");
+                    const cachedStreak = parseInt(localStorage.getItem('fju_logged_streak') || "0");
+                    const cachedTimestamp = parseInt(localStorage.getItem('fju_logged_timestamp') || "0");
 
-        function clearSearch() {
-            document.getElementById('searchInput').value = '';
-            document.getElementById('suggestionsBox').classList.add('hidden');
-            if (destinationMarker) map.removeLayer(destinationMarker);
-            if (routingControl) map.removeControl(routingControl);
-            routingControl = null;
-            destinationMarker = null;
-            routeCoordinates = [];
-            closeSheet();
-            centerOnUser();
-        }
-
-        function selectLocation(latlng, name) {
-            destinationLatLng = latlng;
-            document.getElementById('sheet-title').innerText = name;
-            
-            if (destinationMarker) map.removeLayer(destinationMarker);
-            destinationMarker = L.circleMarker(latlng, {
-                radius: 12, color: '#18181b', fillColor: '#ef4444', fillOpacity: 1, weight: 3
-            }).addTo(map);
-
-            document.getElementById('view-home').classList.add('hidden');
-            const sheet = document.getElementById('view-place-sheet');
-            sheet.classList.remove('translate-y-[120%]');
-            sheet.classList.add('translate-y-0');
-            map.setView(latlng, NAVIGATION_ZOOM, { animate: true });
-            
-            calculateBikeTimeAndRoute();
-        }
-
-        function closeSheet() {
-            const sheet = document.getElementById('view-place-sheet');
-            sheet.classList.remove('translate-y-0');
-            sheet.classList.add('translate-y-[120%]');
-            document.getElementById('view-home').classList.remove('hidden');
-            if (destinationMarker) map.removeLayer(destinationMarker);
-            if (routingControl) map.removeControl(routingControl);
-            routingControl = null;
-        }
-
-        function formatMinutesToHours(totalMinutes) {
-            if (totalMinutes < 60) return `${Math.max(1, totalMinutes)} min`;
-            const hours = Math.floor(totalMinutes / 60);
-            const minutes = Math.round(totalMinutes % 60);
-            return minutes === 0 ? `${hours} h` : `${hours} h ${minutes} min`;
-        }
-
-        async function calculateBikeTimeAndRoute() {
-            if (!userLatLng || !destinationLatLng) return;
-            try {
-                const res = await fetch(`https://router.project-osrm.org/route/v1/bike/${userLatLng.lng},${userLatLng.lat};${destinationLatLng.lng},${destinationLatLng.lat}?overview=false&alternatives=false`);
-                const data = await res.json();
-                if (data && data.routes && data.routes.length > 0) {
-                    const summary = data.routes[0];
-                    initialRouteDistance = summary.distance;
-                    expectedRouteDurationMin = Math.round((summary.duration / 60) * 1.8);
-                    document.getElementById('timeBike').innerText = formatMinutesToHours(expectedRouteDurationMin);
-                }
-            } catch(e) {
-                initialRouteDistance = userLatLng.distanceTo(destinationLatLng);
-                expectedRouteDurationMin = Math.max(1, Math.round((initialRouteDistance / 1000) / 12 * 60));
-                document.getElementById('timeBike').innerText = formatMinutesToHours(expectedRouteDurationMin) + " (Offline)";
+                    loginUser({
+                        name: cachedName,
+                        email: savedEmail,
+                        score: cachedScore,
+                        streak: cachedStreak,
+                        lastStreakTimestamp: cachedTimestamp
+                    }, sanitizedKey);
+                });
             }
-        }
+        });
 
-        function startNavigation() {
-            hasArrived = false;
-            isNavigating = true;
-            isFollowingUser = true;
-            closeSheet();
+        // Alternar Login/Cadastro
+        switchModeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            isRegistering = !isRegistering;
+            if (isRegistering) {
+                authTitle.textContent = "Criar Conta FJU";
+                nameGroup.style.display = "block";
+                authName.required = true;
+                authSubmitBtn.textContent = "Cadastrar";
+                switchText.innerHTML = `Já tem conta? <a href="#" id="switchModeBtn">Entrar</a>`;
+            } else {
+                authTitle.textContent = "Portal do Jovem FJU";
+                nameGroup.style.display = "none";
+                authName.required = false;
+                authSubmitBtn.textContent = "Entrar";
+                switchText.innerHTML = `Não tem conta? <a href="#" id="switchModeBtn">Cadastre-se</a>`;
+            }
+            document.getElementById('switchModeBtn').addEventListener('click', arguments.callee);
+        });
 
-            navigationStartTime = new Date();
-            maxSpeedRecorded = 0;
-            minSpeedRecorded = Infinity;
+        // Sistema de Autenticação Manual com Salvamento no localStorage
+        authForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = authEmail.value.trim();
+            const password = authPassword.value.trim();
+            const sanitizedKey = email.replace(/[.$#[\]/]/g, "_");
+            const userRef = database.ref('users/' + sanitizedKey);
 
-            document.getElementById('top-search-wrapper').classList.add('hidden');
-            document.getElementById('suggestionsBox').classList.add('hidden');
+            userRef.once('value').then((snapshot) => {
+                const userData = snapshot.val();
 
-            calculateRoute(() => {
-                document.getElementById('view-navigation').classList.remove('hidden');
-                centerOnUser();
-            }, true);
-
-            if (navigationInterval) clearInterval(navigationInterval);
-            navigationInterval = setInterval(() => {
-                if (isNavigating && userLatLng && isFollowingUser) {
-                    map.setView(userLatLng, NAVIGATION_ZOOM, { animate: false });
-                    applyMapTransform(currentHeading);
-                }
-            }, 100);
-        }
-
-        function calculateRoute(onComplete, isPreview = false) {
-            if (!userLatLng || !destinationLatLng) return;
-            if (isPreview) document.getElementById('loadingOverlay').classList.remove('hidden');
-
-            if (routingControl) map.removeControl(routingControl);
-            if (traveledLine) map.removeLayer(traveledLine);
-            if (remainingLine) map.removeLayer(remainingLine);
-
-            routingControl = L.Routing.control({
-                waypoints: [userLatLng, destinationLatLng],
-                router: L.Routing.osrmv1({ 
-                    serviceUrl: 'https://router.project-osrm.org/route/v1', 
-                    profile: 'bike',
-                    options: { geometries: 'geojson' }
-                }),
-                routeWhileDragging: false,
-                show: false,
-                lineOptions: { styles: [{ color: isPreview ? '#3b82f6' : 'transparent', opacity: 0.9, weight: 8 }] },
-                fitSelectedRoutes: isPreview
-            }).addTo(map);
-
-            routingControl.on('routesfound', function(e) {
-                if (isPreview) document.getElementById('loadingOverlay').classList.add('hidden');
-                const routes = e.routes;
-                if (routes && routes.length > 0) {
-                    routeCoordinates = routes[0].coordinates;
-                    initialRouteDistance = routes[0].summary.totalDistance || initialRouteDistance;
-                    expectedRouteDurationMin = Math.max(1, Math.round((routes[0].summary.totalTime / 60) * 1.8));
-                    if (isNavigating) {
-                        updateRouteProgress(userLatLng, 0);
+                if (isRegistering) {
+                    if (userData) {
+                        alert("Este e-mail já está cadastrado! Tente entrar.");
+                        return;
                     }
-                }
-                if (onComplete) onComplete();
-            });
+                    const newUserData = {
+                        name: authName.value.trim(),
+                        email: email,
+                        password: password,
+                        score: 0,
+                        streak: 0,
+                        lastStreakTimestamp: 0
+                    };
+                    userRef.set(newUserData).then(() => {
+                        saveLocalSession(email, newUserData.name, 0, 0, 0);
+                        loginUser(newUserData, sanitizedKey);
+                    }).catch(() => {
+                        alert("Erro ao cadastrar. Verifique sua conexão com a internet.");
+                    });
+                } else {
+                    if (!userData) {
+                        alert("Usuário não encontrado! Cadastre-se primeiro.");
+                        return;
+                    }
+                    if (userData.password !== password) {
+                        alert("Senha incorreta!");
+                        return;
+                    }
 
-            routingControl.on('routingerror', function(e) {
-                if (isPreview) document.getElementById('loadingOverlay').classList.add('hidden');
-                routeCoordinates = [
-                    { lat: userLatLng.lat, lng: userLatLng.lng },
-                    { lat: destinationLatLng.lat, lng: destinationLatLng.lng }
-                ];
-                if (isNavigating) updateRouteProgress(userLatLng, 0);
-                if (onComplete) onComplete();
+                    saveLocalSession(email, userData.name, userData.score || 0, userData.streak || 0, userData.lastStreakTimestamp || 0);
+                    loginUser(userData, sanitizedKey);
+                }
+            }).catch(() => {
+                alert("Erro de conexão com o banco de dados. Verifique sua internet.");
+            });
+        });
+
+        function saveLocalSession(email, name, score, streak, timestamp) {
+            localStorage.setItem('fju_logged_email', email);
+            localStorage.setItem('fju_logged_name', name);
+            localStorage.setItem('fju_logged_score', score);
+            localStorage.setItem('fju_logged_streak', streak);
+            localStorage.setItem('fju_logged_timestamp', timestamp);
+        }
+
+        function loginUser(userData, userKey) {
+            currentUser = { ...userData, key: userKey };
+            authScreen.classList.add('hidden');
+            dashboardScreen.classList.remove('hidden');
+            userInfoSection.classList.remove('hidden');
+            userNameDisplay.textContent = currentUser.name;
+            userScoreDisplay.textContent = currentUser.score || 0;
+            userStreakDisplay.textContent = currentUser.streak || 0;
+
+            loadNextQuestion();
+            updateStreakTimerUI();
+            initRealtimeLeaderboard();
+        }
+
+        logoutBtn.addEventListener('click', () => {
+            localStorage.clear();
+            currentUser = null;
+            authScreen.classList.remove('hidden');
+            dashboardScreen.classList.add('hidden');
+            userInfoSection.classList.add('hidden');
+            authForm.reset();
+        });
+
+        function loadNextQuestion() {
+            const randomIndex = Math.floor(Math.random() * quizQuestionsPool.length);
+            currentQuestion = quizQuestionsPool[randomIndex];
+
+            document.getElementById('questionText').textContent = currentQuestion.question;
+            const optionsList = document.getElementById('optionsList');
+            optionsList.innerHTML = "";
+            document.getElementById('quizFeedback').textContent = "";
+
+            currentQuestion.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = opt;
+                btn.onclick = () => checkAnswer(index, currentQuestion.correct);
+                optionsList.appendChild(btn);
             });
         }
 
-        function updateRouteProgress(currentLatLng, currentSpeedKmH) {
-            if (routeCoordinates.length === 0) return;
+        function checkAnswer(selectedIndex, correctIndex) {
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach((btn, idx) => {
+                btn.disabled = true;
+                if (idx === correctIndex) btn.classList.add('correct');
+                else if (idx === selectedIndex) btn.classList.add('incorrect');
+            });
 
-            let closestIndex = 0;
-            let minDistance = Infinity;
+            const feedback = document.getElementById('quizFeedback');
+            let earnedPoints = 5;
+            let isCorrect = selectedIndex === correctIndex;
 
-            for (let i = 0; i < routeCoordinates.length; i++) {
-                const pt = routeCoordinates[i];
-                const dist = Math.hypot(pt.lat - currentLatLng.lat, pt.lng - currentLatLng.lng);
-                if (dist < minDistance) {
-                    minDistance = dist;
-                    closestIndex = i;
-                }
-            }
-
-            let remainingDistanceMeters = 0;
-            for (let i = closestIndex; i < routeCoordinates.length - 1; i++) {
-                const p1 = routeCoordinates[i];
-                const p2 = routeCoordinates[i+1];
-                remainingDistanceMeters += L.latLng(p1.lat, p1.lng).distanceTo(L.latLng(p2.lat, p2.lng));
-            }
-
-            const totalKm = (remainingDistanceMeters / 1000).toFixed(1);
-            const remainingMinutes = Math.max(1, Math.round((remainingDistanceMeters / 1000) / 12 * 60));
-
-            document.getElementById('nav-time').innerText = formatMinutesToHours(remainingMinutes);
-            document.getElementById('nav-distance').innerText = `${totalKm} km`;
-
-            updatePaceStatus(remainingDistanceMeters, remainingMinutes, currentSpeedKmH);
-
-            const distanceMeters = minDistance * 111320;
-            const reorganizeContainer = document.getElementById('reorganize-container');
-            if (distanceMeters > 30) {
-                reorganizeContainer.classList.remove('hidden');
+            if (isCorrect) {
+                feedback.style.color = "var(--success)";
+                feedback.textContent = "Resposta Correta! +5 Pontos!";
             } else {
-                reorganizeContainer.classList.add('hidden');
+                feedback.style.color = "var(--primary)";
+                feedback.textContent = "Resposta incorreta, mas continue praticando!";
+                earnedPoints = 1;
             }
 
-            const traveledCoords = routeCoordinates.slice(0, closestIndex + 1);
-            const remainingCoords = routeCoordinates.slice(closestIndex);
+            currentUser.score = (currentUser.score || 0) + earnedPoints;
+            userScoreDisplay.textContent = currentUser.score;
+            localStorage.setItem('fju_logged_score', currentUser.score);
 
-            if (traveledLine) map.removeLayer(traveledLine);
-            if (remainingLine) map.removeLayer(remainingLine);
+            const now = Date.now();
+            const twentyFourHours = 24 * 60 * 60 * 1000;
+            const lastTimestamp = currentUser.lastStreakTimestamp || 0;
 
-            traveledLine = L.polyline(traveledCoords, { color: '#71717a', weight: 8, opacity: 0.8 }).addTo(map);
-            remainingLine = L.polyline(remainingCoords, { color: '#3b82f6', weight: 9, opacity: 0.95 }).addTo(map);
+            let updates = { score: currentUser.score };
+
+            if (now - lastTimestamp >= twentyFourHours) {
+                currentUser.streak = (currentUser.streak || 0) + 1;
+                currentUser.lastStreakTimestamp = now;
+                updates.streak = currentUser.streak;
+                updates.lastStreakTimestamp = now;
+                userStreakDisplay.textContent = currentUser.streak;
+                localStorage.setItem('fju_logged_streak', currentUser.streak);
+                localStorage.setItem('fju_logged_timestamp', now);
+                alert("Parabéns! +1 dia adicionado à sua ofensiva de fé!");
+            }
+
+            database.ref('users/' + currentUser.key).update(updates).catch(() => {});
+            updateStreakTimerUI();
+
+            setTimeout(() => {
+                loadNextQuestion();
+            }, 2000);
         }
 
-        function updatePaceStatus(remainingMeters, remainingMin, currentSpeed) {
-            const banner = document.getElementById('pace-status-banner');
-            const textEl = document.getElementById('pace-status-text');
+        function updateStreakTimerUI() {
+            const timerDisplay = document.getElementById('streakTimerDisplay');
+            const now = Date.now();
+            const twentyFourHours = 24 * 60 * 60 * 1000;
+            const lastTimestamp = currentUser.lastStreakTimestamp || 0;
+            const timeLeft = (lastTimestamp + twentyFourHours) - now;
 
-            const hoursNeeded = remainingMin / 60;
-            const kmNeeded = remainingMeters / 1000;
-            const requiredSpeed = hoursNeeded > 0 ? (kmNeeded / hoursNeeded) : 12;
-
-            if (currentSpeed < 3 && currentSpeed >= 0) {
-                banner.className = "w-full py-2 px-3 rounded-xl bg-zinc-800 text-zinc-400 font-bold text-xs flex items-center justify-center space-x-2 border border-zinc-700 text-center";
-                textEl.innerText = "Em pausa ou andando muito devagar";
-                return;
-            }
-
-            if (currentSpeed > requiredSpeed + 3) {
-                banner.className = "w-full py-2 px-3 rounded-xl bg-amber-950/60 text-amber-300 font-bold text-xs flex items-center justify-center space-x-2 border border-amber-800/60 text-center";
-                textEl.innerText = `Você está muito rápido (${currentSpeed} km/h) — Acima da média`;
-            } else if (currentSpeed < requiredSpeed - 3) {
-                banner.className = "w-full py-2 px-3 rounded-xl bg-red-950/60 text-red-300 font-bold text-xs flex items-center justify-center space-x-2 border border-red-800/60 text-center";
-                textEl.innerText = `Ritmo abaixo da média (${currentSpeed} km/h) — Acelere para chegar a tempo`;
+            if (timeLeft <= 0) {
+                timerDisplay.textContent = "Disponível agora ao acertar uma lição!";
             } else {
-                banner.className = "w-full py-2 px-3 rounded-xl bg-emerald-950/60 text-emerald-300 font-bold text-xs flex items-center justify-center space-x-2 border border-emerald-800/60 text-center";
-                textEl.innerText = `No ritmo ideal para chegar a tempo (${currentSpeed} km/h)`;
-            }
-        }
-
-        function checkArrival(currentLatLng) {
-            if (hasArrived || !destinationLatLng) return;
-            const distanceToDestination = currentLatLng.distanceTo(destinationLatLng);
-            if (distanceToDestination <= 20) {
-                hasArrived = true;
+                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                timerDisplay.textContent = `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
                 
-                if (navigationStartTime) {
-                    const now = new Date();
-                    navigationTotalSeconds = Math.round((now - navigationStartTime) / 1000);
+                setTimeout(updateStreakTimerUI, 1000);
+            }
+        }
+
+        function initRealtimeLeaderboard() {
+            const leaderboardList = document.getElementById('leaderboardList');
+            database.ref('users').on('value', (snapshot) => {
+                const usersData = snapshot.val();
+                if (!usersData) {
+                    leaderboardList.innerHTML = `<li style="text-align: center; color: var(--text-secondary); padding: 0.8rem;">Nenhum jovem no placar.</li>`;
+                    return;
                 }
 
-                document.getElementById('arrivalModal').classList.remove('hidden');
-            }
+                const usersArray = Object.keys(usersData).map(key => ({
+                    name: usersData[key].name,
+                    score: usersData[key].score || 0,
+                    streak: usersData[key].streak || 0
+                }));
+
+                usersArray.sort((a, b) => b.score - a.score || b.streak - a.streak);
+
+                leaderboardList.innerHTML = "";
+                usersArray.forEach((user, index) => {
+                    const rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : '';
+                    const li = document.createElement('li');
+                    li.className = 'leaderboard-item';
+                    li.innerHTML = `
+                        <div class="rank-info">
+                            <div class="rank-badge ${rankClass}">${index + 1}</div>
+                            <span>${user.name}</span>
+                        </div>
+                        <div class="user-stats-pill">
+                            <span class="streak-val"><i class="fa-solid fa-fire"></i> ${user.streak}d</span>
+                            <span class="score-val">${user.score}pts</span>
+                        </div>
+                    `;
+                    leaderboardList.appendChild(li);
+                });
+            }, () => {
+                leaderboardList.innerHTML = `<li style="text-align: center; color: var(--text-secondary); padding: 0.8rem;">Placar indisponível offline.</li>`;
+            });
         }
-
-        function showReportModal() {
-            document.getElementById('arrivalModal').classList.add('hidden');
-
-            let timeStr = "";
-            const mins = Math.floor(navigationTotalSeconds / 60);
-            const secs = navigationTotalSeconds % 60;
-            if (mins > 0) {
-                timeStr = `${mins} min ${secs} seg`;
-            } else {
-                timeStr = `${secs} seg`;
-            }
-
-            document.getElementById('report-time').innerText = timeStr;
-            document.getElementById('report-max-speed').innerText = `${maxSpeedRecorded} km/h`;
-            document.getElementById('report-min-speed').innerText = `${minSpeedRecorded === Infinity ? 0 : minSpeedRecorded} km/h`;
-
-            document.getElementById('reportModal').classList.remove('hidden');
-        }
-
-        function closeReportAndFinish() {
-            document.getElementById('reportModal').classList.add('hidden');
-            cancelNavigation();
-        }
-
-        function reorganizeRoute() {
-            if (!userLatLng || !destinationLatLng) return;
-            calculateRoute(() => {
-                document.getElementById('reorganize-container').classList.add('hidden');
-                centerOnUser();
-            }, false);
-        }
-
-        function cancelNavigation() {
-            isNavigating = false;
-            isFollowingUser = true;
-            hasArrived = false;
-            if (navigationInterval) {
-                clearInterval(navigationInterval);
-                navigationInterval = null;
-            }
-            applyMapTransform(0);
-            document.getElementById('view-navigation').classList.add('hidden');
-            document.getElementById('top-search-wrapper').classList.remove('hidden');
-            document.getElementById('view-home').classList.remove('hidden');
-            document.getElementById('reorganize-container').classList.add('hidden');
-            document.getElementById('arrivalModal').classList.add('hidden');
-            document.getElementById('reportModal').classList.add('hidden');
-            
-            if (routingControl) map.removeControl(routingControl);
-            if (destinationMarker) map.removeLayer(destinationMarker);
-            if (traveledLine) map.removeLayer(traveledLine);
-            if (remainingLine) map.removeLayer(remainingLine);
-            
-            routingControl = null;
-            destinationMarker = null;
-            traveledLine = null;
-            remainingLine = null;
-            routeCoordinates = [];
-            
-            centerOnUser();
-        }
-
-        window.onload = initMap;
     </script>
 </body>
 </html>
