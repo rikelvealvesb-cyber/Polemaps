@@ -17,10 +17,11 @@
         
         <!-- HEADER -->
         <header class="bg-indigo-600 text-white p-4 flex justify-between items-center shadow-md">
-            <h1 class="text-lg font-bold">SubjectRobot</h1>
+            <!-- Trocado "SubjectRobot" por "Olá (nome de usuário)" -->
+            <h1 id="header-welcome-title" class="text-lg font-bold truncate max-w-[240px]">Olá, ...</h1>
             
             <!-- Bolinha de Perfil -->
-            <button onclick="abrirTelaPerfil()" class="w-10 h-10 rounded-full bg-indigo-400 overflow-hidden border-2 border-white focus:outline-none focus:ring-2 focus:ring-white transition shadow">
+            <button onclick="abrirTelaPerfil()" class="w-10 h-10 rounded-full bg-indigo-400 overflow-hidden border-2 border-white focus:outline-none focus:ring-2 focus:ring-white transition shadow flex-shrink-0">
                 <img id="header-avatar" src="" alt="Perfil" class="w-full h-full object-cover hidden">
                 <span id="header-initial" class="w-full h-full flex items-center justify-center font-bold text-sm">?</span>
             </button>
@@ -29,24 +30,47 @@
         <!-- TELA DE LOADING/VERIFICAÇÃO DE PASTA -->
         <main id="screen-loading" class="flex-1 p-6 flex flex-col justify-center items-center text-center">
             <div class="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-            <h2 class="text-lg font-semibold text-gray-700">Verificando credenciais do dispositivo...</h2>
+            <h2 class="text-lg font-semibold text-gray-700">Carregando credenciais...</h2>
             <p class="text-xs text-gray-400 mt-2">Buscando pasta de sessão local.</p>
         </main>
 
         <!-- TELA PRINCIPAL (HOME) - Oculta até validar a pasta -->
-        <main id="screen-home" class="flex-1 p-6 flex flex-col justify-center items-center text-center hidden">
-            <div class="mb-6">
-                <div class="w-24 h-24 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4 text-indigo-600 shadow-inner">
-                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+        <main id="screen-home" class="flex-1 p-6 flex flex-col justify-between items-center text-center hidden relative">
+            <div class="w-full flex-1 flex flex-col justify-center items-center">
+                <div class="mb-6">
+                    <div class="w-24 h-24 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4 text-indigo-600 shadow-inner">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <h2 id="welcome-name" class="text-2xl font-bold text-gray-800">Carregando...</h2>
                 </div>
-                <h2 id="welcome-name" class="text-2xl font-bold text-gray-800">Carregando...</h2>
-                <p class="text-sm text-gray-500 mt-1">Sessão validada automaticamente pela pasta local do celular.</p>
+                
+                <!-- Exibição do número de identificação de 11 dígitos do próprio usuário -->
+                <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 w-full text-center shadow-sm">
+                    <p class="text-xs text-indigo-700 font-semibold uppercase tracking-wider mb-1">Seu ID de 11 Dígitos (Compartilhe com amigos):</p>
+                    <p id="my-eleven-digit-id" class="text-xl font-mono font-bold text-indigo-900 tracking-wider">-----------</p>
+                </div>
+
+                <!-- Lista de Contatos Adicionados -->
+                <div class="w-full mt-6 text-left flex-1 flex flex-col">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider">Meus Contatos</h3>
+                        <span id="contact-count" class="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-semibold">0</span>
+                    </div>
+                    <div id="contacts-list" class="flex-1 overflow-y-auto max-h-44 space-y-2 pr-1 w-full">
+                        <div class="text-center text-gray-400 text-xs py-6 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                            Nenhum contato adicionado ainda. Clique no botão de chat abaixo para adicionar.
+                        </div>
+                    </div>
+                </div>
             </div>
-            
-            <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 w-full text-left shadow-sm">
-                <p class="text-xs text-indigo-700 font-semibold uppercase tracking-wider">ID da Sessão (Vinculado à Pasta):</p>
-                <p id="device-id-display" class="text-xs text-gray-600 font-mono mt-1 break-all bg-white p-2 rounded border border-indigo-100"></p>
-            </div>
+
+            <!-- Botão Flutuante inferior direito: ícone de + chat -->
+            <button onclick="abrirModalAdicionarContato()" class="absolute bottom-6 right-6 w-14 h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full flex items-center justify-center shadow-lg focus:outline-none focus:ring-4 focus:ring-indigo-300 transition transform hover:scale-105 z-10">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v6m-3-3h6"></path>
+                </svg>
+            </button>
         </main>
 
         <!-- TELA DE PERFIL -->
@@ -84,6 +108,38 @@
             </div>
         </div>
 
+        <!-- MODAL PERSONALIZADO DE ADICIONAR CONTATO -->
+        <div id="modal-add-contact" class="absolute inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4 hidden z-30 transition-opacity">
+            <div class="bg-white w-full max-w-xs rounded-2xl p-6 shadow-2xl transform scale-95 transition-transform" id="modal-content">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-gray-800">Adicionar Contato</h3>
+                    <button onclick="fecharModalAdicionarContato()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <p class="text-xs text-gray-500 mb-4">Digite o número de 11 dígitos do usuário que deseja adicionar aos seus contatos.</p>
+                
+                <input type="text" id="input-contact-code" maxlength="11" placeholder="Ex: 98765432101" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-center font-mono tracking-widest text-lg mb-4">
+                
+                <div class="flex space-x-2">
+                    <button onclick="fecharModalAdicionarContato()" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold text-sm hover:bg-gray-200 transition">Cancelar</button>
+                    <button onclick="adicionarContatoPorId()" class="flex-1 bg-indigo-600 text-white py-3 rounded-xl font-semibold text-sm hover:bg-indigo-700 transition shadow-md">Adicionar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL DE ALERTA PERSONALIZADO -->
+        <div id="custom-alert-modal" class="absolute inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4 hidden z-40">
+            <div class="bg-white w-full max-w-xs rounded-2xl p-6 shadow-2xl text-center">
+                <div id="custom-alert-icon" class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center mx-auto mb-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <h4 id="custom-alert-title" class="text-base font-bold text-gray-800 mb-1">Aviso</h4>
+                <p id="custom-alert-message" class="text-xs text-gray-600 mb-5">Mensagem do alerta.</p>
+                <button onclick="fecharCustomAlert()" class="w-full bg-indigo-600 text-white py-2.5 rounded-xl font-semibold text-sm shadow hover:bg-indigo-700 transition">OK</button>
+            </div>
+        </div>
+
     </div>
 
     <!-- Scripts de Configuração e Lógica -->
@@ -101,55 +157,53 @@
         const db = firebase.database();
 
         let meuDeviceId = "";
+        let meuElevenDigitId = "";
         let imagemBase64Temp = "";
+
+        // Alerta personalizado substituindo o alert nativo
+        function mostrarAlerta(titulo, mensagem) {
+            document.getElementById('custom-alert-title').innerText = titulo;
+            document.getElementById('custom-alert-message').innerText = mensagem;
+            document.getElementById('custom-alert-modal').classList.remove('hidden');
+        }
+
+        function fecharCustomAlert() {
+            document.getElementById('custom-alert-modal').classList.add('hidden');
+        }
 
         // Inicialização ao carregar a página
         window.onload = async function() {
             await verificarOuCriarPastaNoCelular();
         };
 
-        /**
-         * Simula a lógica de verificação de diretório/pasta no armazenamento do celular.
-         * Em WebViews nativas do Android (Sketchware/Cordova/Capacitor), isso utiliza o sistema de arquivos. 
-         * No navegador padrão, emula uma "pasta" de dados persistente segura.
-         */
         async function verificarOuCriarPastaNoCelular() {
             try {
                 let idSalvo = null;
 
-                // Tenta verificar se o ambiente possui FileSystem nativo (ex: Cordova/Capacitor)
                 if (window.resolveLocalFileSystemURL && window.PERSISTENT) {
                     idSalvo = await verificarPastaNativaAndroid();
                 } else {
-                    // Fallback estruturado simulando a pasta no armazenamento persistente do app
                     idSalvo = localStorage.getItem('SubjectRobot_Session/device_id');
                 }
 
                 if (!idSalvo) {
-                    // Primeira vez abrindo o app: Cria o ID único e a "pasta/registro" de sessão
                     idSalvo = 'device_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
                     await criarPastaNoCelular(idSalvo);
                 }
 
                 meuDeviceId = idSalvo;
-                document.getElementById('device-id-display').innerText = meuDeviceId;
-                
-                // Faz o login automático carregando os dados do RTDB
                 carregarDadosDoBanco();
 
             } catch (erro) {
                 console.error("Erro ao verificar pasta do celular:", erro);
-                // Fallback de segurança caso ocorra erro no acesso ao sistema de arquivos
                 meuDeviceId = localStorage.getItem('SubjectRobot_Session/device_id') || ('fallback_' + Math.random().toString(36).substring(2, 8));
                 localStorage.setItem('SubjectRobot_Session/device_id', meuDeviceId);
                 carregarDadosDoBanco();
             }
         }
 
-        // Função para simular a criação da pasta física de sessão no dispositivo
         async function criarPastaNoCelular(deviceId) {
             return new Promise((resolve) => {
-                // Se estiver rodando dentro do Android nativo, tenta criar o diretório real
                 if (window.resolveLocalFileSystemURL) {
                     window.resolveLocalFileSystemURL(cordova.file.dataDirectory, function (dirEntry) {
                         dirEntry.getDirectory("SubjectRobot_Session", { create: true }, function (subDir) {
@@ -161,19 +215,16 @@
                             });
                         });
                     }, () => {
-                        // Caso falhe, grava no armazenamento local padrão simulando a pasta
                         localStorage.setItem('SubjectRobot_Session/device_id', deviceId);
                         resolve();
                     });
                 } else {
-                    // Ambiente Web/WebView padrão: Armazena a chave simulando a pasta de sessão
                     localStorage.setItem('SubjectRobot_Session/device_id', deviceId);
-                    setTimeout(resolve, 400); // Pequeno delay simulando leitura/escrita de I/O de diretório
+                    setTimeout(resolve, 400);
                 }
             });
         }
 
-        // Verifica se a pasta e o arquivo de sessão já existem no armazenamento nativo
         function verificarPastaNativaAndroid() {
             return new Promise((resolve) => {
                 if (window.resolveLocalFileSystemURL && window.cordova) {
@@ -189,7 +240,7 @@
                             reader.readAsText(file);
                         });
                     }, function () {
-                        resolve(null); // Pasta ou arquivo não encontrado (primeiro acesso)
+                        resolve(null);
                     });
                 } else {
                     resolve(localStorage.getItem('SubjectRobot_Session/device_id'));
@@ -197,7 +248,17 @@
             });
         }
 
-        // Sincroniza e puxa os dados do Firebase RTDB para o login automático
+        // Função para gerar um número aleatório único de exatamente 11 dígitos
+        function gerarNumero11Digitos() {
+            let resultado = '';
+            // Garante que o primeiro dígito não seja 0
+            resultado += Math.floor(Math.random() * 9) + 1;
+            for (let i = 0; i < 10; i++) {
+                resultado += Math.floor(Math.random() * 10);
+            }
+            return resultado;
+        }
+
         function carregarDadosDoBanco() {
             const userRef = db.ref('usuarios/' + meuDeviceId);
             
@@ -209,27 +270,105 @@
                 if (dados) {
                     nomeUsuario = dados.nome || "Usuário Anônimo";
                     avatarUrl = dados.avatar || "";
+                    meuElevenDigitId = dados.elevenDigitId;
+
+                    // Se por algum motivo antigo não tiver os 11 dígitos, gera e salva agora
+                    if (!meuElevenDigitId) {
+                        meuElevenDigitId = gerarNumero11Digitos();
+                        userRef.update({ elevenDigitId: meuElevenDigitId });
+                        // Mapeia também no índice global para busca reversa por ID de 11 dígitos
+                        db.ref('indicesId/' + meuElevenDigitId).set(meuDeviceId);
+                    }
                 } else {
-                    // Primeiro registro deste dispositivo no banco de dados
+                    // Primeiro acesso: Gera o ID único de 11 dígitos gerado uma vez só
+                    meuElevenDigitId = gerarNumero11Digitos();
+                    
                     userRef.set({
                         nome: "Usuário " + meuDeviceId.substring(0, 6),
-                        avatar: ""
+                        avatar: "",
+                        elevenDigitId: meuElevenDigitId,
+                        contatos: {}
                     });
+
+                    // Salva índice global para facilitar localizar o deviceId pelo número de 11 dígitos
+                    db.ref('indicesId/' + meuElevenDigitId).set(meuDeviceId);
+
                     nomeUsuario = "Usuário " + meuDeviceId.substring(0, 6);
                 }
 
+                // Atualizações na UI solicitadas
+                document.getElementById('header-welcome-title').innerText = `Olá, ${nomeUsuario}`;
                 document.getElementById('welcome-name').innerText = `Olá, ${nomeUsuario}`;
                 document.getElementById('input-name').value = nomeUsuario;
+                document.getElementById('my-eleven-digit-id').innerText = meuElevenDigitId;
                 
                 atualizarAvatares(avatarUrl, nomeUsuario);
+                carregarContatos(dados ? dados.contatos : null);
 
-                // Alterna para a tela principal ocultando o carregamento
                 document.getElementById('screen-loading').classList.add('hidden');
                 document.getElementById('screen-home').classList.remove('hidden');
             });
         }
 
-        // Atualiza elementos visuais da foto/iniciais
+        // Renderiza a lista de contatos salvos
+        function carregarContatos(contatosObj) {
+            const container = document.getElementById('contacts-list');
+            const countBadge = document.getElementById('contact-count');
+            
+            if (!contatosObj) {
+                countBadge.innerText = "0";
+                container.innerHTML = `
+                    <div class="text-center text-gray-400 text-xs py-6 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                        Nenhum contato adicionado ainda. Clique no botão de chat abaixo para adicionar.
+                    </div>
+                `;
+                return;
+            }
+
+            const chavesContatos = Object.keys(contatosObj);
+            countBadge.innerText = chavesContatos.length;
+
+            if (chavesContatos.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-gray-400 text-xs py-6 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                        Nenhum contato adicionado ainda. Clique no botão de chat abaixo para adicionar.
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = "";
+            chavesContatos.forEach(codigo11 => {
+                const infoContato = contatosObj[codigo11];
+                const nomeContato = infoContato.nome || "Usuário";
+                const avatarContato = infoContato.avatar || "";
+                const inicialContato = nomeContato.charAt(0).toUpperCase();
+
+                let avatarHtml = '';
+                if (avatarContato && avatarContato.startsWith('data:image')) {
+                    avatarHtml = `<img src="${avatarContato}" class="w-full h-full object-cover">`;
+                } else {
+                    avatarHtml = `<span class="font-bold text-xs text-gray-600">${inicialContato}</span>`;
+                }
+
+                const itemHtml = `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 hover:bg-indigo-50/50 rounded-xl border border-gray-100 transition shadow-sm">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full bg-indigo-200 overflow-hidden flex items-center justify-center flex-shrink-0">
+                                ${avatarHtml}
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-gray-800">${nomeContato}</h4>
+                                <p class="text-xs font-mono text-gray-500">${codigo11}</p>
+                            </div>
+                        </div>
+                        <span class="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">Contato</span>
+                    </div>
+                `;
+                container.innerHTML += itemHtml;
+            });
+        }
+
         function atualizarAvatares(base64Data, nome) {
             const headerAvatar = document.getElementById('header-avatar');
             const headerInitial = document.getElementById('header-initial');
@@ -260,7 +399,6 @@
             }
         }
 
-        // Conversão de imagem para Base64 com redimensionamento otimizado
         function converterImagemBase64(event) {
             const arquivo = event.target.files[0];
             if (!arquivo) return;
@@ -302,12 +440,11 @@
             reader.readAsDataURL(arquivo);
         }
 
-        // Salvar alterações no perfil e enviar imagem em Base64 para o Realtime Database
         function salvarPerfil() {
             const novoNome = document.getElementById('input-name').value.trim();
             
             if (!novoNome) {
-                alert("O nome não pode ficar vazio!");
+                mostrarAlerta("Atenção", "O nome não pode ficar vazio!");
                 return;
             }
 
@@ -316,11 +453,76 @@
                 avatar: imagemBase64Temp
             }, (error) => {
                 if (error) {
-                    alert("Erro ao salvar dados no banco!");
+                    mostrarAlerta("Erro", "Erro ao salvar dados no banco!");
                 } else {
-                    alert("Perfil atualizado com sucesso!");
+                    mostrarAlerta("Sucesso", "Perfil atualizado com sucesso!");
                     fecharTelaPerfil();
                 }
+            });
+        }
+
+        // Funções para controle do modal de adicionar contato
+        function abrirModalAdicionarContato() {
+            document.getElementById('input-contact-code').value = '';
+            document.getElementById('modal-add-contact').classList.remove('hidden');
+        }
+
+        function fecharModalAdicionarContato() {
+            document.getElementById('modal-add-contact').classList.add('hidden');
+        }
+
+        // Lógica de buscar usuário pelo número de 11 dígitos e adicioná-lo aos contatos
+        function adicionarContatoPorId() {
+            const codigoContato = document.getElementById('input-contact-code').value.trim();
+
+            if (codigoContato.length !== 11 || isNaN(codigoContato)) {
+                mostrarAlerta("Código Inválido", "Por favor, digite um número válido de exatamente 11 dígitos.");
+                return;
+            }
+
+            if (codigoContato === meuElevenDigitId) {
+                mostrarAlerta("Atenção", "Você não pode adicionar o seu próprio ID aos seus contatos.");
+                return;
+            }
+
+            // Procura no banco qual deviceId corresponde a esse número de 11 dígitos
+            db.ref('indicesId/' + codigoContato).once('value').then((snapshot) => {
+                const targetDeviceId = snapshot.val();
+
+                if (!targetDeviceId) {
+                    mostrarAlerta("Não Encontrado", "Nenhum usuário foi encontrado com este número de 11 dígitos.");
+                    return;
+                }
+
+                // Busca os dados públicos do usuário alvo para salvar localmente nos contatos
+                db.ref('usuarios/' + targetDeviceId).once('value').then((userSnapshot) => {
+                    const dadosAlvo = userSnapshot.val();
+
+                    if (!dadosAlvo) {
+                        mostrarAlerta("Erro", "Os dados deste usuário não estão disponíveis.");
+                        return;
+                    }
+
+                    const nomeAlvo = dadosAlvo.nome || "Usuário";
+                    const avatarAlvo = dadosAlvo.avatar || "";
+
+                    // Salva nos contatos do usuário logado no RTDB
+                    db.ref(`usuarios/${meuDeviceId}/contatos/${codigoContato}`).set({
+                        nome: nomeAlvo,
+                        avatar: avatarAlvo,
+                        deviceId: targetDeviceId,
+                        adicionadoEm: new Date().toISOString()
+                    }, (error) => {
+                        if (error) {
+                            mostrarAlerta("Erro", "Não foi possível adicionar o contato.");
+                        } else {
+                            mostrarAlerta("Sucesso", `Contato ${nomeAlvo} adicionado com sucesso!`);
+                            fecharModalAdicionarContato();
+                        }
+                    });
+                });
+            }).catch((err) => {
+                mostrarAlerta("Erro", "Ocorreu um erro ao buscar o contato.");
             });
         }
 
