@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Omni Bank | Banco Digital & Carteira Omni</title>
+    <title>Omni Live & Bank | Streaming e Carteira Digital</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome para ícones modernos de banco -->
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Biblioteca Html5-Qrcode para leitura real de QR Code pela câmera -->
+    <!-- Html5-Qrcode -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -16,135 +16,230 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 flex justify-center items-center min-h-screen p-0 sm:p-4">
 
     <!-- Container do App Mobile (Estilo Smartphone) -->
-    <div class="w-full max-w-md bg-slate-900 sm:rounded-3xl shadow-2xl overflow-hidden min-h-screen sm:min-h-[840px] flex flex-col border border-slate-800 relative">
+    <div class="w-full max-w-md bg-slate-900 sm:rounded-3xl shadow-2xl overflow-hidden min-h-screen sm:min-h-[880px] flex flex-col border border-slate-800 relative">
         
         <!-- Barra Superior (Status Bar Simulada) -->
-        <div class="bg-slate-900 px-6 py-3 flex justify-between items-center border-b border-slate-800/60">
+        <div class="bg-slate-900 px-6 py-3 flex justify-between items-center border-b border-slate-800/60 z-20">
             <div class="flex items-center gap-2">
                 <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-violet-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
                     <i class="fa-solid fa-cube text-white text-sm"></i>
                 </div>
-                <span class="font-extrabold tracking-wide text-lg bg-gradient-to-r from-violet-400 to-indigo-300 bg-clip-text text-transparent">OMNI BANK</span>
+                <span class="font-extrabold tracking-wide text-lg bg-gradient-to-r from-violet-400 to-indigo-300 bg-clip-text text-transparent">OMNI LIVE</span>
             </div>
             <div class="flex items-center gap-3 text-slate-400 text-xs font-medium bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700/50">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span id="connection-status">Seguro</span>
+                <span id="connection-status">Online</span>
             </div>
         </div>
 
         <!-- CONTEÚDO PRINCIPAL -->
-        <div class="flex-1 flex flex-col p-6 overflow-y-auto">
+        <div class="flex-1 flex flex-col overflow-y-auto relative pb-20">
 
             <!-- 1. TELA DE LOGIN / BIOMETRIA -->
-            <div id="auth-screen" class="flex-1 flex flex-col justify-between py-6">
+            <div id="auth-screen" class="flex-1 flex flex-col justify-between p-6 py-12">
                 <div class="text-center space-y-3 mt-8">
                     <div class="w-20 h-20 bg-violet-600/10 border border-violet-500/20 rounded-3xl mx-auto flex items-center justify-center text-violet-400 text-3xl shadow-2xl mb-6">
                         <i class="fa-solid fa-fingerprint animate-pulse"></i>
                     </div>
-                    <h1 class="text-2xl font-bold tracking-tight">Acesso Bancário</h1>
-                    <p class="text-slate-400 text-sm max-w-[260px] mx-auto">Encoste o dedo no sensor biométrico do seu celular para autenticar e entrar na sua conta.</p>
+                    <h1 class="text-2xl font-bold tracking-tight">Acesso Omni</h1>
+                    <p class="text-slate-400 text-sm max-w-[260px] mx-auto">Autentique com sua digital para acessar lives, carteira e enviar doações.</p>
                 </div>
 
                 <div class="space-y-4 my-auto">
                     <button onclick="handleBiometricAuth()" class="w-full group relative bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-semibold p-4 rounded-2xl shadow-xl shadow-indigo-600/20 transition-all duration-300 flex items-center justify-center gap-3">
                         <i class="fa-solid fa-fingerprint text-2xl group-hover:scale-110 transition-transform"></i>
-                        <span>Autenticar com Digital</span>
+                        <span>Entrar com Digital</span>
                     </button>
                     <p id="auth-error" class="text-rose-400 text-xs text-center hidden"></p>
                 </div>
 
                 <div class="text-center text-xs text-slate-500">
-                    <i class="fa-solid fa-shield-halved mr-1"></i> Protegido por Biometria e Criptografia
+                    <i class="fa-solid fa-shield-halved mr-1"></i> Transações seguras via Biometria
                 </div>
             </div>
 
-            <!-- 2. TELA DO DASHBOARD (BANCÁRIO) -->
-            <div id="dashboard-screen" class="hidden flex-1 flex flex-col space-y-6">
+            <!-- 2. TELA DO DASHBOARD PRINCIPAL (COM ABAS) -->
+            <div id="dashboard-screen" class="hidden flex-1 flex flex-col">
                 
-                <!-- Card de Saldo Estilo Cartão Black -->
-                <div class="relative bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 p-6 rounded-3xl border border-slate-700/80 shadow-xl overflow-hidden">
-                    <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-violet-500/10 rounded-full blur-2xl pointer-events-none"></div>
-                    <div class="flex justify-between items-start mb-6">
-                        <div>
-                            <span class="text-xs uppercase tracking-widest text-slate-400 font-semibold">Conta Corrente Omni</span>
-                            <div class="flex items-center gap-2 mt-1">
-                                <span id="user-key-display" class="text-xs font-mono text-violet-300 bg-violet-950/60 px-2.5 py-1 rounded-lg border border-violet-800/40">Carregando chave...</span>
-                                <button onclick="copyKey()" class="text-slate-400 hover:text-white text-xs"><i class="fa-regular fa-copy"></i></button>
-                            </div>
-                        </div>
-                        <div class="w-10 h-10 rounded-2xl bg-slate-700/50 border border-slate-600/40 flex items-center justify-center text-violet-400">
-                            <i class="fa-solid fa-building-columns"></i>
-                        </div>
-                    </div>
-                    
-                    <div class="space-y-1">
-                        <span class="text-xs text-slate-400">Saldo Disponível</span>
-                        <div class="flex items-baseline gap-2">
-                            <h2 id="user-balance" class="text-3xl font-extrabold tracking-tight text-white">0,00</h2>
-                            <span class="text-sm font-bold text-violet-400">Omni</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Ações Rápidas -->
-                <div class="grid grid-cols-2 gap-3">
-                    <button onclick="openTab('pay')" class="bg-slate-800 hover:bg-slate-700/80 p-4 rounded-2xl border border-slate-700/60 flex flex-col items-center justify-center gap-2 transition-all group">
-                        <div class="w-12 h-12 rounded-xl bg-violet-600/10 text-violet-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <i class="fa-solid fa-paper-plane text-lg"></i>
-                        </div>
-                        <span class="text-xs font-semibold text-slate-200">Transferir</span>
-                    </button>
-                    <button onclick="openTab('receive')" class="bg-slate-800 hover:bg-slate-700/80 p-4 rounded-2xl border border-slate-700/60 flex flex-col items-center justify-center gap-2 transition-all group">
-                        <div class="w-12 h-12 rounded-xl bg-emerald-600/10 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <i class="fa-solid fa-qrcode text-lg"></i>
-                        </div>
-                        <span class="text-xs font-semibold text-slate-200">Receber / QR</span>
-                    </button>
-                </div>
-
-                <!-- Área Dinâmica de Ações -->
-                <div id="action-area" class="bg-slate-800/60 p-5 rounded-3xl border border-slate-700/50 space-y-4">
-                    <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
-                        <i class="fa-solid fa-bolt text-violet-400"></i> Transferir Omni para Conta
-                    </h3>
-                    
-                    <div class="space-y-3">
-                        <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Chave Pay do Destinatário</label>
-                            <input type="text" id="target-key" placeholder="Ex: omni_8f7b3c2a1e..." class="w-full p-3.5 bg-slate-900 rounded-xl border border-slate-700 text-sm focus:outline-none focus:border-violet-500 font-mono">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Quantidade (Omni)</label>
-                            <input type="number" id="pay-amount" placeholder="0.00" class="w-full p-3.5 bg-slate-900 rounded-xl border border-slate-700 text-sm focus:outline-none focus:border-violet-500 font-semibold text-violet-300">
-                        </div>
-                        <button onclick="makePayment()" class="w-full bg-violet-600 hover:bg-violet-500 text-white font-semibold p-3.5 rounded-xl transition shadow-lg shadow-violet-600/20 text-sm flex items-center justify-center gap-2">
-                            <span>Confirmar Transferência</span>
-                            <i class="fa-solid fa-arrow-right text-xs"></i>
+                <!-- CONTEÚDO DA ABA: LIVES (FEED) -->
+                <div id="tab-content-lives" class="p-4 space-y-4 flex-1">
+                    <div class="flex justify-between items-center px-1">
+                        <h2 class="text-base font-bold text-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-tower-broadcast text-rose-500 animate-pulse"></i> Transmissões ao Vivo
+                        </h2>
+                        <button onclick="openGoLiveModal()" class="bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow-lg shadow-rose-600/30 flex items-center gap-1.5 transition">
+                            <i class="fa-solid fa-video"></i> Abrir Live
                         </button>
                     </div>
 
-                    <div id="reader-container" class="hidden space-y-3 pt-2">
-                        <div id="reader" class="w-full rounded-2xl overflow-hidden border border-slate-700"></div>
-                        <button onclick="stopScanner()" class="w-full bg-rose-600/20 text-rose-400 border border-rose-500/30 p-2.5 rounded-xl text-xs font-semibold">Fechar Câmera</button>
+                    <!-- Lista de Lives Ativas no Firebase -->
+                    <div id="active-lives-list" class="space-y-3">
+                        <div class="text-center py-12 text-slate-500 text-xs">Carregando transmissões...</div>
                     </div>
                 </div>
 
-                <div class="pt-2">
-                    <button onclick="logout()" class="w-full text-slate-500 hover:text-rose-400 text-xs font-medium transition py-2 flex items-center justify-center gap-1.5">
-                        <i class="fa-solid fa-lock"></i> Bloquear Sessão Bancária
-                    </button>
+                <!-- CONTEÚDO DA ABA: CARTEIRA & BANCO -->
+                <div id="tab-content-wallet" class="p-6 space-y-6 hidden flex-1">
+                    <!-- Card de Saldo -->
+                    <div class="relative bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 p-6 rounded-3xl border border-slate-700/80 shadow-xl overflow-hidden">
+                        <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-violet-500/10 rounded-full blur-2xl pointer-events-none"></div>
+                        <div class="flex justify-between items-start mb-6">
+                            <div>
+                                <span class="text-xs uppercase tracking-widest text-slate-400 font-semibold">Carteira Omni Streamer</span>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span id="user-key-display" class="text-xs font-mono text-violet-300 bg-violet-950/60 px-2.5 py-1 rounded-lg border border-violet-800/40">Carregando chave...</span>
+                                    <button onclick="copyKey()" class="text-slate-400 hover:text-white text-xs"><i class="fa-regular fa-copy"></i></button>
+                                </div>
+                            </div>
+                            <div class="w-10 h-10 rounded-2xl bg-slate-700/50 border border-slate-600/40 flex items-center justify-center text-violet-400">
+                                <i class="fa-solid fa-wallet"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-1">
+                            <span class="text-xs text-slate-400">Saldo Disponível</span>
+                            <div class="flex items-baseline gap-2">
+                                <h2 id="user-balance" class="text-3xl font-extrabold tracking-tight text-white">0,00</h2>
+                                <span class="text-sm font-bold text-violet-400">Omni</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ações Rápidas de Transferência -->
+                    <div class="bg-slate-800/60 p-5 rounded-3xl border border-slate-700/50 space-y-4">
+                        <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-bolt text-violet-400"></i> Enviar Omni para Conta
+                        </h3>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Chave Pay do Destinatário / Streamer</label>
+                                <input type="text" id="target-key" placeholder="Ex: omni_8f7b3c2a1e..." class="w-full p-3.5 bg-slate-900 rounded-xl border border-slate-700 text-sm focus:outline-none focus:border-violet-500 font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Quantidade (Omni)</label>
+                                <input type="number" id="pay-amount" placeholder="0.00" class="w-full p-3.5 bg-slate-900 rounded-xl border border-slate-700 text-sm focus:outline-none focus:border-violet-500 font-semibold text-violet-300">
+                            </div>
+                            <button onclick="confirmAndPay()" class="w-full bg-violet-600 hover:bg-violet-500 text-white font-semibold p-3.5 rounded-xl transition shadow-lg shadow-violet-600/20 text-sm flex items-center justify-center gap-2">
+                                <span>Autorizar com Digital e Enviar</span>
+                                <i class="fa-solid fa-fingerprint text-base"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <button onclick="logout()" class="w-full text-slate-500 hover:text-rose-400 text-xs font-medium transition py-2 flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-lock"></i> Bloquear Sessão
+                        </button>
+                    </div>
                 </div>
+
+                <!-- CONTEÚDO DA ABA: PERFIL -->
+                <div id="tab-content-profile" class="p-6 space-y-4 hidden flex-1">
+                    <div class="bg-slate-800/60 p-6 rounded-3xl border border-slate-700/50 text-center space-y-4">
+                        <div class="w-20 h-20 bg-gradient-to-tr from-violet-600 to-indigo-600 rounded-full mx-auto flex items-center justify-center text-2xl font-bold text-white shadow-xl">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg text-slate-100">Criador & Usuário Omni</h3>
+                            <p id="profile-key-text" class="text-xs font-mono text-violet-400 mt-1">omni_...</p>
+                        </div>
+                        <div class="pt-4 border-t border-slate-700/60 text-left space-y-2 text-xs text-slate-300">
+                            <div class="flex justify-between"><span>Status da Conta:</span> <strong class="text-emerald-400">Verificada (Biometria)</strong></div>
+                            <div class="flex justify-between"><span>Moeda Oficial:</span> <strong>Omni Token</strong></div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
         </div>
+
+        <!-- BARRA DE NAVEGAÇÃO INFERIOR (TABS) -->
+        <div id="bottom-nav" class="hidden bg-slate-900/95 backdrop-blur border-t border-slate-800 px-6 py-3 flex justify-around items-center z-20">
+            <button onclick="switchTab('lives')" id="nav-btn-lives" class="flex flex-col items-center gap-1 text-violet-400 transition">
+                <i class="fa-solid fa-tower-broadcast text-lg"></i>
+                <span class="text-[10px] font-semibold">Lives</span>
+            </button>
+            <button onclick="switchTab('wallet')" id="nav-btn-wallet" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
+                <i class="fa-solid fa-wallet text-lg"></i>
+                <span class="text-[10px] font-semibold">Carteira</span>
+            </button>
+            <button onclick="switchTab('profile')" id="nav-btn-profile" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
+                <i class="fa-solid fa-user text-lg"></i>
+                <span class="text-[10px] font-semibold">Perfil</span>
+            </button>
+        </div>
+
     </div>
 
-    <!-- Script de Lógica do Sistema Bancário Omni -->
+    <!-- MODAL DE TRANSMISSÃO AO VIVO (STREAMER) -->
+    <div id="streamer-modal" class="hidden fixed inset-0 bg-slate-950/90 z-50 flex flex-col justify-between p-4 max-w-md mx-auto">
+        <div class="flex justify-between items-center bg-slate-900 p-3 rounded-2xl border border-slate-800">
+            <span class="text-xs font-bold text-rose-500 flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span> TRANSMITINDO AO VIVO
+            </span>
+            <button onclick="stopStreaming()" class="bg-rose-600/20 text-rose-400 border border-rose-500/30 px-3 py-1.5 rounded-xl text-xs font-semibold">Encerrar Live</button>
+        </div>
+        <div class="flex-1 bg-black rounded-2xl overflow-hidden my-3 relative flex items-center justify-center border border-slate-800">
+            <video id="streamer-video" autoplay playsinline muted class="w-full h-full object-cover"></video>
+            <div class="absolute bottom-4 left-4 bg-slate-900/80 backdrop-blur px-3 py-1.5 rounded-xl text-xs font-mono text-white">
+                Seu Canal Omni
+            </div>
+        </div>
+        <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 text-center space-y-2">
+            <p class="text-xs text-slate-400">Sua câmera está ativa. Os espectadores podem assistir e enviar doações no chat abaixo.</p>
+        </div>
+    </div>
+
+    <!-- MODAL DE ESPECTADOR (ASSISTIR LIVE & DOAR) -->
+    <div id="viewer-modal" class="hidden fixed inset-0 bg-slate-950/95 z-50 flex flex-col justify-between p-4 max-w-md mx-auto">
+        <div class="flex justify-between items-center bg-slate-900 p-3 rounded-2xl border border-slate-800">
+            <div>
+                <h3 id="viewer-streamer-title" class="text-xs font-bold text-slate-100">Live de Streamer</h3>
+                <span class="text-[10px] text-emerald-400 font-mono">Ao Vivo com Espectadores</span>
+            </div>
+            <button onclick="closeViewerModal()" class="bg-slate-800 text-slate-300 px-3 py-1.5 rounded-xl text-xs font-semibold">Sair da Live</button>
+        </div>
+
+        <div class="flex-1 bg-black rounded-2xl overflow-hidden my-3 relative flex flex-col justify-center items-center border border-slate-800">
+            <div class="text-center p-6 space-y-3">
+                <div class="w-16 h-16 bg-violet-600/20 text-violet-400 rounded-full flex items-center justify-center mx-auto text-2xl animate-pulse">
+                    <i class="fa-solid fa-tower-broadcast"></i>
+                </div>
+                <h4 class="font-bold text-sm text-slate-200">Transmissão Omni Stream</h4>
+                <p class="text-xs text-slate-400 max-w-[240px]">Você está conectado à live deste criador. Envie Super Chats em Omni para interagir!</p>
+            </div>
+
+            <!-- Feed de Chat / Doações em Tempo Real -->
+            <div id="live-chat-messages" class="absolute inset-x-0 bottom-0 max-h-40 overflow-y-auto p-4 space-y-2 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent text-xs">
+                <!-- Mensagens entram aqui -->
+            </div>
+        </div>
+
+        <!-- Painel de Envio de Doação Rápida (Super Chat) -->
+        <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 space-y-3">
+            <div class="flex gap-2">
+                <input type="text" id="chat-msg-input" placeholder="Mande uma mensagem no chat..." class="flex-1 p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs focus:outline-none focus:border-violet-500">
+                <button onclick="sendChatMessage()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 rounded-xl text-xs font-semibold">Enviar</button>
+            </div>
+            <div class="flex items-center gap-2 pt-1">
+                <input type="number" id="donation-amount" placeholder="Valor (Omni)" class="w-28 p-2.5 bg-slate-950 rounded-xl border border-slate-800 text-xs font-semibold text-violet-300 focus:outline-none">
+                <button onclick="sendSuperChatDonation()" class="flex-1 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 text-white font-semibold p-2.5 rounded-xl text-xs shadow-lg flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-heart text-rose-400 animate-bounce"></i>
+                    <span>Doar Super Chat (Digital)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script de Lógica do Sistema Integrado Omni Live & Bank -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCTkqOuXy5kHgN9Nrj9--Dooh8cuguYxPE",
@@ -161,7 +256,8 @@
 
         let currentCredentialId = null;
         let currentUserKey = null;
-        let html5QrCode = null;
+        let activeStreamKey = null;
+        let mediaStream = null;
 
         function generateOmniKey() {
             const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -172,7 +268,20 @@
             return key;
         }
 
-        // Biometria otimizada para reutilizar a mesma conta do aparelho
+        async function verifyBiometrics() {
+            if (!window.PublicKeyCredential) return true;
+            try {
+                const challenge = new Uint8Array(32);
+                window.crypto.getRandomValues(challenge);
+                const credential = await navigator.credentials.get({
+                    publicKey: { challenge: challenge, timeout: 60000, userVerification: "required" }
+                });
+                return credential !== null;
+            } catch (err) {
+                return false;
+            }
+        }
+
         async function handleBiometricAuth() {
             const errorEl = document.getElementById('auth-error');
             errorEl.classList.add('hidden');
@@ -185,46 +294,28 @@
             try {
                 const challenge = new Uint8Array(32);
                 window.crypto.getRandomValues(challenge);
-                
                 let savedCredIdHex = localStorage.getItem('omni_cred_id');
                 let credential = null;
 
                 if (savedCredIdHex) {
-                    // Tenta autenticar usando a credencial já salva no aparelho
                     try {
                         const rawIdBytes = new Uint8Array(savedCredIdHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
                         credential = await navigator.credentials.get({
-                            publicKey: {
-                                challenge: challenge,
-                                timeout: 60000,
-                                userVerification: "required",
-                                allowCredentials: [{ type: "public-key", id: rawIdBytes }]
-                            }
+                            publicKey: { challenge: challenge, timeout: 60000, userVerification: "required", allowCredentials: [{ type: "public-key", id: rawIdBytes }] }
                         });
-                    } catch (e) {
-                        console.log("Credencial anterior não encontrada no hardware, criando nova...");
-                    }
+                    } catch (e) {}
                 }
 
                 if (!credential) {
-                    // Se não houver credencial salva ou falhar, cria uma nova conta vinculada à biometria
                     const userIdRandom = new Uint8Array(16);
                     window.crypto.getRandomValues(userIdRandom);
-
                     credential = await navigator.credentials.create({
                         publicKey: {
                             challenge: challenge,
-                            rp: { name: "Omni Bank Digital" },
-                            user: {
-                                id: userIdRandom,
-                                name: "cliente_omni",
-                                displayName: "Cliente Omni Bank"
-                            },
+                            rp: { name: "Omni Live Bank" },
+                            user: { id: userIdRandom, name: "streamer_omni", displayName: "Streamer Omni" },
                             pubKeyCredParams: [{ alg: -7, type: "public-key" }],
-                            authenticatorSelection: {
-                                authenticatorAttachment: "platform",
-                                userVerification: "required"
-                            },
+                            authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
                             timeout: 60000
                         }
                     });
@@ -239,12 +330,8 @@
                     const credentialId = btoa(String.fromCharCode(...new Uint8Array(credential.rawId)));
                     currentCredentialId = credentialId;
                     checkOrCreateAccount(credentialId);
-                } else {
-                    throw new Error("Autenticação cancelada.");
                 }
-
             } catch (error) {
-                console.error(error);
                 errorEl.innerText = "Autenticação biométrica falhou ou foi cancelada.";
                 errorEl.classList.remove('hidden');
             }
@@ -258,91 +345,244 @@
                 if (snapshot.exists()) {
                     const userData = snapshot.val();
                     currentUserKey = userData.key;
-                    loadDashboard(userData.balance, userData.key);
+                    loadDashboard(userData.balance, userData.key, sanitizedId);
                 } else {
                     const newKey = generateOmniKey();
-                    const initialData = {
-                        balance: 100,
-                        key: newKey,
-                        createdAt: Date.now()
-                    };
-
+                    const initialData = { balance: 100, key: newKey, createdAt: Date.now() };
                     userRef.set(initialData, (error) => {
                         if (!error) {
                             currentUserKey = newKey;
-                            loadDashboard(100, newKey);
-                            alert("Conta Omni criada com sucesso! 100 Omni adicionados como bônus.");
-                        } else {
-                            alert("Erro ao conectar com o banco de dados.");
+                            loadDashboard(100, newKey, sanitizedId);
+                            alert("Conta Omni criada com 100 Omni de bônus!");
                         }
                     });
                 }
             });
         }
 
-        function loadDashboard(balance, key) {
+        function loadDashboard(balance, key, sanitizedId) {
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('dashboard-screen').classList.remove('hidden');
+            document.getElementById('bottom-nav').classList.remove('hidden');
             document.getElementById('user-balance').innerText = balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
             document.getElementById('user-key-display').innerText = key;
+            document.getElementById('profile-key-text').innerText = key;
+
+            // Ouve saldo em tempo real
+            db.ref('bank_users/' + sanitizedId + '/balance').on('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    document.getElementById('user-balance').innerText = snapshot.val().toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                }
+            });
+
+            loadActiveLives();
+        }
+
+        function switchTab(tabName) {
+            document.getElementById('tab-content-lives').classList.add('hidden');
+            document.getElementById('tab-content-wallet').classList.add('hidden');
+            document.getElementById('tab-content-profile').classList.add('hidden');
+
+            document.getElementById('nav-btn-lives').className = "flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition";
+            document.getElementById('nav-btn-wallet').className = "flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition";
+            document.getElementById('nav-btn-profile').className = "flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition";
+
+            document.getElementById('tab-content-' + tabName).classList.remove('hidden');
+            document.getElementById('nav-btn-' + tabName).className = "flex flex-col items-center gap-1 text-violet-400 transition";
         }
 
         function copyKey() {
             if (currentUserKey) {
                 navigator.clipboard.writeText(currentUserKey);
-                alert("Chave Pay copiada para a área de transferência!");
+                alert("Chave copiada!");
             }
         }
 
-        function openTab(tab) {
-            const actionArea = document.getElementById('action-area');
-            if (tab === 'pay') {
-                stopScanner();
-                actionArea.innerHTML = `
-                    <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
-                        <i class="fa-solid fa-bolt text-violet-400"></i> Transferir Omni para Conta
-                    </h3>
-                    <div class="space-y-3">
-                        <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Chave Pay do Destinatário</label>
-                            <input type="text" id="target-key" placeholder="Ex: omni_8f7b3c2a1e..." class="w-full p-3.5 bg-slate-900 rounded-xl border border-slate-700 text-sm focus:outline-none focus:border-violet-500 font-mono">
+        // --- SISTEMA DE LIVES E STREAMING ---
+        async function openGoLiveModal() {
+            const modal = document.getElementById('streamer-modal');
+            modal.classList.remove('hidden');
+
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('streamer-video').srcObject = mediaStream;
+
+                // Registrar live ativa no Firebase
+                const sanitizedId = currentCredentialId.replace(/[.#$\/\[\]]/g, '_');
+                activeStreamKey = sanitizedId;
+                db.ref('active_lives/' + sanitizedId).set({
+                    streamerKey: currentUserKey,
+                    title: "Live de " + currentUserKey.substring(0, 8),
+                    startedAt: Date.now()
+                });
+            } catch (err) {
+                alert("Não foi possível acessar a câmera para transmitir.");
+                modal.classList.add('hidden');
+            }
+        }
+
+        function stopStreaming() {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+            }
+            if (activeStreamKey) {
+                db.ref('active_lives/' + activeStreamKey).remove();
+                activeStreamKey = null;
+            }
+            document.getElementById('streamer-modal').classList.add('hidden');
+        }
+
+        function loadActiveLives() {
+            const listEl = document.getElementById('active-lives-list');
+            db.ref('active_lives').on('value', (snapshot) => {
+                listEl.innerHTML = '';
+                if (!snapshot.exists()) {
+                    listEl.innerHTML = `<div class="text-center py-12 text-slate-500 text-xs bg-slate-800/40 rounded-3xl border border-slate-800">Nenhuma transmissão ao vivo no momento. Clique em "Abrir Live" para começar!</div>`;
+                    return;
+                }
+
+                snapshot.forEach((childSnap) => {
+                    const data = childSnap.val();
+                    const card = document.createElement('div');
+                    card.className = "bg-slate-800/80 p-4 rounded-2xl border border-slate-700/60 flex items-center justify-between shadow-lg";
+                    card.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-xl bg-rose-600/20 text-rose-400 flex items-center justify-center font-bold">
+                                <i class="fa-solid fa-video"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm text-slate-100">${data.title}</h4>
+                                <span class="text-[10px] font-mono text-violet-400">${data.streamerKey}</span>
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Quantidade (Omni)</label>
-                            <input type="number" id="pay-amount" placeholder="0.00" class="w-full p-3.5 bg-slate-900 rounded-xl border border-slate-700 text-sm focus:outline-none focus:border-violet-500 font-semibold text-violet-300">
-                        </div>
-                        <button onclick="makePayment()" class="w-full bg-violet-600 hover:bg-violet-500 text-white font-semibold p-3.5 rounded-xl transition shadow-lg shadow-violet-600/20 text-sm flex items-center justify-center gap-2">
-                            <span>Confirmar Transferência</span>
-                            <i class="fa-solid fa-arrow-right text-xs"></i>
+                        <button onclick="openViewer('${data.streamerKey}')" class="bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold px-3 py-2 rounded-xl transition">
+                            Assistir
                         </button>
-                    </div>
-                `;
-            } else if (tab === 'receive') {
-                actionArea.innerHTML = `
-                    <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
-                        <i class="fa-solid fa-qrcode text-emerald-400"></i> Receber via QR Code ou Câmera
-                    </h3>
-                    <p class="text-xs text-slate-400">Compartilhe sua chave abaixo ou use a câmera para escanear outro usuário:</p>
-                    <div class="bg-slate-900 p-4 rounded-2xl border border-slate-700 text-center space-y-3">
-                        <div class="bg-white p-3 inline-block rounded-xl">
-                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${currentUserKey}" alt="QR Code" class="mx-auto rounded-lg">
-                        </div>
-                        <div class="font-mono text-xs text-violet-300 bg-slate-800 p-2 rounded-lg">${currentUserKey}</div>
-                    </div>
-                    <button onclick="startScanner()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold p-3.5 rounded-xl transition shadow-lg shadow-emerald-600/20 text-sm flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-camera"></i>
-                        <span>Escanear QR Code com Câmera</span>
-                    </button>
-                    <div id="reader-container" class="hidden space-y-3 pt-2">
-                        <div id="reader" class="w-full rounded-2xl overflow-hidden border border-slate-700"></div>
-                        <button onclick="stopScanner()" class="w-full bg-rose-600/20 text-rose-400 border border-rose-500/30 p-2.5 rounded-xl text-xs font-semibold">Fechar Câmera</button>
-                    </div>
-                `;
+                    `;
+                    listEl.appendChild(card);
+                });
+            });
+        }
+
+        let currentStreamerKeyTarget = null;
+        function openViewer(streamerKey) {
+            currentStreamerKeyTarget = streamerKey;
+            document.getElementById('viewer-streamer-title').innerText = "Canal: " + streamerKey;
+            document.getElementById('viewer-modal').classList.remove('hidden');
+            loadChatMessages(streamerKey);
+        }
+
+        function closeViewerModal() {
+            document.getElementById('viewer-modal').classList.add('hidden');
+            currentStreamerKeyTarget = null;
+        }
+
+        // --- CHAT E DOAÇÕES (SUPER CHAT) COM BIOMETRIA ---
+        function loadChatMessages(streamerKey) {
+            const chatBox = document.getElementById('live-chat-messages');
+            const sanitizedKey = streamerKey.replace(/[.#$\/\[\]]/g, '_');
+            db.ref('live_chats/' + sanitizedKey).on('value', (snapshot) => {
+                chatBox.innerHTML = '';
+                if (snapshot.exists()) {
+                    snapshot.forEach((msgSnap) => {
+                        const m = msgSnap.val();
+                        const line = document.createElement('div');
+                        line.className = m.isDonation ? "bg-violet-600/30 border border-violet-500/40 p-2 rounded-xl" : "text-slate-300";
+                        line.innerHTML = `<strong>${m.sender}:</strong> ${m.text}`;
+                        chatBox.appendChild(line);
+                    });
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
+            });
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chat-msg-input');
+            const text = input.value.trim();
+            if (!text || !currentStreamerKeyTarget) return;
+
+            const sanitizedKey = currentStreamerKeyTarget.replace(/[.#$\/\[\]]/g, '_');
+            db.ref('live_chats/' + sanitizedKey).push({
+                sender: currentUserKey.substring(0, 8),
+                text: text,
+                isDonation: false,
+                timestamp: Date.now()
+            });
+            input.value = '';
+        }
+
+        async function sendSuperChatDonation() {
+            const amount = parseFloat(document.getElementById('donation-amount').value);
+            if (isNaN(amount) || amount <= 0 || !currentStreamerKeyTarget) {
+                alert("Informe um valor válido para doação.");
+                return;
+            }
+
+            if (currentStreamerKeyTarget === currentUserKey) {
+                alert("Você não pode doar para si mesmo.");
+                return;
+            }
+
+            // Confirmação obrigatória por biometria antes de transferir os Omni para o streamer
+            alert("Confirme com sua digital para enviar o Super Chat de " + amount + " Omni.");
+            const bioSuccess = await verifyBiometrics();
+            if (!bioSuccess) {
+                alert("Autenticação biométrica cancelada.");
+                return;
+            }
+
+            const sanitizedSenderId = currentCredentialId.replace(/[.#$\/\[\]]/g, '_');
+            const usersRef = db.ref('bank_users');
+
+            try {
+                const snapshot = await usersRef.once('value');
+                let receiverId = null;
+                const allUsers = snapshot.val();
+
+                for (let uid in allUsers) {
+                    if (allUsers[uid].key === currentStreamerKeyTarget) {
+                        receiverId = uid;
+                        break;
+                    }
+                }
+
+                if (!receiverId) {
+                    alert("Streamer não encontrado no banco.");
+                    return;
+                }
+
+                const senderRef = db.ref('bank_users/' + sanitizedSenderId);
+                const receiverRef = db.ref('bank_users/' + receiverId);
+
+                const senderSnap = await senderRef.once('value');
+                if (senderSnap.val().balance < amount) {
+                    alert("Saldo insuficiente para enviar o Super Chat.");
+                    return;
+                }
+
+                const receiverSnap = await receiverRef.once('value');
+
+                await senderRef.update({ balance: senderSnap.val().balance - amount });
+                await receiverRef.update({ balance: receiverSnap.val().balance + amount });
+
+                // Registrar doação no chat da live em tempo real
+                const sanitizedKey = currentStreamerKeyTarget.replace(/[.#$\/\[\]]/g, '_');
+                db.ref('live_chats/' + sanitizedKey).push({
+                    sender: currentUserKey.substring(0, 8),
+                    text: `🎁 DOOU ${amount} Omni via Super Chat!`,
+                    isDonation: true,
+                    timestamp: Date.now()
+                });
+
+                document.getElementById('donation-amount').value = '';
+                alert("Super Chat enviado com sucesso!");
+
+            } catch (err) {
+                alert("Erro ao processar doação: " + err.message);
             }
         }
 
-        // Sistema de Transferências Corrigido (Busca Direta por Chave no Firebase)
-        async function makePayment() {
+        async function confirmAndPay() {
             const targetKey = document.getElementById('target-key').value.trim();
             const amount = parseFloat(document.getElementById('pay-amount').value);
 
@@ -352,7 +592,14 @@
             }
 
             if (targetKey === currentUserKey) {
-                alert("Você não pode transferir Omni para a sua própria conta.");
+                alert("Você não pode transferir para sua própria conta.");
+                return;
+            }
+
+            alert("Confirme com sua digital para autorizar a transferência.");
+            const bioSuccess = await verifyBiometrics();
+            if (!bioSuccess) {
+                alert("Biometria negada ou cancelada.");
                 return;
             }
 
@@ -360,13 +607,7 @@
             const usersRef = db.ref('bank_users');
 
             try {
-                // Localiza o destinatário com base na Chave Pay informada
                 const snapshot = await usersRef.once('value');
-                if (!snapshot.exists()) {
-                    alert("Erro: Nenhuma conta encontrada no banco de dados.");
-                    return;
-                }
-
                 let receiverId = null;
                 const allUsers = snapshot.val();
 
@@ -378,7 +619,7 @@
                 }
 
                 if (!receiverId) {
-                    alert("A Chave Pay informada não pertence a nenhuma conta cadastrada no Omni Bank!");
+                    alert("Chave Pay não encontrada!");
                     return;
                 }
 
@@ -386,66 +627,25 @@
                 const receiverRef = db.ref('bank_users/' + receiverId);
 
                 const senderSnap = await senderRef.once('value');
-                const senderData = senderSnap.val();
-
-                if (!senderData || senderData.balance < amount) {
-                    alert("Saldo Omni insuficiente para concluir esta transferência.");
+                if (senderSnap.val().balance < amount) {
+                    alert("Saldo insuficiente.");
                     return;
                 }
 
                 const receiverSnap = await receiverRef.once('value');
-                const receiverData = receiverSnap.val();
+                await senderRef.update({ balance: senderSnap.val().balance - amount });
+                await receiverRef.update({ balance: receiverSnap.val().balance + amount });
 
-                // Atualiza os saldos de forma segura
-                const newSenderBalance = senderData.balance - amount;
-                const newReceiverBalance = receiverData.balance + amount;
-
-                await senderRef.update({ balance: newSenderBalance });
-                await receiverRef.update({ balance: newReceiverBalance });
-
-                alert("Transferência de Omni realizada com sucesso!");
-                location.reload();
-
-            } catch (error) {
-                console.error(error);
-                alert("Erro ao realizar a transação: " + error.message);
+                document.getElementById('target-key').value = '';
+                document.getElementById('pay-amount').value = '';
+                alert("Transferência realizada com sucesso!");
+            } catch (err) {
+                alert("Erro: " + err.message);
             }
-        }
-
-        function startScanner() {
-            const container = document.getElementById('reader-container');
-            container.classList.remove('hidden');
-
-            html5QrCode = new Html5Qrcode("reader");
-            html5QrCode.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 220, height: 220 } },
-                (decodedText) => {
-                    stopScanner();
-                    openTab('pay');
-                    setTimeout(() => {
-                        document.getElementById('target-key').value = decodedText;
-                        alert("QR Code lido com sucesso! Chave preenchida.");
-                    }, 200);
-                },
-                (errorMessage) => {}
-            ).catch(err => {
-                alert("Não foi possível acessar a câmera do dispositivo.");
-            });
-        }
-
-        function stopScanner() {
-            if (html5QrCode) {
-                html5QrCode.stop().then(() => {
-                    html5QrCode.clear();
-                }).catch(err => console.log(err));
-            }
-            const container = document.getElementById('reader-container');
-            if (container) container.classList.add('hidden');
         }
 
         function logout() {
-            stopScanner();
+            stopStreaming();
             location.reload();
         }
     </script>
