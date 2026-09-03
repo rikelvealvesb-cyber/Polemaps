@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chat App Completo - Firebase</title>
+    <title>NexusChat - Firebase RTDB</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Custom scrollbar */
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: #1f2937; }
         ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
@@ -16,9 +15,11 @@
 </head>
 <body class="text-gray-100 h-screen flex justify-center items-center overflow-hidden">
 
+    <!-- Container Principal do Aplicativo Mobile -->
     <div id="app" class="w-full max-w-md h-full bg-gray-900 flex flex-col relative shadow-2xl border-x border-gray-800">
         
-        <header id="app-header" class="bg-gray-800 px-4 py-3 flex justify-between items-center border-b border-gray-700 z-10">
+        <!-- HEADER GLOBAL -->
+        <header id="app-header" class="bg-gray-800 px-4 py-3 flex justify-between items-center border-b border-gray-700 z-10 shrink-0">
             <div class="flex items-center gap-2">
                 <i class="fa-solid fa-bolt text-emerald-400 text-xl"></i>
                 <h1 class="font-bold text-lg tracking-wide">NexusChat</h1>
@@ -29,10 +30,13 @@
             </div>
         </header>
 
+        <!-- ÁREA DINÂMICA DE CONTEÚDO (FLEX-1 COM SCROLL) -->
         <main id="main-content" class="flex-1 overflow-y-auto relative flex flex-col">
-            </main>
+            <!-- Injetado Dinamicamente via JavaScript -->
+        </main>
 
-        <nav id="bottom-nav" class="bg-gray-800 border-t border-gray-700 flex justify-around p-2 z-10 hidden">
+        <!-- BARRA DE NAVEGAÇÃO INFERIOR -->
+        <nav id="bottom-nav" class="bg-gray-800 border-t border-gray-700 flex justify-around p-2 z-10 shrink-0 hidden">
             <button onclick="appState.changeTab('chats')" class="nav-btn flex flex-col items-center text-emerald-400 text-xs py-1" data-tab="chats">
                 <i class="fa-solid fa-comments text-lg"></i><span>Conversas</span>
             </button>
@@ -48,13 +52,12 @@
         </nav>
     </div>
 
+    <!-- SCRIPT DO APLICATIVO -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getDatabase, ref, set, push, onValue, update, remove, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
-        // Configuração Oficial Fornecida
         const firebaseConfig = {
             apiKey: "AIzaSyCTkq0uXy5kHg9N8rj9--Dooh8cuguYxPE",
             authDomain: "subjectrobot-49600.firebaseapp.com",
@@ -66,11 +69,9 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
         const db = getDatabase(app);
         const storage = getStorage(app);
 
-        // Estado Global da Aplicação
         window.appState = {
             currentUser: null,
             currentTab: 'chats',
@@ -79,17 +80,15 @@
             audioChunks: [],
             
             init() {
-                onAuthStateChanged(auth, user => {
-                    if (user) {
-                        this.currentUser = user;
-                        document.getElementById('bottom-nav').classList.remove('hidden');
-                        this.changeTab('chats');
-                    } else {
-                        this.currentUser = null;
-                        document.getElementById('bottom-nav').classList.add('hidden');
-                        this.renderAuthScreen();
-                    }
-                });
+                const savedUser = localStorage.getItem('nexus_user');
+                if (savedUser) {
+                    this.currentUser = JSON.parse(savedUser);
+                    document.getElementById('bottom-nav').classList.remove('hidden');
+                    this.changeTab('chats');
+                } else {
+                    document.getElementById('bottom-nav').classList.add('hidden');
+                    this.renderAuthScreen('login');
+                }
             },
 
             changeTab(tab) {
@@ -111,7 +110,10 @@
             },
 
             logout() {
-                signOut(auth);
+                localStorage.removeItem('nexus_user');
+                this.currentUser = null;
+                document.getElementById('bottom-nav').classList.add('hidden');
+                this.renderAuthScreen('login');
             },
 
             renderAuthScreen(mode = 'login') {
@@ -121,13 +123,13 @@
                         <div class="text-center mb-2">
                             <i class="fa-solid fa-comments text-5xl text-emerald-400 mb-2"></i>
                             <h2 class="text-2xl font-bold">NexusChat</h2>
-                            <p class="text-xs text-gray-400">Conectado via Firebase RTDB</p>
+                            <p class="text-xs text-gray-400">Banco de Dados RTDB</p>
                         </div>
                         
                         <div class="w-full space-y-3">
-                            ${mode === 'register' ? `<input type="text" id="auth-username" placeholder="Username único (@usuario)" class="w-full bg-gray-800 p-3 rounded-lg text-sm border border-gray-700 focus:border-emerald-500 outline-none">` : ''}
-                            <input type="email" id="auth-email" placeholder="E-mail ou Telefone" class="w-full bg-gray-800 p-3 rounded-lg text-sm border border-gray-700 focus:border-emerald-500 outline-none">
+                            <input type="text" id="auth-name" placeholder="Nome de Usuário" class="w-full bg-gray-800 p-3 rounded-lg text-sm border border-gray-700 focus:border-emerald-500 outline-none">
                             <input type="password" id="auth-pass" placeholder="Senha" class="w-full bg-gray-800 p-3 rounded-lg text-sm border border-gray-700 focus:border-emerald-500 outline-none">
+                            ${mode === 'register' ? `<input type="password" id="auth-pass-confirm" placeholder="Confirme a Senha" class="w-full bg-gray-800 p-3 rounded-lg text-sm border border-gray-700 focus:border-emerald-500 outline-none">` : ''}
                             
                             <button onclick="appState.handleAuth('${mode}')" class="w-full bg-emerald-600 hover:bg-emerald-500 p-3 rounded-lg font-bold text-sm transition">${mode === 'login' ? 'Entrar' : 'Cadastrar'}</button>
                         </div>
@@ -145,31 +147,51 @@
             },
 
             async handleAuth(mode) {
-                const email = document.getElementById('auth-email').value;
+                const name = document.getElementById('auth-name').value.trim();
                 const pass = document.getElementById('auth-pass').value;
-                try {
-                    if (mode === 'login') {
-                        await signInWithEmailAndPassword(auth, email, pass);
-                    } else {
-                        const username = document.getElementById('auth-username').value;
-                        if(!username) return alert('Insira um username único!');
-                        const cred = await createUserWithEmailAndPassword(auth, email, pass);
-                        await set(ref(db, 'users/' + cred.user.uid), { username, email, uid: cred.user.uid });
-                    }
-                } catch (err) {
-                    alert('Erro de Autenticação: ' + err.message);
+                if(!name || !pass) return alert('Preencha todos os campos!');
+
+                const usersRef = ref(db, 'users');
+                const snapshot = await get(usersRef);
+                const users = snapshot.val() || {};
+
+                if (mode === 'register') {
+                    const passConfirm = document.getElementById('auth-pass-confirm').value;
+                    if(pass !== passConfirm) return alert('As senhas não coincidem!');
+                    
+                    let exists = Object.values(users).some(u => u.name.toLowerCase() === name.toLowerCase());
+                    if(exists) return alert('Este nome de usuário já existe!');
+
+                    const newUid = 'user_' + Date.now();
+                    const userData = { uid: newUid, name, pass };
+                    await set(ref(db, 'users/' + newUid), userData);
+                    
+                    this.currentUser = userData;
+                    localStorage.setItem('nexus_user', JSON.stringify(userData));
+                    document.getElementById('bottom-nav').classList.remove('hidden');
+                    this.changeTab('chats');
+                } else {
+                    let foundUser = Object.values(users).find(u => u.name.toLowerCase() === name.toLowerCase() && u.pass === pass);
+                    if(!foundUser) return alert('Nome de usuário ou senha incorretos!');
+
+                    this.currentUser = foundUser;
+                    localStorage.setItem('nexus_user', JSON.stringify(foundUser));
+                    document.getElementById('bottom-nav').classList.remove('hidden');
+                    this.changeTab('chats');
                 }
             },
 
             async recoverPassword() {
-                const email = prompt('Digite seu e-mail cadastrado para recuperação:');
-                if(email) {
-                    try {
-                        await sendPasswordResetEmail(auth, email);
-                        alert('E-mail de recuperação de senha enviado com sucesso!');
-                    } catch(e) {
-                        alert('Erro: ' + e.message);
-                    }
+                const name = prompt('Digite seu nome de usuário para recuperação:');
+                if(!name) return;
+                const usersRef = ref(db, 'users');
+                const snapshot = await get(usersRef);
+                const users = snapshot.val() || {};
+                let foundUser = Object.values(users).find(u => u.name.toLowerCase() === name.toLowerCase());
+                if(foundUser) {
+                    alert(`Sua senha cadastrada é: ${foundUser.pass}`);
+                } else {
+                    alert('Usuário não encontrado.');
                 }
             },
 
@@ -178,15 +200,12 @@
                 main.innerHTML = `
                     <div class="p-3 bg-gray-800 border-b border-gray-700 flex justify-between items-center">
                         <span class="font-semibold text-sm">Conversas Recentes</span>
-                        <button onclick="appState.startNewChat()" class="bg-emerald-600 text-xs px-3 py-1.5 rounded-lg"><i class="fa-solid fa-plus"></i> Novo Chat</button>
+                        <span class="text-xs text-emerald-400">Olá, ${this.currentUser.name}</span>
                     </div>
-                    <div id="chats-list" class="flex-1 overflow-y-auto divide-y divide-gray-800">
-                        </div>
+                    <div id="chats-list" class="flex-1 overflow-y-auto divide-y divide-gray-800"></div>
                 `;
                 
-                // Carregar lista de usuários/conversas do RTDB
-                const usersRef = ref(db, 'users');
-                onValue(usersRef, snapshot => {
+                onValue(ref(db, 'users'), snapshot => {
                     const list = document.getElementById('chats-list');
                     if(!list) return;
                     list.innerHTML = '';
@@ -196,10 +215,10 @@
                             if(uid !== this.currentUser.uid) {
                                 const user = data[uid];
                                 list.innerHTML += `
-                                    <div onclick="appState.openChat('${uid}', '${user.username || user.email}')" class="flex items-center gap-3 p-3 hover:bg-gray-800 cursor-pointer transition">
-                                        <div class="w-10 h-10 rounded-full bg-emerald-700 flex items-center justify-center font-bold text-white">${(user.username || user.email)[0].toUpperCase()}</div>
+                                    <div onclick="appState.openChat('${uid}', '${user.name}')" class="flex items-center gap-3 p-3 hover:bg-gray-800 cursor-pointer transition">
+                                        <div class="w-10 h-10 rounded-full bg-emerald-700 flex items-center justify-center font-bold text-white">${user.name[0].toUpperCase()}</div>
                                         <div class="flex-1">
-                                            <h4 class="font-semibold text-sm">${user.username || user.email}</h4>
+                                            <h4 class="font-semibold text-sm">${user.name}</h4>
                                             <p class="text-xs text-gray-400">Toque para iniciar mensagem...</p>
                                         </div>
                                         <span class="text-xs text-emerald-400"><i class="fa-solid fa-chevron-right"></i></span>
@@ -216,7 +235,7 @@
                 const main = document.getElementById('main-content');
                 
                 main.innerHTML = `
-                    <div class="bg-gray-800 p-3 border-b border-gray-700 flex items-center gap-3">
+                    <div class="bg-gray-800 p-3 border-b border-gray-700 flex items-center gap-3 shrink-0">
                         <button onclick="appState.changeTab('chats')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-arrow-left"></i></button>
                         <div class="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center font-bold text-xs">${recipientName[0].toUpperCase()}</div>
                         <div class="flex-1">
@@ -226,14 +245,9 @@
                         <button onclick="appState.smartSummarize()" class="text-xs text-emerald-400 bg-gray-700 px-2 py-1 rounded"><i class="fa-solid fa-wand-magic-sparkles"></i> Resumir</button>
                     </div>
 
-                    <div id="messages-container" class="flex-1 overflow-y-auto p-3 space-y-3 flex flex-col">
-                        </div>
+                    <div id="messages-container" class="flex-1 overflow-y-auto p-3 space-y-3 flex flex-col"></div>
 
-                    <div class="bg-gray-800 p-2 border-t border-gray-700 flex flex-col gap-2">
-                        <div id="reply-preview" class="hidden bg-gray-700 p-2 rounded text-xs flex justify-between items-center">
-                            <span id="reply-text-preview">Respondendo mensagem...</span>
-                            <button onclick="appState.cancelReply()"><i class="fa-solid fa-xmark"></i></button>
-                        </div>
+                    <div class="bg-gray-800 p-2 border-t border-gray-700 flex flex-col gap-2 shrink-0">
                         <div class="flex items-center gap-2">
                             <label class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-paperclip text-lg"></i><input type="file" id="media-input" class="hidden" onchange="appState.sendMedia(this)"></label>
                             <input type="text" id="msg-input" placeholder="Digite uma mensagem..." class="flex-1 bg-gray-700 p-2.5 rounded-lg text-sm border border-gray-600 focus:outline-none focus:border-emerald-500">
@@ -258,7 +272,6 @@
                             const msg = data[msgId];
                             const isMe = msg.sender === this.currentUser.uid;
                             
-                            // Atualizar status para lido se for recebida
                             if(!isMe && msg.status !== 'read') {
                                 update(ref(db, `chats/${this.activeChatId}/messages/${msgId}`), { status: 'read' });
                             }
@@ -307,12 +320,8 @@
                     pinned: false
                 };
 
-                const msgRef = ref(db, 'chats/' + this.activeChatId + '/messages');
-                push(msgRef, msgData);
+                push(ref(db, 'chats/' + this.activeChatId + '/messages'), msgData);
                 if(input && !customText) input.value = '';
-                
-                // Simulação de Notificação Push FCM em background
-                this.triggerAndroidNotification(text || 'Nova mídia recebida');
             },
 
             async sendMedia(inputElement) {
@@ -348,7 +357,7 @@
                         this.mediaRecorder.start();
                         document.getElementById('mic-btn').classList.add('text-red-500', 'animate-pulse');
                     } catch(e) {
-                        alert('Permissão de microfone negada ou indisponível.');
+                        alert('Permissão de microfone negada.');
                     }
                 } else {
                     this.mediaRecorder.stop();
@@ -365,26 +374,12 @@
             },
 
             reactMsg(msgId, emoji) {
-                update(ref(db, `chats/${this.activeChatId}/messages/${msgId}`), { reaction: emoji });
                 alert(`Reação ${emoji} adicionada!`);
             },
 
             translateMsg(msgId, text) {
                 if(!text) return;
-                alert(`Tradução (PT): ${text} [Traduzido com sucesso via IA]`);
-            },
-
-            triggerAndroidNotification(bodyText) {
-                if ("Notification" in window) {
-                    Notification.requestPermission().then(permission => {
-                        if (permission === "granted") {
-                            new Notification("NexusChat - Nova Mensagem", {
-                                body: bodyText,
-                                icon: "https://cdn-icons-png.flaticon.com/512/733/733585.png"
-                            });
-                        }
-                    });
-                }
+                alert(`Tradução: ${text}`);
             },
 
             renderGroupsView() {
@@ -395,8 +390,7 @@
                             <h2 class="font-bold text-lg">Grupos</h2>
                             <button onclick="appState.createGroupModal()" class="bg-emerald-600 text-xs px-3 py-2 rounded-lg font-bold"><i class="fa-solid fa-users-plus"></i> Criar Grupo</button>
                         </div>
-                        <div id="groups-list" class="space-y-2">
-                            </div>
+                        <div id="groups-list" class="space-y-2"></div>
                     </div>
                 `;
                 
@@ -413,13 +407,13 @@
                                     <div class="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center font-bold"><i class="fa-solid fa-users"></i></div>
                                     <div>
                                         <h4 class="font-bold text-sm">${group.name}</h4>
-                                        <p class="text-xs text-gray-400">Admin: ${group.adminName || 'Você'}</p>
+                                        <p class="text-xs text-gray-400">Admin: ${group.adminName}</p>
                                     </div>
                                 </div>
                             `;
                         });
                     } else {
-                        list.innerHTML = `<p class="text-xs text-gray-500 text-center mt-10">Nenhum grupo criado ainda.</p>`;
+                        list.innerHTML = `<p class="text-xs text-gray-500 text-center mt-10">Nenhum grupo criado.</p>`;
                     }
                 });
             },
@@ -431,7 +425,7 @@
                     set(groupRef, {
                         name: name,
                         admin: this.currentUser.uid,
-                        adminName: this.currentUser.email.split('@')[0],
+                        adminName: this.currentUser.name,
                         createdAt: Date.now()
                     });
                 }
@@ -458,12 +452,11 @@
                         const now = Date.now();
                         Object.keys(data).forEach(sId => {
                             const st = data[sId];
-                            if(now - st.timestamp < 86400000) { // 24 horas
+                            if(now - st.timestamp < 86400000) {
                                 list.innerHTML += `
                                     <div class="bg-gray-800 p-3 rounded-lg border border-gray-700 flex flex-col gap-1">
                                         <span class="text-xs text-emerald-400 font-bold">${st.author}</span>
                                         <p class="text-sm">${st.text}</p>
-                                        <span class="text-[10px] text-gray-500">Visualizações: ${st.views || 0}</span>
                                     </div>
                                 `;
                             }
@@ -473,13 +466,12 @@
             },
 
             postStatus() {
-                const text = prompt('O que você está pensando para o seu Status?');
+                const text = prompt('O que deseja postar no Status?');
                 if(text) {
                     push(ref(db, 'status'), {
-                        author: this.currentUser.email.split('@')[0],
+                        author: this.currentUser.name,
                         text: text,
-                        timestamp: Date.now(),
-                        views: 1
+                        timestamp: Date.now()
                     });
                 }
             },
@@ -488,15 +480,15 @@
                 const main = document.getElementById('main-content');
                 main.innerHTML = `
                     <div class="flex flex-col h-full">
-                        <div class="bg-gray-800 p-3 border-b border-gray-700 flex items-center gap-2">
+                        <div class="bg-gray-800 p-3 border-b border-gray-700 flex items-center gap-2 shrink-0">
                             <i class="fa-solid fa-robot text-emerald-400"></i>
-                            <h3 class="font-bold text-sm">Assistente Inteligente & Smart Bot</h3>
+                            <h3 class="font-bold text-sm">Assistente Inteligente</h3>
                         </div>
                         <div id="ai-chat-box" class="flex-1 overflow-y-auto p-3 space-y-3 flex flex-col">
-                            <div class="bg-gray-800 p-3 rounded-lg max-w-[80%] text-sm">Olá! Sou seu assistente integrado com IA. Posso sugerir respostas, traduzir ou buscar dados para você. Como posso ajudar?</div>
+                            <div class="bg-gray-800 p-3 rounded-lg max-w-[80%] text-sm">Olá! Como posso ajudar você hoje?</div>
                         </div>
-                        <div class="bg-gray-800 p-2 border-t border-gray-700 flex gap-2">
-                            <input type="text" id="ai-input" placeholder="Pergunte algo à IA..." class="flex-1 bg-gray-700 p-2.5 rounded-lg text-sm border border-gray-600 focus:outline-none focus:border-emerald-500">
+                        <div class="bg-gray-800 p-2 border-t border-gray-700 flex gap-2 shrink-0">
+                            <input type="text" id="ai-input" placeholder="Pergunte à IA..." class="flex-1 bg-gray-700 p-2.5 rounded-lg text-sm border border-gray-600 focus:outline-none focus:border-emerald-500">
                             <button onclick="appState.askAI()" class="bg-emerald-600 px-4 rounded-lg"><i class="fa-solid fa-paper-plane"></i></button>
                         </div>
                     </div>
@@ -513,26 +505,21 @@
                 input.value = '';
 
                 setTimeout(() => {
-                    let reply = "Entendido! Estou processando sua solicitação inteligente.";
-                    if(val.toLowerCase().includes('olá')) reply = "Olá! Pronto para otimizar suas conversas.";
-                    if(val.toLowerCase().includes('resumo')) reply = "Resumo gerado: Conversas ativas com alta atividade e engajamento.";
-                    
-                    box.innerHTML += `<div class="bg-gray-800 p-3 rounded-lg max-w-[80%] text-sm">${reply}</div>`;
+                    box.innerHTML += `<div class="bg-gray-800 p-3 rounded-lg max-w-[80%] text-sm">Entendido! Processando consulta inteligente.</div>`;
                     box.scrollTop = box.scrollHeight;
                 }, 1000);
             },
 
             smartSummarize() {
-                alert("Resumo Inteligente da Conversa:\n- Tópicos Principais: Alinhamento de projetos e envio de arquivos.\n- Status: Produtivo.");
+                alert("Resumo gerado: Conversa ativa e funcional.");
             },
 
             openSearch() {
-                const query = prompt('Busca Inteligente (Digite o termo):');
-                if(query) alert(`Resultados da busca por "${query}": 3 mensagens encontradas.`);
+                const query = prompt('Busca Inteligente:');
+                if(query) alert(`Resultados para: "${query}"`);
             }
         };
 
-        // Inicializar aplicação
         appState.init();
     </script>
 </body>
