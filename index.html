@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Omni Game & Bank | Mundo Aberto 3D e Carteira Digital</title>
+    <title>Omni Game & Bank | Mundo Aberto 3D e Guarda-Roupa</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome -->
@@ -47,7 +47,7 @@
                         <i class="fa-solid fa-fingerprint animate-pulse"></i>
                     </div>
                     <h1 class="text-2xl font-bold tracking-tight">Acesso ao Jogo</h1>
-                    <p class="text-slate-400 text-sm max-w-[260px] mx-auto">Autentique com sua digital para carregar seu personagem e carteira Omni.</p>
+                    <p class="text-slate-400 text-sm max-w-[260px] mx-auto">Autentique com sua digital para carregar seu personagem, visual e carteira Omni.</p>
                 </div>
 
                 <div class="space-y-4 my-auto">
@@ -77,7 +77,89 @@
                 </div>
             </div>
 
-            <!-- 3. TELA DA CARTEIRA & BANCO -->
+            <!-- 3. TELA DE GUARDA-ROUPA E LOJA -->
+            <div id="wardrobe-screen" class="hidden p-6 space-y-6 flex-1">
+                <div>
+                    <h2 class="text-xl font-bold tracking-tight text-white">Guarda-Roupa & Loja</h2>
+                    <p class="text-xs text-slate-400">Mude sua cor de pele, compre e vista roupas novas no seu avatar.</p>
+                </div>
+
+                <!-- Cor de Pele -->
+                <div class="bg-slate-800/60 p-4 rounded-2xl border border-slate-700/50 space-y-3">
+                    <span class="text-xs font-bold text-slate-300">Tom de Pele</span>
+                    <div class="flex gap-3">
+                        <button onclick="changeSkinColor('#fcd34d')" class="w-8 h-8 rounded-full bg-[#fcd34d] border-2 border-white/50 shadow"></button>
+                        <button onclick="changeSkinColor('#d97706')" class="w-8 h-8 rounded-full bg-[#d97706] border-2 border-white/20 shadow"></button>
+                        <button onclick="changeSkinColor('#78350f')" class="w-8 h-8 rounded-full bg-[#78350f] border-2 border-white/20 shadow"></button>
+                        <button onclick="changeSkinColor('#fbcfe8')" class="w-8 h-8 rounded-full bg-[#fbcfe8] border-2 border-white/20 shadow"></button>
+                    </div>
+                </div>
+
+                <!-- Lojas por Categoria -->
+                <div class="space-y-4">
+                    <!-- Chapéus -->
+                    <div class="bg-slate-800/60 p-4 rounded-2xl border border-slate-700/50 space-y-2">
+                        <span class="text-xs font-bold text-slate-300">Chapéus & Bonés</span>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="buyOrEquip('hat', 'Bonés Vermelho', 15, 0xef4444)" class="p-2.5 bg-slate-900 rounded-xl border border-slate-700 text-xs flex justify-between items-center hover:border-violet-500 transition">
+                                <span>Boné Vermelho</span>
+                                <span class="text-violet-400 font-bold">15 Omni</span>
+                            </button>
+                            <button onclick="buyOrEquip('hat', 'Gorro Preto', 20, 0x1e293b)" class="p-2.5 bg-slate-900 rounded-xl border border-slate-700 text-xs flex justify-between items-center hover:border-violet-500 transition">
+                                <span>Gorro Preto</span>
+                                <span class="text-violet-400 font-bold">20 Omni</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Blusas & Camisas -->
+                    <div class="bg-slate-800/60 p-4 rounded-2xl border border-slate-700/50 space-y-2">
+                        <span class="text-xs font-bold text-slate-300">Blusas & Camisas</span>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="buyOrEquip('clothes', 'Blusa Roxa', 0, 0x7c3aed)" class="p-2.5 bg-slate-900 rounded-xl border border-slate-700 text-xs flex justify-between items-center hover:border-violet-500 transition">
+                                <span>Blusa Roxa</span>
+                                <span class="text-emerald-400 font-bold">Grátis</span>
+                            </button>
+                            <button onclick="buyOrEquip('clothes', 'Camisa Azul', 25, 0x3b82f6)" class="p-2.5 bg-slate-900 rounded-xl border border-slate-700 text-xs flex justify-between items-center hover:border-violet-500 transition">
+                                <span>Camisa Azul</span>
+                                <span class="text-violet-400 font-bold">25 Omni</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Shorts & Calças -->
+                    <div class="bg-slate-800/60 p-4 rounded-2xl border border-slate-700/50 space-y-2">
+                        <span class="text-xs font-bold text-slate-300">Shorts & Calças</span>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="buyOrEquip('pants', 'Calça Escura', 0, 0x1e1b4b)" class="p-2.5 bg-slate-900 rounded-xl border border-slate-700 text-xs flex justify-between items-center hover:border-violet-500 transition">
+                                <span>Calça Escura</span>
+                                <span class="text-emerald-400 font-bold">Grátis</span>
+                            </button>
+                            <button onclick="buyOrEquip('pants', 'Shorts Jeans', 20, 0x0284c7)" class="p-2.5 bg-slate-900 rounded-xl border border-slate-700 text-xs flex justify-between items-center hover:border-violet-500 transition">
+                                <span>Shorts Jeans</span>
+                                <span class="text-violet-400 font-bold">20 Omni</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tênis & Chinelos -->
+                    <div class="bg-slate-800/60 p-4 rounded-2xl border border-slate-700/50 space-y-2">
+                        <span class="text-xs font-bold text-slate-300">Tênis & Chinelos</span>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="buyOrEquip('shoes', 'Tênis Esportivo', 30, 0xffffff)" class="p-2.5 bg-slate-900 rounded-xl border border-slate-700 text-xs flex justify-between items-center hover:border-violet-500 transition">
+                                <span>Tênis Esportivo</span>
+                                <span class="text-violet-400 font-bold">30 Omni</span>
+                            </button>
+                            <button onclick="buyOrEquip('shoes', 'Chinelos', 10, 0xf59e0b)" class="p-2.5 bg-slate-900 rounded-xl border border-slate-700 text-xs flex justify-between items-center hover:border-violet-500 transition">
+                                <span>Chinelos</span>
+                                <span class="text-violet-400 font-bold">10 Omni</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. TELA DA CARTEIRA & BANCO -->
             <div id="wallet-screen" class="hidden p-6 space-y-6 flex-1">
                 <div class="relative bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 p-6 rounded-3xl border border-slate-700/80 shadow-xl overflow-hidden">
                     <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-violet-500/10 rounded-full blur-2xl pointer-events-none"></div>
@@ -137,7 +219,11 @@
                 <i class="fa-solid fa-gamepad text-lg"></i>
                 <span class="text-[10px] font-semibold">Mundo 3D</span>
             </button>
-            <button onclick="switchTab('wallet')" id="nav-btn-wallet" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
+            <button onclick="switchTab('wardrobe')" id="nav-btn-wardrobe" class="flex flex-col items-center gap-1 text-slate-400 transition">
+                <i class="fa-solid fa-shirt text-lg"></i>
+                <span class="text-[10px] font-semibold">Guarda-Roupa</span>
+            </button>
+            <button onclick="switchTab('wallet')" id="nav-btn-wallet" class="flex flex-col items-center gap-1 text-slate-400 transition">
                 <i class="fa-solid fa-wallet text-lg"></i>
                 <span class="text-[10px] font-semibold">Carteira</span>
             </button>
@@ -163,13 +249,23 @@
         let currentCredentialId = null;
         let currentUserKey = null;
         let sanitizedUserId = null;
+        let currentBalance = 500;
+
+        // Customização do Personagem
+        let playerCustomization = {
+            skinColor: 0xfcd34d,
+            clothesColor: 0x7c3aed,
+            pantsColor: 0x1e1b4b,
+            hatColor: null,
+            shoesColor: 0x0f172a
+        };
 
         // Variáveis do Jogo 3D (Three.js)
         let scene, camera, renderer;
         let playerGroup;
-        let leftLeg, rightLeg, leftArm, rightArm;
         let animStep = 0;
         let targetPosition = null;
+        let touchMarker = null;
         let otherPlayersMeshes = {};
 
         function generateOmniKey() {
@@ -249,12 +345,15 @@
                 if (snapshot.exists()) {
                     const userData = snapshot.val();
                     currentUserKey = userData.key;
+                    currentBalance = userData.balance;
+                    if (userData.customization) playerCustomization = userData.customization;
                     loadDashboard(userData.balance, userData.key);
                 } else {
                     const newKey = generateOmniKey();
-                    userRef.set({ balance: 500, key: newKey, createdAt: Date.now() }, (error) => {
+                    userRef.set({ balance: 500, key: newKey, customization: playerCustomization, createdAt: Date.now() }, (error) => {
                         if (!error) {
                             currentUserKey = newKey;
+                            currentBalance = 500;
                             loadDashboard(500, newKey);
                         }
                     });
@@ -273,9 +372,17 @@
 
             db.ref('bank_users/' + sanitizedUserId + '/balance').on('value', (snapshot) => {
                 if (snapshot.exists()) {
-                    const val = snapshot.val().toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                    currentBalance = snapshot.val();
+                    const val = currentBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
                     document.getElementById('user-balance').innerText = val;
                     document.getElementById('game-balance').innerText = val + " Omni";
+                }
+            });
+
+            db.ref('bank_users/' + sanitizedUserId + '/customization').on('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    playerCustomization = snapshot.val();
+                    updateLocalPlayerMesh();
                 }
             });
 
@@ -286,13 +393,18 @@
 
         function switchTab(tabName) {
             document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('wardrobe-screen').classList.add('hidden');
             document.getElementById('wallet-screen').classList.add('hidden');
             document.getElementById('nav-btn-game').className = "flex flex-col items-center gap-1 text-slate-400 transition";
+            document.getElementById('nav-btn-wardrobe').className = "flex flex-col items-center gap-1 text-slate-400 transition";
             document.getElementById('nav-btn-wallet').className = "flex flex-col items-center gap-1 text-slate-400 transition";
 
             if (tabName === 'game') {
                 document.getElementById('game-screen').classList.remove('hidden');
                 document.getElementById('nav-btn-game').className = "flex flex-col items-center gap-1 text-violet-400 transition";
+            } else if (tabName === 'wardrobe') {
+                document.getElementById('wardrobe-screen').classList.remove('hidden');
+                document.getElementById('nav-btn-wardrobe').className = "flex flex-col items-center gap-1 text-violet-400 transition";
             } else {
                 document.getElementById('wallet-screen').classList.remove('hidden');
                 document.getElementById('nav-btn-wallet').className = "flex flex-col items-center gap-1 text-violet-400 transition";
@@ -331,7 +443,16 @@
             floor.rotation.x = -Math.PI / 2;
             scene.add(floor);
 
-            playerGroup = createCharacterMesh();
+            // Marcador circular de toque no chão
+            const markerGeo = new THREE.RingGeometry(0.3, 0.4, 32);
+            markerGeo.rotateX(-Math.PI / 2);
+            const markerMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, opacity: 0.8 });
+            touchMarker = new THREE.Mesh(markerGeo, markerMat);
+            touchMarker.position.y = 0.01;
+            touchMarker.visible = false;
+            scene.add(touchMarker);
+
+            playerGroup = createCharacterMesh(playerCustomization);
             playerGroup.position.set(0, 0, 3);
             scene.add(playerGroup);
             targetPosition = playerGroup.position.clone();
@@ -339,13 +460,14 @@
             animateGame();
         }
 
-        // Criar Boneco Completo com Olhos (Branco com ponto preto)
-        function createCharacterMesh() {
+        // Criar Boneco Completo com Olhos, Cores Personalizadas e Acessórios
+        function createCharacterMesh(cust) {
             const group = new THREE.Group();
 
-            const skinMat = new THREE.MeshStandardMaterial({ color: 0xfcd34d });
-            const clothesMat = new THREE.MeshStandardMaterial({ color: 0x7c3aed });
-            const pantsMat = new THREE.MeshStandardMaterial({ color: 0x1e1b4b });
+            const skinMat = new THREE.MeshStandardMaterial({ color: cust.skinColor || 0xfcd34d });
+            const clothesMat = new THREE.MeshStandardMaterial({ color: cust.clothesColor || 0x7c3aed });
+            const pantsMat = new THREE.MeshStandardMaterial({ color: cust.pantsColor || 0x1e1b4b });
+            const shoesMat = new THREE.MeshStandardMaterial({ color: cust.shoesColor || 0x0f172a });
             const hairMat = new THREE.MeshStandardMaterial({ color: 0x451a03 });
             const eyeWhiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
             const eyeBlackMat = new THREE.MeshStandardMaterial({ color: 0x000000 });
@@ -355,8 +477,17 @@
             head.position.y = 1.4;
             const hair = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.15, 0.42), hairMat);
             hair.position.set(0, 1.62, 0);
+            group.add(head, hair);
 
-            // Olhos (Fundo branco e ponto preto)
+            // Chapéu (se equipado)
+            if (cust.hatColor) {
+                const hatMat = new THREE.MeshStandardMaterial({ color: cust.hatColor });
+                const hat = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.15, 0.45), hatMat);
+                hat.position.set(0, 1.7, 0);
+                group.add(hat);
+            }
+
+            // Olhos (Fundo branco e ponto preto) apontando para frente
             const leftEyeWhite = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.05), eyeWhiteMat);
             leftEyeWhite.position.set(-0.1, 1.4, 0.21);
             const leftPupil = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.03, 0.06), eyeBlackMat);
@@ -367,7 +498,7 @@
             const rightPupil = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.03, 0.06), eyeBlackMat);
             rightPupil.position.set(0.1, 1.4, 0.22);
 
-            group.add(head, hair, leftEyeWhite, leftPupil, rightEyeWhite, rightPupil);
+            group.add(leftEyeWhite, leftPupil, rightEyeWhite, rightPupil);
 
             // Tronco
             const torso = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 0.3), clothesMat);
@@ -381,18 +512,36 @@
             rArm.position.set(0.35, 0.9, 0);
             group.add(lArm, rArm);
 
-            // Pernas
-            const lLeg = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.5, 0.2), pantsMat);
-            lLeg.position.set(-0.15, 0.3, 0);
-            const rLeg = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.5, 0.2), pantsMat);
-            rLeg.position.set(0.15, 0.3, 0);
-            group.add(lLeg, rLeg);
+            // Pernas e Calçados
+            const lLeg = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.35, 0.2), pantsMat);
+            lLeg.position.set(-0.15, 0.37, 0);
+            const lShoe = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.15, 0.25), shoesMat);
+            lShoe.position.set(-0.15, 0.15, 0.02);
+
+            const rLeg = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.35, 0.2), pantsMat);
+            rLeg.position.set(0.15, 0.37, 0);
+            const rShoe = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.15, 0.25), shoesMat);
+            rShoe.position.set(0.15, 0.15, 0.02);
+
+            group.add(lLeg, lShoe, rLeg, rShoe);
 
             group.userData = { lLeg, rLeg, lArm, rArm };
             return group;
         }
 
-        // Toque na tela para mover o personagem até a posição
+        function updateLocalPlayerMesh() {
+            if (!playerGroup) return;
+            const pos = playerGroup.position.clone();
+            const rot = playerGroup.rotation.clone();
+            scene.remove(playerGroup);
+
+            playerGroup = createCharacterMesh(playerCustomization);
+            playerGroup.position.copy(pos);
+            playerGroup.rotation.copy(rot);
+            scene.add(playerGroup);
+        }
+
+        // Toque na tela para mover o personagem até a posição e exibir o círculo branco
         function initTouchMovement() {
             const container = document.getElementById('game-container');
             const raycaster = new THREE.Raycaster();
@@ -410,11 +559,55 @@
 
                 if (targetPoint) {
                     targetPosition.set(targetPoint.x, 0, targetPoint.z);
+                    if (touchMarker) {
+                        touchMarker.position.set(targetPoint.x, 0.01, targetPoint.z);
+                        touchMarker.visible = true;
+                    }
                 }
             });
         }
 
-        // Loop de Animação e Sincronização do Jogador
+        // Sistema de Guarda-Roupa / Compra de Roupas
+        async function changeSkinColor(colorHex) {
+            playerCustomization.skinColor = parseInt(colorHex.replace('#', '0x'));
+            updateLocalPlayerMesh();
+            await saveCustomizationToDB();
+        }
+
+        async function buyOrEquip(category, itemName, price, colorVal) {
+            if (price > 0 && currentBalance < price) {
+                alert("Saldo insuficiente na carteira Omni para comprar este item!");
+                return;
+            }
+
+            if (price > 0) {
+                alert(`Confirme com sua digital para comprar "${itemName}" por ${price} Omni.`);
+                const bioSuccess = await verifyBiometrics();
+                if (!bioSuccess) {
+                    alert("Compra cancelada.");
+                    return;
+                }
+                currentBalance -= price;
+                db.ref('bank_users/' + sanitizedUserId + '/balance').set(currentBalance);
+            }
+
+            if (category === 'hat') playerCustomization.hatColor = colorVal;
+            if (category === 'clothes') playerCustomization.clothesColor = colorVal;
+            if (category === 'pants') playerCustomization.pantsColor = colorVal;
+            if (category === 'shoes') playerCustomization.shoesColor = colorVal;
+
+            updateLocalPlayerMesh();
+            await saveCustomizationToDB();
+            alert(`Item "${itemName}" equipado com sucesso!`);
+        }
+
+        async function saveCustomizationToDB() {
+            if (sanitizedUserId) {
+                await db.ref('bank_users/' + sanitizedUserId + '/customization').set(playerCustomization);
+            }
+        }
+
+        // Loop de Animação e Sincronização Real da Direção de Olhar
         function animateGame() {
             requestAnimationFrame(animateGame);
 
@@ -427,7 +620,7 @@
                     playerGroup.position.addScaledVector(dir, 0.08);
                     playerGroup.lookAt(targetPosition.x, playerGroup.position.y, targetPosition.z);
 
-                    // Animação de caminhada idêntica mantida
+                    // Animação de caminhada
                     animStep += 0.2;
                     if (playerGroup.userData.lLeg) {
                         playerGroup.userData.lLeg.rotation.x = Math.sin(animStep) * 0.5;
@@ -436,16 +629,18 @@
                         playerGroup.userData.rArm.rotation.x = Math.sin(animStep) * 0.5;
                     }
 
-                    // Enviar posição atual para o Firebase
+                    // Enviar posição e rotação exata em tempo real para o Firebase
                     if (Math.random() < 0.3) {
                         db.ref('game_players/' + sanitizedUserId).set({
                             x: playerGroup.position.x,
                             y: playerGroup.position.y,
                             z: playerGroup.position.z,
-                            rotY: playerGroup.rotation.y
+                            rotY: playerGroup.rotation.y,
+                            cust: playerCustomization
                         });
                     }
                 } else {
+                    if (touchMarker) touchMarker.visible = false;
                     if (playerGroup.userData.lLeg) {
                         playerGroup.userData.lLeg.rotation.x = 0;
                         playerGroup.userData.rLeg.rotation.x = 0;
@@ -454,7 +649,7 @@
                     }
                 }
 
-                // Câmera sempre acompanha o jogador por onde ele andar
+                // Câmera acompanha o jogador
                 camera.position.set(playerGroup.position.x, playerGroup.position.y + 6, playerGroup.position.z + 10);
                 camera.lookAt(playerGroup.position);
             }
@@ -462,7 +657,7 @@
             renderer.render(scene, camera);
         }
 
-        // Sincronizar demais jogadores no mapa
+        // Sincronizar demais jogadores no mapa com a direção e vestuário corretos
         function initMultiplayerSync() {
             const playersRef = db.ref('game_players');
             playersRef.on('value', (snapshot) => {
@@ -473,17 +668,16 @@
                     const pData = data[uid];
 
                     if (!otherPlayersMeshes[uid]) {
-                        const mesh = createCharacterMesh();
+                        const mesh = createCharacterMesh(pData.cust || {});
                         scene.add(mesh);
                         otherPlayersMeshes[uid] = mesh;
                     }
 
                     const otherMesh = otherPlayersMeshes[uid];
                     otherMesh.position.set(pData.x, pData.y, pData.z);
-                    otherMesh.rotation.y = pData.rotY;
+                    otherMesh.rotation.y = pData.rotY; // Direção exata para onde o jogador aponta
                 });
 
-                // Remover jogadores desconectados
                 Object.keys(otherPlayersMeshes).forEach((uid) => {
                     if (!data[uid]) {
                         scene.remove(otherPlayersMeshes[uid]);
