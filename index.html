@@ -47,7 +47,7 @@
                         <i class="fa-solid fa-fingerprint animate-pulse"></i>
                     </div>
                     <h1 class="text-2xl font-bold tracking-tight">Acesso ao Jogo</h1>
-                    <p class="text-slate-400 text-sm max-w-[260px] mx-auto">Autentique com sua digital para carregar seu personagem, carro e carteira Omni.</p>
+                    <p class="text-slate-400 text-sm max-w-[260px] mx-auto">Autentique com sua digital para carregar seu personagem e carteira Omni.</p>
                 </div>
 
                 <div class="space-y-4 my-auto">
@@ -74,23 +74,6 @@
                         <i class="fa-solid fa-wallet text-violet-400 text-xs"></i>
                         <span id="game-balance" class="text-xs font-extrabold text-white">0,00 Omni</span>
                     </div>
-                    <button onclick="toggleVehicleEntry()" id="vehicle-btn" class="pointer-events-auto bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow-lg transition">
-                        Entrar no Carro
-                    </button>
-                </div>
-
-                <!-- Joystick Virtual na Tela para Controle -->
-                <div class="absolute bottom-6 left-6 z-10 flex flex-col items-center select-none">
-                    <div id="joystick-base" class="w-28 h-28 bg-slate-800/40 backdrop-blur rounded-full border border-slate-600/40 relative flex items-center justify-center touch-none">
-                        <div id="joystick-stick" class="w-12 h-12 bg-violet-500/80 rounded-full shadow-lg absolute transition-all duration-75"></div>
-                    </div>
-                </div>
-
-                <!-- Botões de Ação (Acelerar / Pular / Sair) -->
-                <div class="absolute bottom-6 right-6 z-10 flex flex-col gap-2">
-                    <button onclick="triggerActionBtn()" id="action-btn" class="w-14 h-14 bg-violet-600/80 hover:bg-violet-500 text-white rounded-full flex items-center justify-center shadow-xl font-bold text-xs backdrop-blur border border-violet-400/40">
-                        AÇÃO
-                    </button>
                 </div>
             </div>
 
@@ -179,14 +162,15 @@
 
         let currentCredentialId = null;
         let currentUserKey = null;
+        let sanitizedUserId = null;
 
         // Variáveis do Jogo 3D (Three.js)
         let scene, camera, renderer;
-        let playerGroup, carGroup;
-        let wheels = [];
-        let isDriving = false;
-        let moveJoystick = { x: 0, y: 0 };
+        let playerGroup;
+        let leftLeg, rightLeg, leftArm, rightArm;
         let animStep = 0;
+        let targetPosition = null;
+        let otherPlayersMeshes = {};
 
         function generateOmniKey() {
             const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -258,27 +242,27 @@
         }
 
         function checkOrCreateAccount(credId) {
-            const sanitizedId = credId.replace(/[.#$\/\[\]]/g, '_');
-            const userRef = db.ref('bank_users/' + sanitizedId);
+            sanitizedUserId = credId.replace(/[.#$\/\[\]]/g, '_');
+            const userRef = db.ref('bank_users/' + sanitizedUserId);
 
             userRef.once('value', (snapshot) => {
                 if (snapshot.exists()) {
                     const userData = snapshot.val();
                     currentUserKey = userData.key;
-                    loadDashboard(userData.balance, userData.key, sanitizedId);
+                    loadDashboard(userData.balance, userData.key);
                 } else {
                     const newKey = generateOmniKey();
                     userRef.set({ balance: 500, key: newKey, createdAt: Date.now() }, (error) => {
                         if (!error) {
                             currentUserKey = newKey;
-                            loadDashboard(500, newKey, sanitizedId);
+                            loadDashboard(500, newKey);
                         }
                     });
                 }
             });
         }
 
-        function loadDashboard(balance, key, sanitizedId) {
+        function loadDashboard(balance, key) {
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('game-screen').classList.remove('hidden');
             document.getElementById('bottom-nav').classList.remove('hidden');
@@ -287,8 +271,7 @@
             document.getElementById('game-balance').innerText = balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + " Omni";
             document.getElementById('user-key-display').innerText = key;
 
-            // Sincronização em tempo real do saldo
-            db.ref('bank_users/' + sanitizedId + '/balance').on('value', (snapshot) => {
+            db.ref('bank_users/' + sanitizedUserId + '/balance').on('value', (snapshot) => {
                 if (snapshot.exists()) {
                     const val = snapshot.val().toLocaleString('pt-BR', { minimumFractionDigits: 2 });
                     document.getElementById('user-balance').innerText = val;
@@ -297,7 +280,8 @@
             });
 
             init3DWorld();
-            initJoystick();
+            initTouchMovement();
+            initMultiplayerSync();
         }
 
         function switchTab(tabName) {
@@ -335,209 +319,178 @@
             renderer.setSize(container.clientWidth, container.clientHeight);
             container.appendChild(renderer.domElement);
 
-            // Luzes
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
             scene.add(ambientLight);
             const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
             dirLight.position.set(10, 20, 10);
             scene.add(dirLight);
 
-            // Chão (Cidade / Rua)
             const floorGeo = new THREE.PlaneGeometry(200, 200);
             const floorMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
             const floor = new THREE.Mesh(floorGeo, floorMat);
             floor.rotation.x = -Math.PI / 2;
             scene.add(floor);
 
-            createPlayerCharacter();
-            createVehicle();
+            playerGroup = createCharacterMesh();
+            playerGroup.position.set(0, 0, 3);
+            scene.add(playerGroup);
+            targetPosition = playerGroup.position.clone();
 
             animateGame();
         }
 
-        // Criar Boneco Completo (Cabeça, Tronco, Braços, Pernas)
-        let leftLeg, rightLeg, leftArm, rightArm;
-        function createPlayerCharacter() {
-            playerGroup = new THREE.Group();
+        // Criar Boneco Completo com Olhos (Branco com ponto preto)
+        function createCharacterMesh() {
+            const group = new THREE.Group();
 
             const skinMat = new THREE.MeshStandardMaterial({ color: 0xfcd34d });
             const clothesMat = new THREE.MeshStandardMaterial({ color: 0x7c3aed });
             const pantsMat = new THREE.MeshStandardMaterial({ color: 0x1e1b4b });
             const hairMat = new THREE.MeshStandardMaterial({ color: 0x451a03 });
+            const eyeWhiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+            const eyeBlackMat = new THREE.MeshStandardMaterial({ color: 0x000000 });
 
             // Cabeça e Cabelo
             const head = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.4), skinMat);
             head.position.y = 1.4;
             const hair = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.15, 0.42), hairMat);
             hair.position.set(0, 1.62, 0);
-            playerGroup.add(head, hair);
+
+            // Olhos (Fundo branco e ponto preto)
+            const leftEyeWhite = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.05), eyeWhiteMat);
+            leftEyeWhite.position.set(-0.1, 1.4, 0.21);
+            const leftPupil = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.03, 0.06), eyeBlackMat);
+            leftPupil.position.set(-0.1, 1.4, 0.22);
+
+            const rightEyeWhite = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.05), eyeWhiteMat);
+            rightEyeWhite.position.set(0.1, 1.4, 0.21);
+            const rightPupil = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.03, 0.06), eyeBlackMat);
+            rightPupil.position.set(0.1, 1.4, 0.22);
+
+            group.add(head, hair, leftEyeWhite, leftPupil, rightEyeWhite, rightPupil);
 
             // Tronco
             const torso = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 0.3), clothesMat);
             torso.position.y = 0.9;
-            playerGroup.add(torso);
+            group.add(torso);
 
             // Braços
-            leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.5, 0.15), clothesMat);
-            leftArm.position.set(-0.35, 0.9, 0);
-            rightArm = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.5, 0.15), clothesMat);
-            rightArm.position.set(0.35, 0.9, 0);
-            playerGroup.add(leftArm, rightArm);
+            const lArm = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.5, 0.15), clothesMat);
+            lArm.position.set(-0.35, 0.9, 0);
+            const rArm = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.5, 0.15), clothesMat);
+            rArm.position.set(0.35, 0.9, 0);
+            group.add(lArm, rArm);
 
             // Pernas
-            leftLeg = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.5, 0.2), pantsMat);
-            leftLeg.position.set(-0.15, 0.3, 0);
-            rightLeg = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.5, 0.2), pantsMat);
-            rightLeg.position.set(0.15, 0.3, 0);
-            playerGroup.add(leftLeg, rightLeg);
+            const lLeg = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.5, 0.2), pantsMat);
+            lLeg.position.set(-0.15, 0.3, 0);
+            const rLeg = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.5, 0.2), pantsMat);
+            rLeg.position.set(0.15, 0.3, 0);
+            group.add(lLeg, rLeg);
 
-            playerGroup.position.set(0, 0, 3);
-            scene.add(playerGroup);
+            group.userData = { lLeg, rLeg, lArm, rArm };
+            return group;
         }
 
-        // Criar Carro (Rodas com rotação, Capô e Corpo)
-        function createVehicle() {
-            carGroup = new THREE.Group();
+        // Toque na tela para mover o personagem até a posição
+        function initTouchMovement() {
+            const container = document.getElementById('game-container');
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+            const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 
-            const carBodyMat = new THREE.MeshStandardMaterial({ color: 0xef4444, metalness: 0.5 });
-            const glassMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.6 });
-            const wheelMat = new THREE.MeshStandardMaterial({ color: 0x0f172a });
+            container.addEventListener('pointerdown', (e) => {
+                const rect = container.getBoundingClientRect();
+                mouse.x = ((e.clientX - rect.left) / container.clientWidth) * 2 - 1;
+                mouse.y = -((e.clientY - rect.top) / container.clientHeight) * 2 + 1;
 
-            // Corpo Inferior e Capô
-            const body = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.5, 2.8), carBodyMat);
-            body.position.y = 0.4;
-            const hood = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.3, 1.0), carBodyMat);
-            hood.position.set(0, 0.65, 0.8);
-            
-            // Teto e Vidros
-            const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.4, 1.4), glassMat);
-            cabin.position.set(0, 0.85, -0.1);
+                raycaster.setFromCamera(mouse, camera);
+                const targetPoint = new THREE.Vector3();
+                raycaster.ray.intersectPlane(plane, targetPoint);
 
-            carGroup.add(body, hood, cabin);
-
-            // Rodas que giram
-            wheels = [];
-            const wheelGeo = new THREE.CylinderGeometry(0.3, 0.3, 0.2, 16);
-            wheelGeo.rotateZ(Math.PI / 2);
-
-            const wheelPos = [
-                [-0.75, 0.3, 1.0], [0.75, 0.3, 1.0],
-                [-0.75, 0.3, -1.0], [0.75, 0.3, -1.0]
-            ];
-
-            wheelPos.forEach(pos => {
-                const wheel = new THREE.Mesh(wheelGeo, wheelMat);
-                wheel.position.set(...pos);
-                carGroup.add(wheel);
-                wheels.push(wheel);
-            });
-
-            carGroup.position.set(4, 0, -3);
-            scene.add(carGroup);
-        }
-
-        // Joystick Virtual Touch / Mouse
-        function initJoystick() {
-            const base = document.getElementById('joystick-base');
-            const stick = document.getElementById('joystick-stick');
-            let isDragging = false;
-            let center = { x: 0, y: 0 };
-
-            base.addEventListener('touchstart', (e) => {
-                isDragging = true;
-                const rect = base.getBoundingClientRect();
-                center = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-            });
-
-            window.addEventListener('touchmove', (e) => {
-                if (!isDragging) return;
-                handleMove(e.touches[0].clientX, e.touches[0].clientY);
-            });
-
-            window.addEventListener('touchend', () => {
-                isDragging = false;
-                moveJoystick = { x: 0, y: 0 };
-                stick.style.transform = `translate(0px, 0px)`;
+                if (targetPoint) {
+                    targetPosition.set(targetPoint.x, 0, targetPoint.z);
+                }
             });
         }
 
-        function handleMove(clientX, clientY) {
-            const base = document.getElementById('joystick-base');
-            const stick = document.getElementById('joystick-stick');
-            const rect = base.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-
-            let dx = clientX - centerX;
-            let dy = clientY - centerY;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            const maxDist = 40;
-
-            if (dist > maxDist) {
-                dx = (dx / dist) * maxDist;
-                dy = (dy / dist) * maxDist;
-            }
-
-            stick.style.transform = `translate(${dx}px, ${dy}px)`;
-            moveJoystick = { x: dx / maxDist, y: dy / maxDist };
-        }
-
-        // Entrar ou Sair do Carro
-        function toggleVehicleEntry() {
-            isDriving = !isDriving;
-            const btn = document.getElementById('vehicle-btn');
-            if (isDriving) {
-                btn.innerText = "Sair do Carro";
-                playerGroup.visible = false;
-            } else {
-                btn.innerText = "Entrar no Carro";
-                playerGroup.position.copy(carGroup.position).add(new THREE.Vector3(2, 0, 0));
-                playerGroup.visible = true;
-            }
-        }
-
-        function triggerActionBtn() {
-            toggleVehicleEntry();
-        }
-
-        // Loop de Animação do Jogo
+        // Loop de Animação e Sincronização do Jogador
         function animateGame() {
             requestAnimationFrame(animateGame);
 
-            if (isDriving) {
-                // Movimentar Carro e Rodas
-                if (moveJoystick.y !== 0 || moveJoystick.x !== 0) {
-                    carGroup.translateZ(-moveJoystick.y * 0.15);
-                    carGroup.rotation.y += moveJoystick.x * 0.04;
+            if (playerGroup && targetPosition) {
+                const dir = new THREE.Vector3().subVectors(targetPosition, playerGroup.position);
+                const dist = dir.length();
 
-                    // Girar rodas do carro
-                    wheels.forEach(w => w.rotation.x -= moveJoystick.y * 0.5);
-                }
-                camera.position.set(carGroup.position.x, carGroup.position.y + 6, carGroup.position.z + 10);
-                camera.lookAt(carGroup.position);
-            } else {
-                // Movimentar Personagem e Animar Pernas/Braços
-                if (moveJoystick.y !== 0 || moveJoystick.x !== 0) {
-                    playerGroup.translateZ(-moveJoystick.y * 0.1);
-                    playerGroup.rotation.y += moveJoystick.x * 0.05;
+                if (dist > 0.1) {
+                    dir.normalize();
+                    playerGroup.position.addScaledVector(dir, 0.08);
+                    playerGroup.lookAt(targetPosition.x, playerGroup.position.y, targetPosition.z);
 
-                    // Animação de caminhada das pernas e braços
+                    // Animação de caminhada idêntica mantida
                     animStep += 0.2;
-                    leftLeg.rotation.x = Math.sin(animStep) * 0.5;
-                    rightLeg.rotation.x = -Math.sin(animStep) * 0.5;
-                    leftArm.rotation.x = -Math.sin(animStep) * 0.5;
-                    rightArm.rotation.x = Math.sin(animStep) * 0.5;
+                    if (playerGroup.userData.lLeg) {
+                        playerGroup.userData.lLeg.rotation.x = Math.sin(animStep) * 0.5;
+                        playerGroup.userData.rLeg.rotation.x = -Math.sin(animStep) * 0.5;
+                        playerGroup.userData.lArm.rotation.x = -Math.sin(animStep) * 0.5;
+                        playerGroup.userData.rArm.rotation.x = Math.sin(animStep) * 0.5;
+                    }
+
+                    // Enviar posição atual para o Firebase
+                    if (Math.random() < 0.3) {
+                        db.ref('game_players/' + sanitizedUserId).set({
+                            x: playerGroup.position.x,
+                            y: playerGroup.position.y,
+                            z: playerGroup.position.z,
+                            rotY: playerGroup.rotation.y
+                        });
+                    }
                 } else {
-                    leftLeg.rotation.x = 0;
-                    rightLeg.rotation.x = 0;
-                    leftArm.rotation.x = 0;
-                    rightArm.rotation.x = 0;
+                    if (playerGroup.userData.lLeg) {
+                        playerGroup.userData.lLeg.rotation.x = 0;
+                        playerGroup.userData.rLeg.rotation.x = 0;
+                        playerGroup.userData.lArm.rotation.x = 0;
+                        playerGroup.userData.rArm.rotation.x = 0;
+                    }
                 }
-                camera.position.set(playerGroup.position.x, playerGroup.position.y + 4, playerGroup.position.z + 7);
+
+                // Câmera sempre acompanha o jogador por onde ele andar
+                camera.position.set(playerGroup.position.x, playerGroup.position.y + 6, playerGroup.position.z + 10);
                 camera.lookAt(playerGroup.position);
             }
 
             renderer.render(scene, camera);
+        }
+
+        // Sincronizar demais jogadores no mapa
+        function initMultiplayerSync() {
+            const playersRef = db.ref('game_players');
+            playersRef.on('value', (snapshot) => {
+                const data = snapshot.val() || {};
+                
+                Object.keys(data).forEach((uid) => {
+                    if (uid === sanitizedUserId) return;
+                    const pData = data[uid];
+
+                    if (!otherPlayersMeshes[uid]) {
+                        const mesh = createCharacterMesh();
+                        scene.add(mesh);
+                        otherPlayersMeshes[uid] = mesh;
+                    }
+
+                    const otherMesh = otherPlayersMeshes[uid];
+                    otherMesh.position.set(pData.x, pData.y, pData.z);
+                    otherMesh.rotation.y = pData.rotY;
+                });
+
+                // Remover jogadores desconectados
+                Object.keys(otherPlayersMeshes).forEach((uid) => {
+                    if (!data[uid]) {
+                        scene.remove(otherPlayersMeshes[uid]);
+                        delete otherPlayersMeshes[uid];
+                    }
+                });
+            });
         }
 
         // --- SISTEMA DE TRANSFERÊNCIA BANCÁRIA ---
@@ -557,7 +510,6 @@
                 return;
             }
 
-            const sanitizedSenderId = currentCredentialId.replace(/[.#$\/\[\]]/g, '_');
             const usersRef = db.ref('bank_users');
 
             try {
@@ -577,7 +529,7 @@
                     return;
                 }
 
-                const senderRef = db.ref('bank_users/' + sanitizedSenderId);
+                const senderRef = db.ref('bank_users/' + sanitizedUserId);
                 const receiverRef = db.ref('bank_users/' + receiverId);
 
                 const senderSnap = await senderRef.once('value');
@@ -599,6 +551,9 @@
         }
 
         function logout() {
+            if (sanitizedUserId) {
+                db.ref('game_players/' + sanitizedUserId).remove();
+            }
             location.reload();
         }
     </script>
