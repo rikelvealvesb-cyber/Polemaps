@@ -40,7 +40,7 @@
         <!-- CONTEÚDO PRINCIPAL -->
         <div class="flex-1 flex flex-col p-6 overflow-y-auto">
 
-            <!-- 1. TELA DE LOGIN / BIOMETRIA EXIBIDA EXCLUSIVAMENTE -->
+            <!-- 1. TELA DE LOGIN / BIOMETRIA -->
             <div id="auth-screen" class="flex-1 flex flex-col justify-between py-6">
                 <div class="text-center space-y-3 mt-8">
                     <div class="w-20 h-20 bg-violet-600/10 border border-violet-500/20 rounded-3xl mx-auto flex items-center justify-center text-violet-400 text-3xl shadow-2xl mb-6">
@@ -91,7 +91,7 @@
                     </div>
                 </div>
 
-                <!-- Ações Rápidas (Botões de Transação) -->
+                <!-- Ações Rápidas -->
                 <div class="grid grid-cols-2 gap-3">
                     <button onclick="openTab('pay')" class="bg-slate-800 hover:bg-slate-700/80 p-4 rounded-2xl border border-slate-700/60 flex flex-col items-center justify-center gap-2 transition-all group">
                         <div class="w-12 h-12 rounded-xl bg-violet-600/10 text-violet-400 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -107,7 +107,7 @@
                     </button>
                 </div>
 
-                <!-- Área Dinâmica de Ações (Transferência / QR Scanner) -->
+                <!-- Área Dinâmica de Ações -->
                 <div id="action-area" class="bg-slate-800/60 p-5 rounded-3xl border border-slate-700/50 space-y-4">
                     <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
                         <i class="fa-solid fa-bolt text-violet-400"></i> Transferir Omni para Conta
@@ -128,14 +128,12 @@
                         </button>
                     </div>
 
-                    <!-- Div do Leitor de Câmera (Inicialmente Oculta) -->
                     <div id="reader-container" class="hidden space-y-3 pt-2">
                         <div id="reader" class="w-full rounded-2xl overflow-hidden border border-slate-700"></div>
                         <button onclick="stopScanner()" class="w-full bg-rose-600/20 text-rose-400 border border-rose-500/30 p-2.5 rounded-xl text-xs font-semibold">Fechar Câmera</button>
                     </div>
                 </div>
 
-                <!-- Botão de Sair / Bloquear Sessão -->
                 <div class="pt-2">
                     <button onclick="logout()" class="w-full text-slate-500 hover:text-rose-400 text-xs font-medium transition py-2 flex items-center justify-center gap-1.5">
                         <i class="fa-solid fa-lock"></i> Bloquear Sessão Bancária
@@ -148,7 +146,6 @@
 
     <!-- Script de Lógica do Sistema Bancário Omni -->
     <script>
-        // Configuração do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyCTkqOuXy5kHgN9Nrj9--Dooh8cuguYxPE",
             authDomain: "subjectrobot-49600.firebaseapp.com",
@@ -166,7 +163,6 @@
         let currentUserKey = null;
         let html5QrCode = null;
 
-        // Gerar chave pay aleatória única no formato do banco
         function generateOmniKey() {
             const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
             let key = 'omni_';
@@ -176,7 +172,7 @@
             return key;
         }
 
-        // Sistema de Biometria Real (Exige verificação de hardware estrita)
+        // Biometria otimizada para reutilizar a mesma conta do aparelho
         async function handleBiometricAuth() {
             const errorEl = document.getElementById('auth-error');
             errorEl.classList.add('hidden');
@@ -189,21 +185,32 @@
             try {
                 const challenge = new Uint8Array(32);
                 window.crypto.getRandomValues(challenge);
-                const userIdRandom = new Uint8Array(16);
-                window.crypto.getRandomValues(userIdRandom);
+                
+                let savedCredIdHex = localStorage.getItem('omni_cred_id');
+                let credential = null;
 
-                // Tenta fazer o login utilizando uma credencial existente no dispositivo
-                let credential;
-                try {
-                    credential = await navigator.credentials.get({
-                        publicKey: {
-                            challenge: challenge,
-                            timeout: 60000,
-                            userVerification: "required"
-                        }
-                    });
-                } catch (err) {
-                    // Se não existir nenhuma credencial cadastrada, criamos uma nova vinculada à biometria do usuário
+                if (savedCredIdHex) {
+                    // Tenta autenticar usando a credencial já salva no aparelho
+                    try {
+                        const rawIdBytes = new Uint8Array(savedCredIdHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+                        credential = await navigator.credentials.get({
+                            publicKey: {
+                                challenge: challenge,
+                                timeout: 60000,
+                                userVerification: "required",
+                                allowCredentials: [{ type: "public-key", id: rawIdBytes }]
+                            }
+                        });
+                    } catch (e) {
+                        console.log("Credencial anterior não encontrada no hardware, criando nova...");
+                    }
+                }
+
+                if (!credential) {
+                    // Se não houver credencial salva ou falhar, cria uma nova conta vinculada à biometria
+                    const userIdRandom = new Uint8Array(16);
+                    window.crypto.getRandomValues(userIdRandom);
+
                     credential = await navigator.credentials.create({
                         publicKey: {
                             challenge: challenge,
@@ -221,6 +228,11 @@
                             timeout: 60000
                         }
                     });
+
+                    if (credential) {
+                        const credIdHex = Array.from(new Uint8Array(credential.rawId)).map(b => b.toString(16).padStart(2, '0')).join('');
+                        localStorage.setItem('omni_cred_id', credIdHex);
+                    }
                 }
 
                 if (credential) {
@@ -233,12 +245,11 @@
 
             } catch (error) {
                 console.error(error);
-                errorEl.innerText = "Autenticação biométrica falhou ou foi cancelada pelo usuário.";
+                errorEl.innerText = "Autenticação biométrica falhou ou foi cancelada.";
                 errorEl.classList.remove('hidden');
             }
         }
 
-        // Verificar se a conta existe no Firebase, se não, criar com 100 Omni e chave gerada
         function checkOrCreateAccount(credId) {
             const sanitizedId = credId.replace(/[.#$\/\[\]]/g, '_');
             const userRef = db.ref('bank_users/' + sanitizedId);
@@ -260,7 +271,7 @@
                         if (!error) {
                             currentUserKey = newKey;
                             loadDashboard(100, newKey);
-                            alert("Conta Omni criada com sucesso! 100 Omni adicionados como bônus de boas-vindas.");
+                            alert("Conta Omni criada com sucesso! 100 Omni adicionados como bônus.");
                         } else {
                             alert("Erro ao conectar com o banco de dados.");
                         }
@@ -330,8 +341,8 @@
             }
         }
 
-        // Sistema de Transferências Atômicas entre Contas no Firebase
-        function makePayment() {
+        // Sistema de Transferências Corrigido (Busca Direta por Chave no Firebase)
+        async function makePayment() {
             const targetKey = document.getElementById('target-key').value.trim();
             const amount = parseFloat(document.getElementById('pay-amount').value);
 
@@ -346,55 +357,61 @@
             }
 
             const sanitizedSenderId = currentCredentialId.replace(/[.#$\/\[\]]/g, '_');
-            const rootRef = db.ref();
+            const usersRef = db.ref('bank_users');
 
-            rootRef.transaction((currentData) => {
-                if (!currentData || !currentData.bank_users) {
-                    alert("Erro de conexão com o banco de dados do Omni Bank.");
+            try {
+                // Localiza o destinatário com base na Chave Pay informada
+                const snapshot = await usersRef.once('value');
+                if (!snapshot.exists()) {
+                    alert("Erro: Nenhuma conta encontrada no banco de dados.");
                     return;
                 }
 
-                let senderPath = null;
-                let receiverPath = null;
+                let receiverId = null;
+                const allUsers = snapshot.val();
 
-                // Varre as contas para localizar o remetente e a chave do destinatário
-                for (let uid in currentData.bank_users) {
-                    if (uid === sanitizedSenderId) senderPath = uid;
-                    if (currentData.bank_users[uid].key === targetKey) receiverPath = uid;
+                for (let uid in allUsers) {
+                    if (allUsers[uid].key === targetKey) {
+                        receiverId = uid;
+                        break;
+                    }
                 }
 
-                if (!senderPath) {
-                    alert("Conta do remetente não encontrada.");
-                    return;
-                }
-
-                if (!receiverPath) {
+                if (!receiverId) {
                     alert("A Chave Pay informada não pertence a nenhuma conta cadastrada no Omni Bank!");
                     return;
                 }
 
-                let senderBalance = currentData.bank_users[senderPath].balance;
-                if (senderBalance < amount) {
+                const senderRef = db.ref('bank_users/' + sanitizedSenderId);
+                const receiverRef = db.ref('bank_users/' + receiverId);
+
+                const senderSnap = await senderRef.once('value');
+                const senderData = senderSnap.val();
+
+                if (!senderData || senderData.balance < amount) {
                     alert("Saldo Omni insuficiente para concluir esta transferência.");
                     return;
                 }
 
-                // Executa a operação de débito e crédito de forma segura e sincronizada
-                currentData.bank_users[senderPath].balance -= amount;
-                currentData.bank_users[receiverPath].balance += amount;
+                const receiverSnap = await receiverRef.once('value');
+                const receiverData = receiverSnap.val();
 
-                return currentData;
-            }, (error, committed) => {
-                if (committed) {
-                    alert("Transferência de Omni realizada com sucesso para a conta destino!");
-                    location.reload();
-                } else if (error) {
-                    alert("Erro na transação: " + error);
-                }
-            });
+                // Atualiza os saldos de forma segura
+                const newSenderBalance = senderData.balance - amount;
+                const newReceiverBalance = receiverData.balance + amount;
+
+                await senderRef.update({ balance: newSenderBalance });
+                await receiverRef.update({ balance: newReceiverBalance });
+
+                alert("Transferência de Omni realizada com sucesso!");
+                location.reload();
+
+            } catch (error) {
+                console.error(error);
+                alert("Erro ao realizar a transação: " + error.message);
+            }
         }
 
-        // Leitor de QR Code integrado com a câmera
         function startScanner() {
             const container = document.getElementById('reader-container');
             container.classList.remove('hidden');
@@ -408,7 +425,7 @@
                     openTab('pay');
                     setTimeout(() => {
                         document.getElementById('target-key').value = decodedText;
-                        alert("QR Code lido com sucesso! Chave do destinatário preenchida.");
+                        alert("QR Code lido com sucesso! Chave preenchida.");
                     }, 200);
                 },
                 (errorMessage) => {}
