@@ -40,26 +40,26 @@
         <!-- CONTEÚDO PRINCIPAL -->
         <div class="flex-1 flex flex-col p-6 overflow-y-auto">
 
-            <!-- 1. TELA DE LOGIN / BIOMETRIA EXCLUSIVA -->
+            <!-- 1. TELA DE LOGIN / BIOMETRIA EXIBIDA EXCLUSIVAMENTE -->
             <div id="auth-screen" class="flex-1 flex flex-col justify-between py-6">
                 <div class="text-center space-y-3 mt-8">
                     <div class="w-20 h-20 bg-violet-600/10 border border-violet-500/20 rounded-3xl mx-auto flex items-center justify-center text-violet-400 text-3xl shadow-2xl mb-6">
                         <i class="fa-solid fa-fingerprint animate-pulse"></i>
                     </div>
                     <h1 class="text-2xl font-bold tracking-tight">Acesso Bancário</h1>
-                    <p class="text-slate-400 text-sm max-w-[260px] mx-auto">Utilize sua biometria digital para acessar sua conta Omni com total segurança.</p>
+                    <p class="text-slate-400 text-sm max-w-[260px] mx-auto">Encoste o dedo no sensor biométrico do seu celular para autenticar e entrar na sua conta.</p>
                 </div>
 
                 <div class="space-y-4 my-auto">
-                    <button onclick="handleBiometricLogin()" class="w-full group relative bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-semibold p-4 rounded-2xl shadow-xl shadow-indigo-600/20 transition-all duration-300 flex items-center justify-center gap-3">
+                    <button onclick="handleBiometricAuth()" class="w-full group relative bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-semibold p-4 rounded-2xl shadow-xl shadow-indigo-600/20 transition-all duration-300 flex items-center justify-center gap-3">
                         <i class="fa-solid fa-fingerprint text-2xl group-hover:scale-110 transition-transform"></i>
-                        <span>Entrar com Digital</span>
+                        <span>Autenticar com Digital</span>
                     </button>
                     <p id="auth-error" class="text-rose-400 text-xs text-center hidden"></p>
                 </div>
 
                 <div class="text-center text-xs text-slate-500">
-                    <i class="fa-solid fa-shield-halved mr-1"></i> Criptografia Bancária de Ponta a Ponta
+                    <i class="fa-solid fa-shield-halved mr-1"></i> Protegido por Biometria e Criptografia
                 </div>
             </div>
 
@@ -110,7 +110,7 @@
                 <!-- Área Dinâmica de Ações (Transferência / QR Scanner) -->
                 <div id="action-area" class="bg-slate-800/60 p-5 rounded-3xl border border-slate-700/50 space-y-4">
                     <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
-                        <i class="fa-solid fa-bolt text-violet-400"></i> Transferir Omni
+                        <i class="fa-solid fa-bolt text-violet-400"></i> Transferir Omni para Conta
                     </h3>
                     
                     <div class="space-y-3">
@@ -176,45 +176,66 @@
             return key;
         }
 
-        // Login por Biometria otimizado
-        async function handleBiometricLogin() {
+        // Sistema de Biometria Real (Exige verificação de hardware estrita)
+        async function handleBiometricAuth() {
             const errorEl = document.getElementById('auth-error');
             errorEl.classList.add('hidden');
 
-            let userId = null;
+            if (!window.PublicKeyCredential) {
+                alert("Seu navegador não suporta autenticação biométrica.");
+                return;
+            }
 
-            if (window.PublicKeyCredential && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+            try {
+                const challenge = new Uint8Array(32);
+                window.crypto.getRandomValues(challenge);
+                const userIdRandom = new Uint8Array(16);
+                window.crypto.getRandomValues(userIdRandom);
+
+                // Tenta fazer o login utilizando uma credencial existente no dispositivo
+                let credential;
                 try {
-                    const challenge = new Uint8Array(32);
-                    window.crypto.getRandomValues(challenge);
-
-                    const credential = await navigator.credentials.get({
+                    credential = await navigator.credentials.get({
                         publicKey: {
                             challenge: challenge,
-                            timeout: 30000,
+                            timeout: 60000,
                             userVerification: "required"
                         }
                     });
-
-                    if (credential) {
-                        userId = btoa(String.fromCharCode(...new Uint8Array(credential.rawId)));
-                    }
-                } catch (error) {
-                    console.log("Biometria física não configurada, usando ID seguro local do aparelho.");
+                } catch (err) {
+                    // Se não existir nenhuma credencial cadastrada, criamos uma nova vinculada à biometria do usuário
+                    credential = await navigator.credentials.create({
+                        publicKey: {
+                            challenge: challenge,
+                            rp: { name: "Omni Bank Digital" },
+                            user: {
+                                id: userIdRandom,
+                                name: "cliente_omni",
+                                displayName: "Cliente Omni Bank"
+                            },
+                            pubKeyCredParams: [{ alg: -7, type: "public-key" }],
+                            authenticatorSelection: {
+                                authenticatorAttachment: "platform",
+                                userVerification: "required"
+                            },
+                            timeout: 60000
+                        }
+                    });
                 }
-            }
 
-            // Fallback seguro se não houver biometria ativa ou hardware compatível no ambiente local
-            if (!userId) {
-                userId = localStorage.getItem('omni_device_id');
-                if (!userId) {
-                    userId = 'omni_user_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-                    localStorage.setItem('omni_device_id', userId);
+                if (credential) {
+                    const credentialId = btoa(String.fromCharCode(...new Uint8Array(credential.rawId)));
+                    currentCredentialId = credentialId;
+                    checkOrCreateAccount(credentialId);
+                } else {
+                    throw new Error("Autenticação cancelada.");
                 }
-            }
 
-            currentCredentialId = userId;
-            checkOrCreateAccount(userId);
+            } catch (error) {
+                console.error(error);
+                errorEl.innerText = "Autenticação biométrica falhou ou foi cancelada pelo usuário.";
+                errorEl.classList.remove('hidden');
+            }
         }
 
         // Verificar se a conta existe no Firebase, se não, criar com 100 Omni e chave gerada
@@ -239,7 +260,7 @@
                         if (!error) {
                             currentUserKey = newKey;
                             loadDashboard(100, newKey);
-                            alert("Bem-vindo ao Omni Bank! Conta criada com sucesso e 100 Omni depositados como bônus.");
+                            alert("Conta Omni criada com sucesso! 100 Omni adicionados como bônus de boas-vindas.");
                         } else {
                             alert("Erro ao conectar com o banco de dados.");
                         }
@@ -268,7 +289,7 @@
                 stopScanner();
                 actionArea.innerHTML = `
                     <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
-                        <i class="fa-solid fa-bolt text-violet-400"></i> Transferir Omni
+                        <i class="fa-solid fa-bolt text-violet-400"></i> Transferir Omni para Conta
                     </h3>
                     <div class="space-y-3">
                         <div>
@@ -309,7 +330,7 @@
             }
         }
 
-        // Realizar pagamento buscando pelo Firebase e atualizando saldos de forma atômica
+        // Sistema de Transferências Atômicas entre Contas no Firebase
         function makePayment() {
             const targetKey = document.getElementById('target-key').value.trim();
             const amount = parseFloat(document.getElementById('pay-amount').value);
@@ -320,7 +341,7 @@
             }
 
             if (targetKey === currentUserKey) {
-                alert("Você não pode transferir para sua própria chave.");
+                alert("Você não pode transferir Omni para a sua própria conta.");
                 return;
             }
 
@@ -329,40 +350,43 @@
 
             rootRef.transaction((currentData) => {
                 if (!currentData || !currentData.bank_users) {
+                    alert("Erro de conexão com o banco de dados do Omni Bank.");
                     return;
                 }
 
                 let senderPath = null;
                 let receiverPath = null;
 
+                // Varre as contas para localizar o remetente e a chave do destinatário
                 for (let uid in currentData.bank_users) {
                     if (uid === sanitizedSenderId) senderPath = uid;
                     if (currentData.bank_users[uid].key === targetKey) receiverPath = uid;
                 }
 
                 if (!senderPath) {
-                    alert("Erro: Conta do remetente não localizada.");
+                    alert("Conta do remetente não encontrada.");
                     return;
                 }
 
                 if (!receiverPath) {
-                    alert("Chave Pay do destinatário não encontrada no sistema Omni!");
+                    alert("A Chave Pay informada não pertence a nenhuma conta cadastrada no Omni Bank!");
                     return;
                 }
 
                 let senderBalance = currentData.bank_users[senderPath].balance;
                 if (senderBalance < amount) {
-                    alert("Saldo Omni insuficiente para realizar esta transferência.");
+                    alert("Saldo Omni insuficiente para concluir esta transferência.");
                     return;
                 }
 
+                // Executa a operação de débito e crédito de forma segura e sincronizada
                 currentData.bank_users[senderPath].balance -= amount;
                 currentData.bank_users[receiverPath].balance += amount;
 
                 return currentData;
-            }, (error, committed, snapshot) => {
+            }, (error, committed) => {
                 if (committed) {
-                    alert("Transferência realizada com sucesso!");
+                    alert("Transferência de Omni realizada com sucesso para a conta destino!");
                     location.reload();
                 } else if (error) {
                     alert("Erro na transação: " + error);
@@ -370,7 +394,7 @@
             });
         }
 
-        // Leitor de QR Code integrado com a câmera usando html5-qrcode
+        // Leitor de QR Code integrado com a câmera
         function startScanner() {
             const container = document.getElementById('reader-container');
             container.classList.remove('hidden');
@@ -384,7 +408,7 @@
                     openTab('pay');
                     setTimeout(() => {
                         document.getElementById('target-key').value = decodedText;
-                        alert("QR Code escaneado com sucesso! Chave inserida.");
+                        alert("QR Code lido com sucesso! Chave do destinatário preenchida.");
                     }, 200);
                 },
                 (errorMessage) => {}
