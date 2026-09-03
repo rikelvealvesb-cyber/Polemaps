@@ -1,1024 +1,2733 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FJU Conexão | Portal CyberJovem</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+<meta charset="UTF-8">
 
-    <style>
-        :root {
-            --neon-red: #ff0055;
-            --neon-blue: #00f3ff;
-            --neon-gold: #ffcc00;
-            --bg-dark: #0a0b10;
-            --card-bg: rgba(18, 20, 32, 0.85);
-            --border-cyber: rgba(0, 243, 255, 0.3);
-            --text-main: #e2e8f0;
-            --text-secondary: #94a3b8;
-            --success: #00ff66;
-        }
+<meta
+    name="viewport"
+    content="width=device-width,
+    initial-scale=1.0,
+    maximum-scale=1.0,
+    user-scalable=no,
+    viewport-fit=cover"
+>
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Rajdhani', sans-serif;
-        }
+<title>VibeChat</title>
 
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(255, 0, 85, 0.08) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(0, 243, 255, 0.08) 0%, transparent 40%);
-        }
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
-        header {
-            background: rgba(10, 11, 16, 0.95);
-            border-bottom: 2px solid var(--border-cyber);
-            padding: 0.8rem 1.2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            backdrop-filter: blur(10px);
-        }
+<style>
 
-        .logo-area {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+}
 
-        .logo-icon {
-            background: linear-gradient(135deg, var(--neon-red), var(--neon-blue));
-            color: white;
-            width: 42px;
-            height: 42px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.3rem;
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
-        }
+html,
+body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#08090d;
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Arial,
+        sans-serif;
+    color:#fff;
+}
 
-        .logo-text {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.1rem;
-            font-weight: 900;
-            color: white;
-            letter-spacing: 1px;
-        }
+button,
+input{
+    font-family:inherit;
+}
 
-        .logo-text span {
-            font-size: 0.65rem;
-            color: var(--neon-blue);
-            display: block;
-            letter-spacing: 2px;
-        }
+button{
+    border:none;
+    outline:none;
+}
 
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 0.85rem;
-        }
+/* =====================================================
+   SPLASH
+===================================================== */
 
-        .user-badges {
-            display: flex;
-            flex-direction: column;
-            text-align: right;
-        }
+#splash{
 
-        .currency-row {
-            display: flex;
-            gap: 8px;
-            justify-content: flex-end;
-            font-size: 0.8rem;
-            font-weight: 700;
-        }
+    position:fixed;
 
-        .btn {
-            background: linear-gradient(135deg, var(--neon-blue), #0066ff);
-            color: #000;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.3s;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            font-family: 'Orbitron', sans-serif;
-            box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
-        }
+    inset:0;
 
-        .btn:hover {
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.6);
-            transform: translateY(-1px);
-        }
+    z-index:999;
 
-        .btn-outline {
-            background: transparent;
-            border: 1px solid var(--neon-red);
-            color: var(--neon-red);
-        }
+    display:flex;
 
-        .btn-outline:hover {
-            background: var(--neon-red);
-            color: white;
-        }
+    flex-direction:column;
 
-        main {
-            flex: 1;
-            max-width: 650px;
-            width: 100%;
-            margin: 0 auto;
-            padding: 1rem;
-        }
+    align-items:center;
 
-        .hidden {
-            display: none !important;
-        }
+    justify-content:center;
 
-        /* Auth Screen */
-        .auth-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 80vh;
-        }
+    background:
+        radial-gradient(
+            circle at 50% 25%,
+            rgba(125,92,255,.25),
+            transparent 35%
+        ),
+        #08090d;
 
-        .auth-card {
-            background: var(--card-bg);
-            padding: 2rem;
-            border-radius: 14px;
-            width: 100%;
-            border: 1px solid var(--border-cyber);
-            box-shadow: 0 0 30px rgba(0, 243, 255, 0.15);
-            backdrop-filter: blur(10px);
-        }
+}
 
-        .auth-card h2 {
-            font-family: 'Orbitron', sans-serif;
-            margin-bottom: 1.5rem;
-            text-align: center;
-            color: var(--neon-blue);
-            font-size: 1.3rem;
-            text-transform: uppercase;
-        }
+.splashLogo{
 
-        .form-group {
-            margin-bottom: 1.1rem;
-        }
+    width:82px;
 
-        .form-group label {
-            display: block;
-            margin-bottom: 0.4rem;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            font-weight: 600;
-        }
+    height:82px;
 
-        .form-group input {
-            width: 100%;
-            padding: 0.8rem;
-            border-radius: 8px;
-            border: 1px solid var(--border-cyber);
-            background: rgba(0, 0, 0, 0.5);
-            color: white;
-            font-size: 0.95rem;
-        }
+    border-radius:27px;
 
-        .auth-card .btn {
-            width: 100%;
-            margin-top: 1rem;
-            padding: 0.8rem;
-            font-size: 0.9rem;
-        }
+    display:flex;
 
-        .auth-switch {
-            text-align: center;
-            margin-top: 1.2rem;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
+    align-items:center;
 
-        .auth-switch a {
-            color: var(--neon-blue);
-            text-decoration: none;
-            font-weight: 700;
-        }
+    justify-content:center;
 
-        /* Cyber Cards */
-        .card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 1.2rem;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            margin-bottom: 1.2rem;
-            border: 1px solid var(--border-cyber);
-            backdrop-filter: blur(8px);
-        }
+    font-size:38px;
 
-        .card h3 {
-            font-family: 'Orbitron', sans-serif;
-            margin-bottom: 0.8rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            color: var(--neon-blue);
-            font-size: 1rem;
-            border-bottom: 1px solid var(--border-cyber);
-            padding-bottom: 0.5rem;
-        }
+    background:
+        linear-gradient(
+            135deg,
+            #7355f4,
+            #a865ff
+        );
 
-        .hearts-display {
-            font-size: 0.9rem;
-            color: var(--neon-red);
-        }
+    box-shadow:
+        0 20px 60px
+        rgba(123,89,255,.35);
 
-        /* Quiz */
-        .question-box {
-            font-size: 1.05rem;
-            margin-bottom: 1rem;
-            font-weight: 600;
-            color: white;
-        }
+    animation:
+        splashPulse 1.6s infinite;
 
-        .options-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
+}
 
-        .option-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-cyber);
-            color: white;
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            text-align: left;
-            cursor: pointer;
-            transition: 0.2s;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
+.splashTitle{
 
-        .option-btn:hover:not(:disabled) {
-            background: rgba(0, 243, 255, 0.15);
-            border-color: var(--neon-blue);
-        }
+    margin-top:18px;
 
-        .option-btn.correct {
-            background: rgba(0, 255, 102, 0.2) !important;
-            border-color: var(--success) !important;
-            color: var(--success) !important;
-        }
+    font-size:29px;
 
-        .option-btn.incorrect {
-            background: rgba(255, 0, 85, 0.2) !important;
-            border-color: var(--neon-red) !important;
-            color: var(--neon-red) !important;
-        }
+    font-weight:800;
 
-        .streak-status-box {
-            background: rgba(255, 204, 0, 0.08);
-            border: 1px dashed var(--neon-gold);
-            padding: 0.8rem;
-            border-radius: 8px;
-            text-align: center;
-            margin-top: 1rem;
-            font-size: 0.85rem;
-            color: var(--neon-gold);
-        }
+}
 
-        .streak-timer {
-            font-weight: 700;
-            font-size: 1.05rem;
-            color: white;
-        }
+.splashTitle span{
 
-        /* Seção de Baús Cyber */
-        .chests-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-top: 10px;
-        }
+    color:#9c75ff;
 
-        .chest-box {
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid var(--border-cyber);
-            border-radius: 10px;
-            padding: 0.8rem;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.3s;
-        }
+}
 
-        .chest-box:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
-        }
+.splashText{
 
-        .chest-icon {
-            font-size: 2rem;
-            margin-bottom: 5px;
-        }
+    margin-top:8px;
 
-        .chest-comum { color: #aaa; }
-        .chest-raro { color: var(--neon-blue); }
-        .chest-lendario { color: var(--neon-gold); text-shadow: 0 0 10px var(--neon-gold); }
+    color:#747b8d;
 
-        .chest-name {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.75rem;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
+    font-size:13px;
 
-        .chest-price {
-            font-size: 0.75rem;
-            color: var(--neon-blue);
-            font-weight: bold;
-        }
+}
 
-        /* Cartas de Desafio entre Amigos */
-        .cards-inventory {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            max-height: 180px;
-            overflow-y: auto;
-        }
+@keyframes splashPulse{
 
-        .challenge-card-item {
-            background: rgba(255, 0, 85, 0.08);
-            border: 1px solid var(--neon-red);
-            padding: 0.6rem;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.85rem;
-        }
+    0%,100%{
+        transform:scale(1);
+    }
 
-        /* Competitividade / Arena */
-        .arena-box {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(0, 243, 255, 0.05);
-            padding: 0.8rem;
-            border-radius: 8px;
-            border: 1px solid var(--border-cyber);
-            margin-bottom: 10px;
-            font-size: 0.9rem;
-        }
+    50%{
+        transform:scale(1.06);
+    }
 
-        /* Leaderboard */
-        .leaderboard-list {
-            list-style: none;
-        }
+}
 
-        .leaderboard-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.7rem 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            font-size: 0.9rem;
-        }
 
-        .rank-badge {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: white;
-            font-family: 'Orbitron', sans-serif;
-        }
+/* =====================================================
+   LOGIN
+===================================================== */
 
-        .rank-1 { background: var(--neon-gold); color: black; box-shadow: 0 0 10px var(--neon-gold); }
-        .rank-2 { background: #c0c0c0; color: black; }
-        .rank-3 { background: #cd7f32; color: white; }
+#login{
 
-        .user-stats-pill {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-        }
+    position:fixed;
 
-        .score-val {
-            font-weight: 700;
-            color: var(--neon-blue);
-            background: rgba(0, 243, 255, 0.1);
-            padding: 2px 8px;
-            border-radius: 8px;
-            font-size: 0.75rem;
-        }
+    inset:0;
 
-        footer {
-            text-align: center;
-            padding: 1.2rem;
-            background: rgba(10, 11, 16, 0.9);
-            color: var(--text-secondary);
-            font-size: 0.75rem;
-            border-top: 1px solid var(--border-cyber);
-            margin-top: auto;
-        }
-    </style>
+    display:none;
+
+    align-items:center;
+
+    justify-content:center;
+
+    padding:25px;
+
+    background:
+        radial-gradient(
+            circle at 20% 10%,
+            rgba(124,92,255,.22),
+            transparent 40%
+        ),
+        #08090d;
+
+}
+
+.loginBox{
+
+    width:100%;
+
+    max-width:430px;
+
+}
+
+.loginLogo{
+
+    width:70px;
+
+    height:70px;
+
+    border-radius:23px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    margin:0 auto 22px;
+
+    font-size:32px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #7355f4,
+            #a865ff
+        );
+
+}
+
+.loginBox h1{
+
+    text-align:center;
+
+    font-size:30px;
+
+}
+
+.loginBox h1 span{
+
+    color:#9d77ff;
+
+}
+
+.loginBox p{
+
+    color:#777e8e;
+
+    text-align:center;
+
+    line-height:1.5;
+
+    margin-top:9px;
+
+    margin-bottom:28px;
+
+}
+
+.loginInput{
+
+    width:100%;
+
+    height:56px;
+
+    border-radius:17px;
+
+    border:1px solid #242732;
+
+    background:#11131a;
+
+    color:#fff;
+
+    padding:0 17px;
+
+    font-size:16px;
+
+    outline:none;
+
+}
+
+.loginInput:focus{
+
+    border-color:#7658ed;
+
+}
+
+.loginButton{
+
+    width:100%;
+
+    height:56px;
+
+    margin-top:12px;
+
+    border-radius:17px;
+
+    color:#fff;
+
+    font-size:16px;
+
+    font-weight:700;
+
+    background:
+        linear-gradient(
+            135deg,
+            #7154e7,
+            #a260ff
+        );
+
+}
+
+
+/* =====================================================
+   APP
+===================================================== */
+
+#app{
+
+    display:none;
+
+    position:fixed;
+
+    inset:0;
+
+    background:#08090d;
+
+}
+
+.screen{
+
+    position:absolute;
+
+    inset:0;
+
+    display:none;
+
+    flex-direction:column;
+
+}
+
+.screen.active{
+
+    display:flex;
+
+}
+
+
+/* =====================================================
+   HOME HEADER
+===================================================== */
+
+.homeHeader{
+
+    padding:
+        calc(15px + env(safe-area-inset-top))
+        18px
+        12px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    border-bottom:1px solid #181a22;
+
+}
+
+.logoText{
+
+    font-size:25px;
+
+    font-weight:800;
+
+}
+
+.logoText span{
+
+    color:#9972ff;
+
+}
+
+.headerButtons{
+
+    display:flex;
+
+    gap:7px;
+
+}
+
+.circleButton{
+
+    width:42px;
+
+    height:42px;
+
+    border-radius:14px;
+
+    background:#151720;
+
+    color:#fff;
+
+    font-size:19px;
+
+}
+
+
+/* =====================================================
+   SEARCH
+===================================================== */
+
+.searchArea{
+
+    padding:12px 15px;
+
+}
+
+.searchBox{
+
+    height:45px;
+
+    border-radius:14px;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:9px;
+
+    padding:0 14px;
+
+    background:#12141b;
+
+    border:1px solid #1c1f28;
+
+}
+
+.searchBox span{
+
+    color:#777e8d;
+
+}
+
+.searchBox input{
+
+    flex:1;
+
+    min-width:0;
+
+    border:none;
+
+    outline:none;
+
+    background:none;
+
+    color:white;
+
+    font-size:14px;
+
+}
+
+
+/* =====================================================
+   HOME TABS
+===================================================== */
+
+.tabs{
+
+    display:flex;
+
+    padding:0 15px 10px;
+
+    gap:8px;
+
+}
+
+.tab{
+
+    padding:8px 15px;
+
+    border-radius:20px;
+
+    background:#13151c;
+
+    color:#858b9b;
+
+    font-size:12px;
+
+}
+
+.tab.active{
+
+    color:#fff;
+
+    background:#7355e9;
+
+}
+
+
+/* =====================================================
+   CHAT LIST
+===================================================== */
+
+.chatList{
+
+    flex:1;
+
+    overflow-y:auto;
+
+}
+
+.chat{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:13px;
+
+    padding:12px 17px;
+
+}
+
+.chat:active{
+
+    background:#11131a;
+
+}
+
+.avatar{
+
+    width:53px;
+
+    height:53px;
+
+    flex-shrink:0;
+
+    border-radius:18px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:18px;
+
+    font-weight:800;
+
+    background:
+        linear-gradient(
+            135deg,
+            #5c4bc5,
+            #a866ff
+        );
+
+    position:relative;
+
+}
+
+.avatar.online:after{
+
+    content:"";
+
+    position:absolute;
+
+    width:12px;
+
+    height:12px;
+
+    right:-1px;
+
+    bottom:-1px;
+
+    border-radius:50%;
+
+    background:#32d158;
+
+    border:3px solid #08090d;
+
+}
+
+.chatInfo{
+
+    flex:1;
+
+    min-width:0;
+
+}
+
+.chatName{
+
+    font-size:15px;
+
+    font-weight:700;
+
+}
+
+.chatPreview{
+
+    margin-top:5px;
+
+    color:#777e8e;
+
+    font-size:13px;
+
+    white-space:nowrap;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+}
+
+.chatRight{
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:flex-end;
+
+    gap:6px;
+
+}
+
+.chatTime{
+
+    color:#676d7b;
+
+    font-size:10px;
+
+}
+
+.unread{
+
+    min-width:19px;
+
+    height:19px;
+
+    padding:0 5px;
+
+    border-radius:20px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    background:#7b5af0;
+
+    font-size:10px;
+
+}
+
+
+/* =====================================================
+   BOTTOM NAV
+===================================================== */
+
+.bottomNav{
+
+    min-height:66px;
+
+    padding:
+        5px 12px
+        calc(5px + env(safe-area-inset-bottom));
+
+    border-top:1px solid #181a22;
+
+    background:#0c0e13;
+
+    display:flex;
+
+    justify-content:space-around;
+
+}
+
+.navItem{
+
+    flex:1;
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:4px;
+
+    color:#646a79;
+
+    font-size:10px;
+
+}
+
+.navIcon{
+
+    font-size:21px;
+
+}
+
+.navItem.active{
+
+    color:#9a75ff;
+
+}
+
+
+/* =====================================================
+   CHAT SCREEN
+===================================================== */
+
+.chatScreen{
+
+    background:
+        radial-gradient(
+            circle at 80% 15%,
+            rgba(124,92,255,.05),
+            transparent 35%
+        ),
+        #090a0f;
+
+}
+
+.chatHeader{
+
+    min-height:70px;
+
+    padding:
+        calc(7px + env(safe-area-inset-top))
+        10px
+        7px;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    border-bottom:1px solid #191b23;
+
+    background:#0d0f15;
+
+}
+
+.back{
+
+    width:42px;
+
+    height:42px;
+
+    background:none;
+
+    color:#fff;
+
+    font-size:29px;
+
+}
+
+.chatHeader .avatar{
+
+    width:44px;
+
+    height:44px;
+
+    border-radius:15px;
+
+    font-size:15px;
+
+}
+
+.headerInfo{
+
+    flex:1;
+
+}
+
+.headerName{
+
+    font-size:15px;
+
+    font-weight:700;
+
+}
+
+.headerStatus{
+
+    color:#39d65d;
+
+    font-size:11px;
+
+    margin-top:4px;
+
+}
+
+.headerActions{
+
+    display:flex;
+
+    gap:4px;
+
+}
+
+.headerAction{
+
+    width:40px;
+
+    height:40px;
+
+    border-radius:13px;
+
+    background:#151720;
+
+    color:#fff;
+
+    font-size:18px;
+
+}
+
+
+/* =====================================================
+   MESSAGES
+===================================================== */
+
+.messages{
+
+    flex:1;
+
+    overflow-y:auto;
+
+    padding:18px 12px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:6px;
+
+}
+
+.message{
+
+    max-width:78%;
+
+    padding:9px 12px 7px;
+
+    background:#171a22;
+
+    border-radius:17px;
+
+    border-bottom-left-radius:5px;
+
+    align-self:flex-start;
+
+}
+
+.message.me{
+
+    align-self:flex-end;
+
+    background:
+        linear-gradient(
+            135deg,
+            #7254df,
+            #7959e9
+        );
+
+    border-bottom-left-radius:17px;
+
+    border-bottom-right-radius:5px;
+
+}
+
+.messageText{
+
+    font-size:14px;
+
+    line-height:1.42;
+
+    word-break:break-word;
+
+}
+
+.messageMeta{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:flex-end;
+
+    gap:5px;
+
+    margin-top:3px;
+
+}
+
+.messageTime{
+
+    font-size:9px;
+
+    opacity:.55;
+
+}
+
+.checks{
+
+    font-size:11px;
+
+    opacity:.8;
+
+}
+
+
+/* =====================================================
+   TYPING
+===================================================== */
+
+.typing{
+
+    min-height:20px;
+
+    padding:0 16px;
+
+    color:#777e8e;
+
+    font-size:11px;
+
+}
+
+
+/* =====================================================
+   COMPOSER
+===================================================== */
+
+.composerArea{
+
+    padding:
+        6px 9px
+        calc(9px + env(safe-area-inset-bottom));
+
+    background:#0c0e13;
+
+}
+
+.composer{
+
+    min-height:50px;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:5px;
+
+    padding:4px 5px;
+
+    border-radius:18px;
+
+    background:#171920;
+
+    border:1px solid #22252f;
+
+}
+
+.composeButton{
+
+    width:40px;
+
+    height:40px;
+
+    flex-shrink:0;
+
+    border-radius:13px;
+
+    background:none;
+
+    color:#898f9e;
+
+    font-size:20px;
+
+}
+
+.messageInput{
+
+    flex:1;
+
+    min-width:0;
+
+    border:none;
+
+    outline:none;
+
+    background:none;
+
+    color:#fff;
+
+    font-size:14px;
+
+}
+
+.send{
+
+    background:
+        linear-gradient(
+            135deg,
+            #7355e8,
+            #a35fff
+        );
+
+    color:#fff;
+
+}
+
+
+/* =====================================================
+   PROFILE
+===================================================== */
+
+.profileScreen{
+
+    background:#090a0f;
+
+}
+
+.profileTop{
+
+    padding:
+        calc(15px + env(safe-area-inset-top))
+        18px
+        18px;
+
+    border-bottom:1px solid #191b23;
+
+}
+
+.profileTitle{
+
+    font-size:25px;
+
+    font-weight:800;
+
+}
+
+.profileCard{
+
+    padding:25px 18px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+}
+
+.bigAvatar{
+
+    width:100px;
+
+    height:100px;
+
+    border-radius:31px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:37px;
+
+    font-weight:800;
+
+    background:
+        linear-gradient(
+            135deg,
+            #634ed1,
+            #a866ff
+        );
+
+    margin-bottom:16px;
+
+}
+
+.profileName{
+
+    font-size:21px;
+
+    font-weight:800;
+
+}
+
+.profileUsername{
+
+    color:#777e8e;
+
+    font-size:13px;
+
+    margin-top:5px;
+
+}
+
+.profileOptions{
+
+    padding:5px 15px;
+
+}
+
+.option{
+
+    min-height:58px;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:15px;
+
+    border-bottom:1px solid #171920;
+
+}
+
+.optionIcon{
+
+    width:38px;
+
+    height:38px;
+
+    border-radius:12px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    background:#151720;
+
+}
+
+.optionText{
+
+    flex:1;
+
+    font-size:14px;
+
+}
+
+
+/* =====================================================
+   TOAST
+===================================================== */
+
+#toast{
+
+    position:fixed;
+
+    z-index:1000;
+
+    left:50%;
+
+    bottom:90px;
+
+    transform:
+        translate(-50%,20px);
+
+    opacity:0;
+
+    pointer-events:none;
+
+    padding:11px 16px;
+
+    border-radius:13px;
+
+    background:#20232d;
+
+    color:white;
+
+    font-size:12px;
+
+    transition:.25s;
+
+}
+
+#toast.show{
+
+    opacity:1;
+
+    transform:
+        translate(-50%,0);
+
+}
+
+
+/* =====================================================
+   DESKTOP
+===================================================== */
+
+@media(min-width:700px){
+
+    #app{
+
+        max-width:500px;
+
+        left:50%;
+
+        transform:translateX(-50%);
+
+        box-shadow:
+            0 0 80px
+            rgba(0,0,0,.5);
+
+    }
+
+}
+
+</style>
 </head>
+
 <body>
 
-    <header>
-        <div class="logo-area">
-            <div class="logo-icon"><i class="fa-solid fa-bolt-lightning"></i></div>
-            <div class="logo-text">
-                FJU CYBER
-                <span>Universal Network</span>
-            </div>
+
+<!-- =====================================================
+     SPLASH
+===================================================== -->
+
+<div id="splash">
+
+    <div class="splashLogo">
+        ✦
+    </div>
+
+    <div class="splashTitle">
+        Vibe<span>Chat</span>
+    </div>
+
+    <div class="splashText">
+        Conecte-se com quem importa.
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     LOGIN
+===================================================== -->
+
+<div id="login">
+
+    <div class="loginBox">
+
+        <div class="loginLogo">
+            ✦
         </div>
-        <div class="user-info hidden" id="userInfoSection">
-            <div class="user-badges">
-                <span id="userNameDisplay">CyberJovem</span>
-                <div class="currency-row">
-                    <span><i class="fa-solid fa-star" style="color:var(--neon-blue);"></i> <b id="userScoreDisplay">0</b></span>
-                    <span><i class="fa-solid fa-gem" style="color:var(--neon-red);"></i> <b id="userDiamondDisplay">0</b></span>
-                    <span><i class="fa-solid fa-fire" style="color:var(--neon-gold);"></i> <b id="userStreakDisplay">0</b>d</span>
-                </div>
+
+        <h1>
+            Vibe<span>Chat</span>
+        </h1>
+
+        <p>
+            Seu novo espaço para conversar,
+            compartilhar e ficar conectado.
+        </p>
+
+        <input
+            id="nameInput"
+            class="loginInput"
+            maxlength="25"
+            placeholder="Digite seu nome"
+        >
+
+        <button
+            class="loginButton"
+            onclick="login()"
+        >
+            Começar agora
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     APP
+===================================================== -->
+
+<div id="app">
+
+
+    <!-- HOME -->
+
+    <section
+        id="homeScreen"
+        class="screen active"
+    >
+
+        <header class="homeHeader">
+
+            <div class="logoText">
+                Vibe<span>Chat</span>
             </div>
-            <button class="btn btn-outline" id="logoutBtn">Sair</button>
+
+            <div class="headerButtons">
+
+                <button
+                    class="circleButton"
+                    onclick="newConversation()"
+                >
+                    ＋
+                </button>
+
+                <button
+                    class="circleButton"
+                    onclick="openProfile()"
+                >
+                    ☺
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <div class="searchArea">
+
+            <div class="searchBox">
+
+                <span>⌕</span>
+
+                <input
+                    id="search"
+                    placeholder="Pesquisar conversas"
+                    oninput="filterUsers()"
+                >
+
+            </div>
+
         </div>
-    </header>
 
-    <main>
-        <section id="authScreen" class="auth-container">
-            <div class="auth-card">
-                <h2 id="authTitle">Acesso Neural FJU</h2>
-                <form id="authForm">
-                    <div class="form-group" id="nameGroup" style="display: none;">
-                        <label>Codinome / Nome</label>
-                        <input type="text" id="authName" placeholder="Seu apelido cyber">
-                    </div>
-                    <div class="form-group">
-                        <label>E-mail de Acesso</label>
-                        <input type="email" id="authEmail" required placeholder="cyber@fju.com">
-                    </div>
-                    <div class="form-group">
-                        <label>Chave de Senha</label>
-                        <input type="password" id="authPassword" required placeholder="******">
-                    </div>
-                    <button type="submit" class="btn" id="authSubmitBtn">Conectar</button>
-                </form>
-                <div class="auth-switch">
-                    <p id="switchText">Sem registro? <a href="#" id="switchModeBtn">Criar Conta</a></p>
-                </div>
-            </div>
-        </section>
 
-        <section id="dashboardScreen" class="hidden">
-            
-            <div class="card">
-                <h3>
-                    <span><i class="fa-solid fa-shield-halved"></i> Desafios Bíblicos</span>
-                    <span class="hearts-display" id="heartsDisplay">❤️❤️❤️</span>
-                </h3>
-                <div id="quizContainer">
-                    <div class="question-box" id="questionText">Carregando dados neurais...</div>
-                    <div class="options-list" id="optionsList"></div>
-                    <div id="quizFeedback" style="margin-top: 0.8rem; font-weight: 600; text-align: center; font-size: 0.9rem;"></div>
-                </div>
+        <div class="tabs">
 
-                <div class="streak-status-box" id="streakStatusBox">
-                    <span id="streakStatusText">Renovação de corações/ofensiva em:</span><br>
-                    <span class="streak-timer" id="streakTimerDisplay">Sincronizado!</span>
-                </div>
+            <div
+                class="tab active"
+                onclick="selectTab(this)"
+            >
+                Todas
             </div>
 
-            <div class="card">
-                <h3><i class="fa-solid fa-box-open"></i> Cofres & Cripto-Diamantes</h3>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.85rem;">
-                    <span>Comprar 10 Diamantes por 50 Pontos:</span>
-                    <button class="btn" id="buyDiamondsBtn" style="font-size: 0.65rem; padding: 0.4rem 0.8rem;">Converter</button>
+            <div
+                class="tab"
+                onclick="selectTab(this)"
+            >
+                Não lidas
+            </div>
+
+            <div
+                class="tab"
+                onclick="selectTab(this)"
+            >
+                Grupos
+            </div>
+
+        </div>
+
+
+        <div
+            id="userList"
+            class="chatList"
+        ></div>
+
+
+        <nav class="bottomNav">
+
+            <div
+                class="navItem active"
+                onclick="goHome()"
+            >
+
+                <div class="navIcon">
+                    💬
                 </div>
-                <div class="chests-grid">
-                    <div class="chest-box" onclick="openChest('comum')">
-                        <div class="chest-icon chest-comum"><i class="fa-solid fa-box"></i></div>
-                        <div class="chest-name">Comum</div>
-                        <div class="chest-price"><i class="fa-solid fa-gem"></i> 10</div>
-                    </div>
-                    <div class="chest-box" onclick="openChest('raro')">
-                        <div class="chest-icon chest-raro"><i class="fa-solid fa-box-archive"></i></div>
-                        <div class="chest-name">Raro</div>
-                        <div class="chest-price"><i class="fa-solid fa-gem"></i> 30</div>
-                    </div>
-                    <div class="chest-box" onclick="openChest('lendario')">
-                        <div class="chest-icon chest-lendario"><i class="fa-solid fa-vault"></i></div>
-                        <div class="chest-name">Lendário</div>
-                        <div class="chest-price"><i class="fa-solid fa-gem"></i> 80</div>
-                    </div>
+
+                Conversas
+
+            </div>
+
+
+            <div class="navItem">
+
+                <div class="navIcon">
+                    ◉
                 </div>
-                <div id="chestResult" style="margin-top: 10px; text-align: center; font-size: 0.85rem; font-weight: bold; color: var(--neon-blue);"></div>
+
+                Explorar
+
             </div>
 
-            <div class="card">
-                <h3>
-                    <span><i class="fa-solid fa-address-card"></i> Cartas de Desafio Amigo</span>
-                    <button class="btn" id="createChallengeCardBtn" style="font-size: 0.65rem; padding: 0.3rem 0.6rem;">Criar Carta</button>
-                </h3>
-                <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 8px;">Envie cartas obtidas em baús para outros jovens da FJU!</p>
-                <div class="cards-inventory" id="cardsInventory">
-                    <div style="text-align: center; color: var(--text-secondary); font-size: 0.8rem; padding: 10px;">Nenhuma carta de desafio armazenada. Abra baús!</div>
+
+            <div
+                class="navItem"
+                onclick="openProfile()"
+            >
+
+                <div class="navIcon">
+                    ☺
                 </div>
+
+                Perfil
+
             </div>
 
-            <div class="card">
-                <h3><i class="fa-solid fa-ranking-star"></i> Arena FJU Cyber</h3>
-                <div class="arena-box">
-                    <div>
-                        <strong>Torneio Semanal de Fé</strong><br>
-                        <span style="font-size: 0.75rem; color: var(--text-secondary);">O Top 1 da semana ganha 100 Diamantes extras!</span>
-                    </div>
-                    <button class="btn" onclick="claimTournamentPrize()">Resgatar</button>
+        </nav>
+
+    </section>
+
+
+    <!-- CHAT -->
+
+    <section
+        id="chatScreen"
+        class="screen chatScreen"
+    >
+
+        <header class="chatHeader">
+
+            <button
+                class="back"
+                onclick="closeChat()"
+            >
+                ‹
+            </button>
+
+            <div
+                id="chatAvatar"
+                class="avatar online"
+            >
+                ?
+            </div>
+
+            <div class="headerInfo">
+
+                <div
+                    id="chatName"
+                    class="headerName"
+                >
+                    Usuário
                 </div>
+
+                <div
+                    id="chatStatus"
+                    class="headerStatus"
+                >
+                    online
+                </div>
+
             </div>
 
-            <div class="card">
-                <h3><i class="fa-solid fa-terminal"></i> Versículo do Dia</h3>
-                <p id="verseText" style="font-style: italic; margin-bottom: 0.5rem; color: var(--neon-blue); font-size: 0.9rem;"></p>
-                <p style="font-size: 0.8rem; color: var(--text-secondary);">
-                    <strong>Protocolo Prático:</strong> Pratique a fé inteligente hoje e fortaleça sua rede espiritual!
-                </p>
+            <div class="headerActions">
+
+                <button class="headerAction">
+                    ☎
+                </button>
+
+                <button class="headerAction">
+                    ⋮
+                </button>
+
             </div>
 
-            <div class="card">
-                <h3><i class="fa-solid fa-globe"></i> Placar de Conexão Global</h3>
-                <ul class="leaderboard-list" id="leaderboardList">
-                    <li style="text-align: center; color: var(--text-secondary); padding: 0.8rem;">Sincronizando placar...</li>
-                </ul>
+        </header>
+
+
+        <div
+            id="messages"
+            class="messages"
+        ></div>
+
+
+        <div
+            id="typing"
+            class="typing"
+        ></div>
+
+
+        <div class="composerArea">
+
+            <div class="composer">
+
+                <button
+                    class="composeButton"
+                    onclick="attachment()"
+                >
+                    ＋
+                </button>
+
+                <input
+                    id="messageInput"
+                    class="messageInput"
+                    autocomplete="off"
+                    placeholder="Mensagem..."
+                >
+
+                <button
+                    class="composeButton"
+                    onclick="emoji()"
+                >
+                    😊
+                </button>
+
+                <button
+                    class="composeButton send"
+                    onclick="sendMessage()"
+                >
+                    ➤
+                </button>
+
             </div>
 
-        </section>
-    </main>
+        </div>
 
-    <footer>
-        <p>&copy; 2026 Igreja Universal do Reino de Deus - FJU. Sistema CyberNet Ativado.</p>
-    </footer>
+    </section>
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCTkq0uXy5kHg9N8rj9--Dooh8cuguYxPE",
-            authDomain: "subjectrobot-49600.firebaseapp.com",
-            databaseURL: "https://subjectrobot-49600-default-rtdb.firebaseio.com",
-            projectId: "subjectrobot-49600",
-            storageBucket: "subjectrobot-49600.appspot.com",
-            messagingSenderId: "731604558049",
-            appId: "1:731604558049:android:7f47b30b289445814017a0"
-        };
 
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+    <!-- PROFILE -->
 
-        const quizQuestionsPool = [
-            { q: "Quem construiu a arca para salvar sua família e os animais?", opts: ["Moisés", "Noé", "Abraão", "Josué"], corr: 1 },
-            { q: "Qual era o nome do gigante derrotado por Davi?", opts: ["Golias", "Sansão", "Og", "Siquém"], corr: 0 },
-            { q: "Quem foi engolido por um grande peixe após desobedecer a Deus?", opts: ["Jonas", "Daniel", "Elias", "Jeremias"], corr: 0 },
-            { q: "Quantos mandamentos Deus entregou a Moisés nas tábuas de pedra?", opts: ["7", "10", "12", "40"], corr: 1 },
-            { q: "Em que cidade Jesus nasceu?", opts: ["Nazaré", "Jerusalém", "Belém", "Jericó"], corr: 2 },
-            { q: "Qual foi o primeiro milagre de Jesus registrado na Bíblia?", opts: ["Multiplicar pães", "Transformar água em vinho", "Curar um cego", "Andar sobre as águas"], corr: 1 },
-            { q: "Quem traiu Jesus com um beijo por trinta moedas de prata?", opts: ["Pedro", "Judas Iscariotes", "Tomé", "Pilatos"], corr: 1 },
-            { q: "Qual apóstolo negou a Jesus três vezes antes do galo cantar?", opts: ["João", "Tiago", "Pedro", "André"], corr: 2 },
-            { q: "Quem foi vendido pelos irmãos e se tornou governador no Egito?", opts: ["José", "Benjamim", "Ruben", "Levi"], corr: 0 },
-            { q: "Qual a mãe de João Batista?", opts: ["Maria", "Isabel", "Ana", "Marta"], corr: 1 }
-        ];
+    <section
+        id="profileScreen"
+        class="screen profileScreen"
+    >
 
-        const dailyVerses = [
-            "\"Não temas, porque eu sou contigo; não te assombres, porque eu sou teu Deus...\" - Isaías 41:10",
-            "\"Lâmpada para os meus pés é a tua palavra, e luz para o meu caminho.\" - Salmos 119:105",
-            "\"Confia no Senhor de todo o teu coração, e não te estribes no teu próprio entendimento.\" - Provérbios 3:5",
-            "\"O Senhor é o meu pastor, nada me faltará.\" - Salmos 23:1",
-            "\"Tudo posso em Cristo que me fortalece.\" - Filipenses 4:13"
-        ];
+        <div class="profileTop">
 
-        let currentUser = null;
-        let isRegistering = false;
-        let currentQuestion = null;
-        let doubleXpActive = false;
+            <div class="profileTitle">
+                Meu perfil
+            </div>
 
-        const authScreen = document.getElementById('authScreen');
-        const dashboardScreen = document.getElementById('dashboardScreen');
-        const authForm = document.getElementById('authForm');
-        const authTitle = document.getElementById('authTitle');
-        const nameGroup = document.getElementById('nameGroup');
-        const authName = document.getElementById('authName');
-        const authEmail = document.getElementById('authEmail');
-        const authPassword = document.getElementById('authPassword');
-        const authSubmitBtn = document.getElementById('authSubmitBtn');
-        const switchText = document.getElementById('switchText');
-        const switchModeBtn = document.getElementById('switchModeBtn');
-        const userInfoSection = document.getElementById('userInfoSection');
-        const userNameDisplay = document.getElementById('userNameDisplay');
-        const userScoreDisplay = document.getElementById('userScoreDisplay');
-        const userDiamondDisplay = document.getElementById('userDiamondDisplay');
-        const userStreakDisplay = document.getElementById('userStreakDisplay');
-        const heartsDisplay = document.getElementById('heartsDisplay');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const buyDiamondsBtn = document.getElementById('buyDiamondsBtn');
-        const createChallengeCardBtn = document.getElementById('createChallengeCardBtn');
+        </div>
 
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedEmail = localStorage.getItem('fju_logged_email');
-            if (savedEmail) {
-                const sanitizedKey = savedEmail.replace(/[.$#[\]/]/g, "_");
-                database.ref('users/' + sanitizedKey).once('value').then((snapshot) => {
-                    const userData = snapshot.val();
-                    if (userData) {
-                        checkAndResetDailyHearts(userData, sanitizedKey);
-                    } else {
-                        localStorage.removeItem('fju_logged_email');
-                    }
-                }).catch(() => {
-                    loginUser({
-                        name: localStorage.getItem('fju_logged_name') || "CyberJovem",
-                        email: savedEmail,
-                        score: parseInt(localStorage.getItem('fju_logged_score') || "0"),
-                        diamonds: parseInt(localStorage.getItem('fju_logged_diamonds') || "10"),
-                        streak: parseInt(localStorage.getItem('fju_logged_streak') || "0"),
-                        hearts: parseInt(localStorage.getItem('fju_logged_hearts') || "3"),
-                        cards: []
-                    }, sanitizedKey);
-                });
-            }
-        });
 
-        function checkAndResetDailyHearts(userData, sanitizedKey) {
-            const now = new Date().toDateString();
-            if (userData.lastLoginDate !== now) {
-                userData.hearts = 3;
-                userData.lastLoginDate = now;
-                database.ref('users/' + sanitizedKey).update({ hearts: 3, lastLoginDate: now }).catch(() => {});
-            }
-            saveLocalSession(userData);
-            loginUser(userData, sanitizedKey);
-        }
+        <div class="profileCard">
 
-        switchModeBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            isRegistering = !isRegistering;
-            if (isRegistering) {
-                authTitle.textContent = "Criar Conta Cyber";
-                nameGroup.style.display = "block";
-                authName.required = true;
-                authSubmitBtn.textContent = "Registrar";
-                switchText.innerHTML = `Já tem conta? <a href="#" id="switchModeBtn">Conectar</a>`;
-            } else {
-                authTitle.textContent = "Acesso Neural FJU";
-                nameGroup.style.display = "none";
-                authName.required = false;
-                authSubmitBtn.textContent = "Conectar";
-                switchText.innerHTML = `Sem registro? <a href="#" id="switchModeBtn">Criar Conta</a>`;
-            }
-            document.getElementById('switchModeBtn').addEventListener('click', arguments.callee);
-        });
+            <div
+                id="bigAvatar"
+                class="bigAvatar"
+            >
+                ?
+            </div>
 
-        authForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const email = authEmail.value.trim();
-            const password = authPassword.value.trim();
-            const sanitizedKey = email.replace(/[.$#[\]/]/g, "_");
-            const userRef = database.ref('users/' + sanitizedKey);
+            <div
+                id="profileName"
+                class="profileName"
+            >
+                Usuário
+            </div>
 
-            userRef.once('value').then((snapshot) => {
-                const userData = snapshot.val();
+            <div class="profileUsername">
+                Disponível para conversar
+            </div>
 
-                if (isRegistering) {
-                    if (userData) {
-                        alert("E-mail já registrado na rede!");
-                        return;
-                    }
-                    const now = new Date().toDateString();
-                    const newUserData = {
-                        name: authName.value.trim(),
-                        email: email,
-                        password: password,
-                        score: 0,
-                        diamonds: 20,
-                        streak: 0,
-                        hearts: 3,
-                        lastLoginDate: now,
-                        lastStreakTimestamp: 0,
-                        cards: []
-                    };
-                    userRef.set(newUserData).then(() => {
-                        saveLocalSession(newUserData);
-                        loginUser(newUserData, sanitizedKey);
-                    }).catch(() => {
-                        alert("Erro de conexão ao registrar.");
-                    });
-                } else {
-                    if (!userData) {
-                        alert("Usuário não encontrado!");
-                        return;
-                    }
-                    if (userData.password !== password) {
-                        alert("Senha incorreta!");
-                        return;
-                    }
-                    checkAndResetDailyHearts(userData, sanitizedKey);
-                }
-            }).catch(() => {
-                alert("Erro de conexão com o banco de dados.");
+        </div>
+
+
+        <div class="profileOptions">
+
+            <div class="option">
+
+                <div class="optionIcon">
+                    ✏️
+                </div>
+
+                <div class="optionText">
+                    Editar perfil
+                </div>
+
+                <span>›</span>
+
+            </div>
+
+
+            <div class="option">
+
+                <div class="optionIcon">
+                    🔔
+                </div>
+
+                <div class="optionText">
+                    Notificações
+                </div>
+
+                <span>›</span>
+
+            </div>
+
+
+            <div class="option">
+
+                <div class="optionIcon">
+                    🌙
+                </div>
+
+                <div class="optionText">
+                    Tema escuro
+                </div>
+
+                <span>✓</span>
+
+            </div>
+
+
+            <div
+                class="option"
+                onclick="logout()"
+            >
+
+                <div class="optionIcon">
+                    🚪
+                </div>
+
+                <div class="optionText">
+                    Sair
+                </div>
+
+                <span>›</span>
+
+            </div>
+
+        </div>
+
+
+        <nav class="bottomNav">
+
+            <div
+                class="navItem"
+                onclick="goHome()"
+            >
+
+                <div class="navIcon">
+                    💬
+                </div>
+
+                Conversas
+
+            </div>
+
+            <div class="navItem">
+
+                <div class="navIcon">
+                    ◉
+                </div>
+
+                Explorar
+
+            </div>
+
+            <div class="navItem active">
+
+                <div class="navIcon">
+                    ☺
+                </div>
+
+                Perfil
+
+            </div>
+
+        </nav>
+
+    </section>
+
+</div>
+
+
+<div id="toast"></div>
+
+
+<script>
+
+/* =====================================================
+   FIREBASE
+===================================================== */
+
+const firebaseConfig = {
+
+    apiKey:
+    "AIzaSyCTkq0uXy5kHgN9-Dooh8cuguYxPE",
+
+    authDomain:
+    "subjectrobot-49600.firebaseapp.com",
+
+    databaseURL:
+    "https://subjectrobot-49600-default-rtdb.firebaseio.com",
+
+    projectId:
+    "subjectrobot-49600",
+
+    storageBucket:
+    "subjectrobot-49600.appspot.com",
+
+    messagingSenderId:
+    "731604558049",
+
+    appId:
+    "1:731604558049:android:7f47b30b289445814017a0"
+
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const auth =
+    firebase.auth();
+
+const db =
+    firebase.database();
+
+
+/* =====================================================
+   VARIÁVEIS
+===================================================== */
+
+let user = null;
+
+let currentChat = null;
+
+let messageRef = null;
+
+let typingTimer = null;
+
+
+/* =====================================================
+   SPLASH
+===================================================== */
+
+setTimeout(()=>{
+
+    const name =
+        localStorage.getItem("vibeName");
+
+    document
+        .getElementById("splash")
+        .style.display="none";
+
+
+    if(name){
+
+        startFirebase();
+
+    }else{
+
+        document
+            .getElementById("login")
+            .style.display="flex";
+
+    }
+
+},1800);
+
+
+/* =====================================================
+   LOGIN
+===================================================== */
+
+async function login(){
+
+    const input =
+        document.getElementById("nameInput");
+
+    const name =
+        input.value.trim();
+
+
+    if(name.length < 2){
+
+        toast("Digite seu nome.");
+
+        return;
+
+    }
+
+
+    try{
+
+        const result =
+            await auth.signInAnonymously();
+
+        user =
+            result.user;
+
+
+        localStorage.setItem(
+            "vibeName",
+            name
+        );
+
+
+        await db
+            .ref("users/" + user.uid)
+            .set({
+
+                name:name,
+
+                online:true,
+
+                lastSeen:
+                firebase.database.ServerValue.TIMESTAMP
+
             });
+
+
+        document
+            .getElementById("login")
+            .style.display="none";
+
+
+        document
+            .getElementById("app")
+            .style.display="block";
+
+
+        updateProfile(name);
+
+        loadUsers();
+
+        setupPresence();
+
+
+    }catch(error){
+
+        console.log(error);
+
+        toast(
+            "Erro ao entrar no VibeChat."
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   RESTAURAR FIREBASE
+===================================================== */
+
+function startFirebase(){
+
+    auth.signInAnonymously()
+
+    .then(result=>{
+
+        user =
+            result.user;
+
+        const name =
+            localStorage.getItem("vibeName");
+
+
+        db.ref(
+            "users/" +
+            user.uid
+        )
+        .update({
+
+            name:name,
+
+            online:true,
+
+            lastSeen:
+            firebase.database
+            .ServerValue.TIMESTAMP
+
         });
 
-        function saveLocalSession(user) {
-            localStorage.setItem('fju_logged_email', user.email);
-            localStorage.setItem('fju_logged_name', user.name);
-            localStorage.setItem('fju_logged_score', user.score || 0);
-            localStorage.setItem('fju_logged_diamonds', user.diamonds || 0);
-            localStorage.setItem('fju_logged_streak', user.streak || 0);
-            localStorage.setItem('fju_logged_hearts', user.hearts || 3);
-        }
 
-        function loginUser(userData, userKey) {
-            currentUser = { ...userData, key: userKey, cards: userData.cards || [] };
-            authScreen.classList.add('hidden');
-            dashboardScreen.classList.remove('hidden');
-            userInfoSection.classList.remove('hidden');
-            userNameDisplay.textContent = currentUser.name;
-            userScoreDisplay.textContent = currentUser.score || 0;
-            userDiamondDisplay.textContent = currentUser.diamonds || 0;
-            userStreakDisplay.textContent = currentUser.streak || 0;
-            updateHeartsUI();
-            loadDailyVerse();
-            loadNextQuestion();
-            renderCardsInventory();
-            initRealtimeLeaderboard();
-        }
+        document
+            .getElementById("app")
+            .style.display="block";
 
-        logoutBtn.addEventListener('click', () => {
-            localStorage.clear();
-            currentUser = null;
-            authScreen.classList.remove('hidden');
-            dashboardScreen.classList.add('hidden');
-            userInfoSection.classList.add('hidden');
-            authForm.reset();
-        });
 
-        function updateHeartsUI() {
-            let hearts = currentUser.hearts !== undefined ? currentUser.hearts : 3;
-            let str = "";
-            for (let i = 0; i < 3; i++) str += i < hearts ? "❤️" : "🖤";
-            heartsDisplay.textContent = str;
-        }
+        updateProfile(name);
 
-        function loadDailyVerse() {
-            const idx = new Date().getDate() % dailyVerses.length;
-            document.getElementById('verseText').textContent = dailyVerses[idx];
-        }
+        loadUsers();
 
-        buyDiamondsBtn.addEventListener('click', () => {
-            if ((currentUser.score || 0) < 50) {
-                alert("Você precisa de pelo menos 50 pontos para converter!");
-                return;
-            }
-            currentUser.score -= 50;
-            currentUser.diamonds = (currentUser.diamonds || 0) + 10;
-            userScoreDisplay.textContent = currentUser.score;
-            userDiamondDisplay.textContent = currentUser.diamonds;
-            saveLocalSession(currentUser);
-            database.ref('users/' + currentUser.key).update({ score: currentUser.score, diamonds: currentUser.diamonds }).catch(() => {});
-            alert("+10 Diamantes adquiridos com sucesso!");
-        });
+        setupPresence();
 
-        function openChest(type) {
-            let cost = type === 'comum' ? 10 : type === 'raro' ? 30 : 80;
-            if ((currentUser.diamonds || 0) < cost) {
-                alert("Diamantes insuficientes! Converta pontos ou vença desafios.");
-                return;
-            }
+    })
 
-            currentUser.diamonds -= cost;
-            userDiamondDisplay.textContent = currentUser.diamonds;
+    .catch(error=>{
 
-            let prizeText = "";
-            let rand = Math.random();
+        console.log(error);
 
-            if (type === 'comum') {
-                if (rand < 0.5) {
-                    currentUser.diamonds += 15;
-                    prizeText = "Recompensa: +15 Diamantes de volta!";
-                } else {
-                    currentUser.cards.push({ title: "Desafio Fácil: Responda sobre Noé", penalty: 10 });
-                    prizeText = "Recompensa: 1x Carta de Desafio Comum!";
-                }
-            } else if (type === 'raro') {
-                if (rand < 0.4) {
-                    doubleXpActive = true;
-                    prizeText = "Recompensa: XP em Dobro ativado para a próxima resposta!";
-                } else {
-                    currentUser.cards.push({ title: "Desafio Raro: O profeta Elias", penalty: 25 });
-                    prizeText = "Recompensa: 1x Carta de Desafio Rara!";
-                }
-            } else {
-                if (rand < 0.5) {
-                    currentUser.score += 100;
-                    userScoreDisplay.textContent = currentUser.score;
-                    prizeText = "Recompensa Lendária: +100 Pontos extras!";
-                } else {
-                    currentUser.cards.push({ title: "Desafio Lendário FJU: Apocalipse", penalty: 50 });
-                    prizeText = "Recompensa Lendária: 1x Carta Suprema de Desafio!";
-                }
-            }
+        document
+            .getElementById("login")
+            .style.display="flex";
 
-            saveLocalSession(currentUser);
-            database.ref('users/' + currentUser.key).update({
-                diamonds: currentUser.diamonds,
-                score: currentUser.score,
-                cards: currentUser.cards
-            }).catch(() => {});
+    });
 
-            renderCardsInventory();
-            document.getElementById('chestResult').textContent = prizeText;
-        }
+}
 
-        createChallengeCardBtn.addEventListener('click', () => {
-            currentUser.cards.push({ title: "Desafio Customizado FJU", penalty: 15 });
-            saveLocalSession(currentUser);
-            database.ref('users/' + currentUser.key).update({ cards: currentUser.cards }).catch(() => {});
-            renderCardsInventory();
-            alert("Nova carta de desafio gerada no seu inventário!");
-        });
 
-        function renderCardsInventory() {
-            const inv = document.getElementById('cardsInventory');
-            if (!currentUser.cards || currentUser.cards.length === 0) {
-                inv.innerHTML = `<div style="text-align: center; color: var(--text-secondary); font-size: 0.8rem; padding: 10px;">Nenhuma carta de desafio armazenada. Abra baús!</div>`;
-                return;
-            }
-            inv.innerHTML = "";
-            currentUser.cards.forEach((card, idx) => {
-                const div = document.createElement('div');
-                div.className = 'challenge-card-item';
-                div.innerHTML = `
-                    <span><i class="fa-solid fa-scroll" style="color:var(--neon-red);"></i> ${card.title}</span>
-                    <button class="btn" style="font-size:0.6rem; padding:0.2rem 0.5rem;" onclick="sendCardToFriend(${idx})">Enviar</button>
+/* =====================================================
+   PERFIL
+===================================================== */
+
+function updateProfile(name){
+
+    const letter =
+        name
+        .charAt(0)
+        .toUpperCase();
+
+
+    document
+        .getElementById("profileName")
+        .textContent=name;
+
+
+    document
+        .getElementById("bigAvatar")
+        .textContent=letter;
+
+}
+
+
+/* =====================================================
+   USUÁRIOS
+===================================================== */
+
+function loadUsers(){
+
+    db.ref("users")
+        .on("value",snapshot=>{
+
+            const list =
+                document.getElementById(
+                    "userList"
+                );
+
+            list.innerHTML="";
+
+
+            snapshot.forEach(child=>{
+
+                if(
+                    child.key === user.uid
+                ) return;
+
+
+                const data =
+                    child.val();
+
+
+                const name =
+                    data.name ||
+                    "Usuário";
+
+
+                const initial =
+                    name
+                    .charAt(0)
+                    .toUpperCase();
+
+
+                const div =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                div.className="chat";
+
+                div.dataset.name =
+                    name.toLowerCase();
+
+
+                div.innerHTML=`
+
+                    <div class="avatar
+                        ${data.online ? "online" : ""}">
+
+                        ${escapeHTML(initial)}
+
+                    </div>
+
+                    <div class="chatInfo">
+
+                        <div class="chatName">
+
+                            ${escapeHTML(name)}
+
+                        </div>
+
+                        <div class="chatPreview">
+
+                            ${
+                                data.online
+                                ? "● Online agora"
+                                : "Offline"
+                            }
+
+                        </div>
+
+                    </div>
+
+                    <div class="chatRight">
+
+                        <div class="chatTime">
+                            ${data.online ? "agora" : ""}
+                        </div>
+
+                    </div>
+
                 `;
-                inv.appendChild(div);
+
+
+                div.onclick=()=>{
+
+                    openChat({
+
+                        id:child.key,
+
+                        name:name,
+
+                        online:
+                        !!data.online
+
+                    });
+
+                };
+
+
+                list.appendChild(div);
+
             });
-        }
 
-        function sendCardToFriend(idx) {
-            let friendEmail = prompt("Digite o e-mail do jovem amigo da FJU para enviar a carta:");
-            if (!friendEmail) return;
-            alert(`Carta enviada com sucesso para ${friendEmail}! Se ele errar, perderá pontos.`);
-            currentUser.cards.splice(idx, 1);
-            saveLocalSession(currentUser);
-            database.ref('users/' + currentUser.key).update({ cards: currentUser.cards }).catch(() => {});
-            renderCardsInventory();
-        }
 
-        function claimTournamentPrize() {
-            alert("Competição analisada! Continue firme nos estudos e resgate bônus semanais com o Top 1.");
-        }
+            if(list.children.length===0){
 
-        function loadNextQuestion() {
-            let hearts = currentUser.hearts !== undefined ? currentUser.hearts : 3;
-            if (hearts <= 0) {
-                document.getElementById('questionText').textContent = "Sistema bloqueado: Corações esgotados hoje!";
-                document.getElementById('optionsList').innerHTML = "";
-                document.getElementById('quizFeedback').textContent = "Aguarde o próximo ciclo diário para recarregar.";
-                return;
+                list.innerHTML=`
+
+                    <div style="
+                        padding:50px 25px;
+                        text-align:center;
+                        color:#737a89;
+                        font-size:13px;
+                    ">
+
+                        <div style="
+                            font-size:35px;
+                            margin-bottom:15px;
+                        ">
+                            👋
+                        </div>
+
+                        Você ainda não tem
+                        outros usuários por aqui.
+
+                        <br><br>
+
+                        Convide seus amigos
+                        para usar o VibeChat.
+
+                    </div>
+
+                `;
+
             }
 
-            const randIdx = Math.floor(Math.random() * quizQuestionsPool.length);
-            currentQuestion = quizQuestionsPool[randIdx];
+        });
 
-            document.getElementById('questionText').textContent = currentQuestion.q;
-            const optionsList = document.getElementById('optionsList');
-            optionsList.innerHTML = "";
-            document.getElementById('quizFeedback').textContent = "";
+}
 
-            currentQuestion.opts.forEach((opt, index) => {
-                const btn = document.createElement('button');
-                btn.className = 'option-btn';
-                btn.textContent = opt;
-                btn.onclick = () => checkAnswer(index, currentQuestion.corr);
-                optionsList.appendChild(btn);
+
+/* =====================================================
+   ABRIR CHAT
+===================================================== */
+
+function openChat(other){
+
+    currentChat =
+        other;
+
+
+    document
+        .getElementById("chatName")
+        .textContent=other.name;
+
+
+    document
+        .getElementById("chatAvatar")
+        .textContent=
+        other.name
+        .charAt(0)
+        .toUpperCase();
+
+
+    document
+        .getElementById("chatStatus")
+        .textContent=
+        other.online
+        ? "● online"
+        : "offline";
+
+
+    showScreen(
+        "chatScreen"
+    );
+
+
+    loadMessages();
+
+
+    setTimeout(()=>{
+
+        document
+            .getElementById("messageInput")
+            .focus();
+
+    },200);
+
+}
+
+
+/* =====================================================
+   ID DA CONVERSA
+===================================================== */
+
+function chatId(){
+
+    return [
+
+        user.uid,
+
+        currentChat.id
+
+    ]
+    .sort()
+    .join("_");
+
+}
+
+
+/* =====================================================
+   MENSAGENS
+===================================================== */
+
+function loadMessages(){
+
+    if(messageRef){
+
+        messageRef.off();
+
+    }
+
+
+    messageRef =
+        db.ref(
+            "chats/" +
+            chatId() +
+            "/messages"
+        );
+
+
+    messageRef.on(
+        "value",
+        snapshot=>{
+
+            const container =
+                document
+                .getElementById(
+                    "messages"
+                );
+
+
+            container.innerHTML="";
+
+
+            snapshot.forEach(child=>{
+
+                renderMessage(
+                    child.val()
+                );
+
             });
+
+
+            container.scrollTop =
+                container.scrollHeight;
+
         }
+    );
 
-        function checkAnswer(selectedIndex, correctIndex) {
-            const buttons = document.querySelectorAll('.option-btn');
-            buttons.forEach((btn, idx) => {
-                btn.disabled = true;
-                if (idx === correctIndex) btn.classList.add('correct');
-                else if (idx === selectedIndex) btn.classList.add('incorrect');
-            });
+}
 
-            const feedback = document.getElementById('quizFeedback');
-            let isCorrect = selectedIndex === correctIndex;
 
-            if (isCorrect) {
-                let pts = doubleXpActive ? 10 : 5;
-                doubleXpActive = false;
-                feedback.style.color = "var(--success)";
-                feedback.textContent = `Acesso Correto! +${pts} Pontos!`;
-                currentUser.score = (currentUser.score || 0) + pts;
-                userScoreDisplay.textContent = currentUser.score;
-                localStorage.setItem('fju_logged_score', currentUser.score);
+/* =====================================================
+   RENDER MESSAGE
+===================================================== */
 
-                const now = Date.now();
-                const twentyFourHours = 24 * 60 * 60 * 1000;
-                let lastTimestamp = currentUser.lastStreakTimestamp || 0;
-                let updates = { score: currentUser.score, hearts: currentUser.hearts };
+function renderMessage(data){
 
-                if (now - lastTimestamp >= twentyFourHours) {
-                    currentUser.streak = (currentUser.streak || 0) + 1;
-                    currentUser.lastStreakTimestamp = now;
-                    updates.streak = currentUser.streak;
-                    updates.lastStreakTimestamp = now;
-                    userStreakDisplay.textContent = currentUser.streak;
-                    localStorage.setItem('fju_logged_streak', currentUser.streak);
-                }
+    const div =
+        document.createElement(
+            "div"
+        );
 
-                database.ref('users/' + currentUser.key).update(updates).catch(() => {});
-                setTimeout(loadNextQuestion, 2000);
-            } else {
-                currentUser.hearts = (currentUser.hearts !== undefined ? currentUser.hearts : 3) - 1;
-                updateHeartsUI();
-                localStorage.setItem('fju_logged_hearts', currentUser.hearts);
 
-                feedback.style.color = "var(--neon-red)";
-                if (currentUser.hearts > 0) {
-                    feedback.textContent = `Erro neural! -1 coração. Restam ${currentUser.hearts}.`;
-                    database.ref('users/' + currentUser.key).update({ hearts: currentUser.hearts }).catch(() => {});
-                    setTimeout(loadNextQuestion, 2000);
-                } else {
-                    feedback.textContent = "Corações zerados! Retorne amanhã.";
-                    database.ref('users/' + currentUser.key).update({ hearts: 0 }).catch(() => {});
-                    setTimeout(loadNextQuestion, 2000);
-                }
+    const mine =
+        data.senderId === user.uid;
+
+
+    div.className =
+        "message " +
+        (mine ? "me" : "");
+
+
+    const date =
+        data.timestamp
+        ? new Date(data.timestamp)
+        : new Date();
+
+
+    const time =
+        date.toLocaleTimeString(
+            "pt-BR",
+            {
+                hour:"2-digit",
+                minute:"2-digit"
             }
+        );
+
+
+    div.innerHTML=`
+
+        <div class="messageText">
+
+            ${escapeHTML(
+                data.text || ""
+            )}
+
+        </div>
+
+        <div class="messageMeta">
+
+            <span class="messageTime">
+                ${time}
+            </span>
+
+            ${
+                mine
+                ? `<span class="checks">
+                    ✓✓
+                   </span>`
+                : ""
+            }
+
+        </div>
+
+    `;
+
+
+    document
+        .getElementById("messages")
+        .appendChild(div);
+
+}
+
+
+/* =====================================================
+   ENVIAR
+===================================================== */
+
+async function sendMessage(){
+
+    if(!currentChat){
+
+        return;
+
+    }
+
+
+    const input =
+        document.getElementById(
+            "messageInput"
+        );
+
+
+    const text =
+        input.value.trim();
+
+
+    if(!text) return;
+
+
+    try{
+
+        await db
+            .ref(
+                "chats/" +
+                chatId() +
+                "/messages"
+            )
+            .push({
+
+                senderId:
+                user.uid,
+
+                senderName:
+                localStorage.getItem(
+                    "vibeName"
+                ),
+
+                text:text,
+
+                timestamp:
+                firebase.database
+                .ServerValue.TIMESTAMP
+
+            });
+
+
+        input.value="";
+
+        stopTyping();
+
+
+    }catch(error){
+
+        toast(
+            "Não foi possível enviar."
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   ENTER
+===================================================== */
+
+document
+.getElementById("messageInput")
+.addEventListener(
+    "keydown",
+    event=>{
+
+        if(
+            event.key === "Enter"
+        ){
+
+            event.preventDefault();
+
+            sendMessage();
+
         }
 
-        function initRealtimeLeaderboard() {
-            const lbList = document.getElementById('leaderboardList');
-            database.ref('users').on('value', (snapshot) => {
-                const data = snapshot.val();
-                if (!data) {
-                    lbList.innerHTML = `<li style="text-align: center; color: var(--text-secondary); padding: 0.8rem;">Nenhum registro no cyber-placar.</li>`;
-                    return;
-                }
+    }
+);
 
-                let arr = Object.keys(data).map(k => ({
-                    name: data[k].name,
-                    score: data[k].score || 0,
-                    streak: data[k].streak || 0
-                }));
 
-                arr.sort((a, b) => b.score - a.score || b.streak - a.streak);
+/* =====================================================
+   DIGITANDO
+===================================================== */
 
-                lbList.innerHTML = "";
-                arr.forEach((u, i) => {
-                    let rClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
-                    let li = document.createElement('li');
-                    li.className = 'leaderboard-item';
-                    li.innerHTML = `
-                        <div class="rank-info" style="display:flex; align-items:center; gap:10px;">
-                            <div class="rank-badge ${rClass}">${i + 1}</div>
-                            <span>${u.name}</span>
-                        </div>
-                        <div class="user-stats-pill">
-                            <span style="color:var(--neon-gold); font-size:0.75rem;"><i class="fa-solid fa-fire"></i> ${u.streak}d</span>
-                            <span class="score-val">${u.score} pts</span>
-                        </div>
-                    `;
-                    lbList.appendChild(li);
+document
+.getElementById("messageInput")
+.addEventListener(
+    "input",
+    ()=>{
+
+        if(!currentChat) return;
+
+
+        db.ref(
+            "chats/" +
+            chatId() +
+            "/typing/" +
+            user.uid
+        ).set(true);
+
+
+        clearTimeout(
+            typingTimer
+        );
+
+
+        typingTimer =
+            setTimeout(
+                stopTyping,
+                1000
+            );
+
+    }
+);
+
+
+function stopTyping(){
+
+    if(!currentChat) return;
+
+
+    db.ref(
+        "chats/" +
+        chatId() +
+        "/typing/" +
+        user.uid
+    ).remove();
+
+}
+
+
+/* =====================================================
+   PRESENÇA
+===================================================== */
+
+function setupPresence(){
+
+    const userRef =
+        db.ref(
+            "users/" +
+            user.uid
+        );
+
+
+    db.ref(".info/connected")
+        .on(
+            "value",
+            snapshot=>{
+
+                if(
+                    snapshot.val() !== true
+                ) return;
+
+
+                userRef
+                    .onDisconnect()
+                    .update({
+
+                        online:false,
+
+                        lastSeen:
+                        firebase.database
+                        .ServerValue
+                        .TIMESTAMP
+
+                    });
+
+
+                userRef.update({
+
+                    online:true,
+
+                    lastSeen:
+                    firebase.database
+                    .ServerValue
+                    .TIMESTAMP
+
                 });
-            }, () => {
-                lbList.innerHTML = `<li style="text-align: center; color: var(--text-secondary); padding: 0.8rem;">Placar offline.</li>`;
+
+            }
+        );
+
+}
+
+
+/* =====================================================
+   NAVEGAÇÃO
+===================================================== */
+
+function showScreen(id){
+
+    document
+        .querySelectorAll(".screen")
+        .forEach(screen=>{
+
+            screen.classList.remove(
+                "active"
+            );
+
+        });
+
+
+    document
+        .getElementById(id)
+        .classList.add("active");
+
+}
+
+
+function goHome(){
+
+    showScreen(
+        "homeScreen"
+    );
+
+}
+
+
+function closeChat(){
+
+    if(messageRef){
+
+        messageRef.off();
+
+        messageRef=null;
+
+    }
+
+
+    currentChat=null;
+
+    showScreen(
+        "homeScreen"
+    );
+
+}
+
+
+function openProfile(){
+
+    const name =
+        localStorage.getItem(
+            "vibeName"
+        ) || "Usuário";
+
+
+    updateProfile(name);
+
+
+    showScreen(
+        "profileScreen"
+    );
+
+}
+
+
+/* =====================================================
+   PESQUISA
+===================================================== */
+
+function filterUsers(){
+
+    const query =
+        document
+        .getElementById("search")
+        .value
+        .toLowerCase();
+
+
+    document
+    .querySelectorAll(".chat")
+    .forEach(item=>{
+
+        item.style.display =
+            item.dataset.name
+            .includes(query)
+            ? "flex"
+            : "none";
+
+    });
+
+}
+
+
+/* =====================================================
+   TABS
+===================================================== */
+
+function selectTab(element){
+
+    document
+    .querySelectorAll(".tab")
+    .forEach(tab=>{
+
+        tab.classList.remove(
+            "active"
+        );
+
+    });
+
+
+    element.classList.add(
+        "active"
+    );
+
+}
+
+
+/* =====================================================
+   OUTROS
+===================================================== */
+
+function newConversation(){
+
+    document
+        .getElementById("search")
+        .focus();
+
+    toast(
+        "Pesquise alguém para iniciar uma conversa."
+    );
+
+}
+
+
+function attachment(){
+
+    toast(
+        "Anexos serão adicionados nesta área."
+    );
+
+}
+
+
+function emoji(){
+
+    const input =
+        document
+        .getElementById(
+            "messageInput"
+        );
+
+
+    input.value += " 😊";
+
+    input.focus();
+
+}
+
+
+/* =====================================================
+   LOGOUT
+===================================================== */
+
+async function logout(){
+
+    if(user){
+
+        await db
+            .ref(
+                "users/" +
+                user.uid
+            )
+            .update({
+
+                online:false,
+
+                lastSeen:
+                firebase.database
+                .ServerValue.TIMESTAMP
+
             });
-        }
-    </script>
+
+    }
+
+
+    localStorage.removeItem(
+        "vibeName"
+    );
+
+
+    await auth.signOut();
+
+    location.reload();
+
+}
+
+
+/* =====================================================
+   TOAST
+===================================================== */
+
+function toast(text){
+
+    const element =
+        document.getElementById(
+            "toast"
+        );
+
+
+    element.textContent=text;
+
+    element.classList.add(
+        "show"
+    );
+
+
+    setTimeout(()=>{
+
+        element.classList.remove(
+            "show"
+        );
+
+    },2200);
+
+}
+
+
+/* =====================================================
+   SEGURANÇA HTML
+===================================================== */
+
+function escapeHTML(text){
+
+    return String(text)
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+</script>
+
 </body>
 </html>
