@@ -3,809 +3,641 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SubjectRobot App</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Firebase SDKs (Compat v9) -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    <title>Açaíteria - O Melhor Açaí da Cidade</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-purple: #6a1b9a;
+            --light-purple: #9c27b0;
+            --accent-yellow: #ffeb3b;
+            --bg-color: #f8f9fa;
+            --text-color: #333333;
+            --white: #ffffff;
+            --gray: #e0e0e0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding-bottom: 80px;
+        }
+
+        /* Cabeçalho */
+        header {
+            background-color: var(--primary-purple);
+            color: var(--white);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-container i {
+            font-size: 24px;
+            color: var(--accent-yellow);
+        }
+
+        .logo-container h1 {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .cart-icon-btn {
+            background: none;
+            border: none;
+            color: var(--white);
+            font-size: 1.3rem;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: var(--accent-yellow);
+            color: var(--primary-purple);
+            font-size: 0.7rem;
+            font-weight: 700;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Banner Promocional */
+        .banner {
+            background: linear-gradient(135deg, var(--primary-purple), var(--light-purple));
+            color: var(--white);
+            text-align: center;
+            padding: 30px 20px;
+            margin-bottom: 20px;
+        }
+
+        .banner h2 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .banner p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Catálogo de Produtos */
+        .container {
+            padding: 0 15px;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--primary-purple);
+            border-left: 4px solid var(--light-purple);
+            padding-left: 8px;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .product-card {
+            background: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            display: flex;
+            padding: 12px;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .product-img {
+            width: 80px;
+            height: 80px;
+            background-color: #f1f1f1;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 32px;
+            color: var(--primary-purple);
+            flex-shrink: 0;
+        }
+
+        .product-info {
+            flex-grow: 1;
+        }
+
+        .product-info h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .product-info p {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .product-price {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--primary-purple);
+        }
+
+        .add-btn {
+            background-color: var(--primary-purple);
+            color: var(--white);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Carrinho Flutuante / Modal */
+        .cart-modal {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: var(--white);
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            box-shadow: 0 -5px 25px rgba(0,0,0,0.15);
+            transform: translateY(100%);
+            transition: transform 0.3s ease-in-out;
+            z-index: 2000;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cart-modal.open {
+            transform: translateY(0);
+        }
+
+        .cart-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cart-header h3 {
+            font-size: 1.1rem;
+            color: var(--primary-purple);
+        }
+
+        .close-cart {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .cart-items {
+            padding: 15px 20px;
+            overflow-y: auto;
+            max-height: 40vh;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .cart-item-details h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .cart-item-details span {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .cart-item-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cart-item-controls button {
+            background: var(--gray);
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .cart-footer {
+            padding: 15px 20px;
+            background: #fafafa;
+            border-top: 1px solid var(--gray);
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            background-color: #009ee3; /* Azul do Mercado Pago / Pix */
+            color: var(--white);
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Modal do Pix gerado */
+        .pix-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            display: none;
+            padding: 20px;
+        }
+
+        .pix-content {
+            background: var(--white);
+            width: 100%;
+            max-width: 350px;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .pix-content h3 {
+            color: var(--primary-purple);
+            margin-bottom: 10px;
+        }
+
+        .pix-qr {
+            width: 200px;
+            height: 200px;
+            margin: 15px auto;
+            background: #eee;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .pix-qr img {
+            width: 100%;
+            height: 100%;
+        }
+
+        .pix-copy-input {
+            width: 100%;
+            padding: 8px;
+            font-size: 0.75rem;
+            border: 1px solid var(--gray);
+            border-radius: 6px;
+            margin-bottom: 10px;
+            text-align: center;
+            background: #f9f9f9;
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+
+        .btn-copy {
+            background-color: var(--primary-purple);
+            color: var(--white);
+        }
+
+        .btn-close-pix {
+            background-color: var(--gray);
+            color: var(--text-color);
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-purple);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex justify-center items-center">
+<body>
 
-    <!-- Container Principal do App Mobile -->
-    <div class="w-full max-w-md bg-white min-h-screen sm:min-h-[700px] sm:h-[800px] sm:rounded-3xl sm:shadow-2xl flex flex-col relative overflow-hidden">
-        
-        <!-- TELA DE LOADING/VERIFICAÇÃO DE PASTA -->
-        <main id="screen-loading" class="flex-1 p-6 flex flex-col justify-center items-center text-center">
-            <div class="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-            <h2 class="text-lg font-semibold text-gray-700">Carregando credenciais...</h2>
-            <p class="text-xs text-gray-400 mt-2">Buscando pasta de sessão local.</p>
-        </main>
-
-        <!-- TELA PRINCIPAL (HOME) - Oculta até validar a pasta -->
-        <main id="screen-home" class="flex-1 p-6 flex flex-col justify-between items-center text-center hidden relative">
-            <div class="w-full flex-1 flex flex-col items-center">
-                
-                <!-- HEADER SUPERIOR INTEGRADO NA HOME -->
-                <div class="w-full flex justify-between items-center mb-6 pt-2">
-                    <h1 id="header-welcome-title" class="text-xl font-bold text-gray-800 text-left truncate max-w-[260px]">Olá, ...</h1>
-                    
-                    <!-- Bolinha de Perfil -->
-                    <button onclick="abrirTelaPerfil()" class="w-12 h-12 rounded-full bg-indigo-200 overflow-hidden border-2 border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition shadow-md flex-shrink-0 relative">
-                        <img id="main-avatar-img" src="" alt="Perfil" class="w-full h-full object-cover hidden">
-                        <span id="main-avatar-initial" class="w-full h-full flex items-center justify-center font-bold text-base text-indigo-700">?</span>
-                        <span id="global-notif-badge" class="absolute top-0 right-0 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-white hidden"></span>
-                    </button>
-                </div>
-                
-                <!-- ID de 11 Dígitos do Próprio Usuário -->
-                <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 w-full text-center shadow-sm mb-6">
-                    <p class="text-xs text-indigo-700 font-semibold uppercase tracking-wider mb-1">Seu ID de 11 Dígitos (Compartilhe com amigos):</p>
-                    <p id="my-eleven-digit-id" class="text-xl font-mono font-bold text-indigo-900 tracking-wider">-----------</p>
-                </div>
-
-                <!-- Lista de Contatos Adicionados -->
-                <div class="w-full flex-1 flex flex-col text-left">
-                    <div class="flex justify-between items-center mb-2">
-                        <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider">Meus Contatos</h3>
-                        <span id="contact-count" class="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-semibold">0</span>
-                    </div>
-                    <div id="contacts-list" class="flex-1 overflow-y-auto max-h-[280px] space-y-2 pr-1 w-full pb-16">
-                        <div class="text-center text-gray-400 text-xs py-6 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                            Nenhum contato adicionado ainda. Clique no botão de chat abaixo para adicionar.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Botão Flutuante para Adicionar Contato -->
-            <button onclick="abrirModalAdicionarContato()" class="absolute bottom-20 right-6 w-14 h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full flex items-center justify-center shadow-lg focus:outline-none focus:ring-4 focus:ring-indigo-300 transition transform hover:scale-105 z-10">
-                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v6m-3-3h6"></path>
-                </svg>
-            </button>
-        </main>
-
-        <!-- TELA DE CHAT -->
-        <div id="screen-chat" class="absolute inset-0 bg-white transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col z-30">
-            <!-- Header do Chat -->
-            <div class="bg-indigo-600 text-white p-4 flex items-center shadow-md">
-                <button onclick="fecharChat()" class="mr-3 focus:outline-none">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                </button>
-                <div class="w-9 h-9 rounded-full bg-indigo-400 overflow-hidden flex items-center justify-center mr-3 border border-white/40 flex-shrink-0">
-                    <img id="chat-header-avatar" src="" class="w-full h-full object-cover hidden">
-                    <span id="chat-header-initial" class="font-bold text-sm">?</span>
-                </div>
-                <div class="truncate">
-                    <h2 id="chat-header-name" class="text-base font-bold truncate">Nome do Contato</h2>
-                    <p id="chat-header-status" class="text-xs text-indigo-200">Offline</p>
-                </div>
-            </div>
-
-            <!-- Corpo de Mensagens do Chat -->
-            <div id="chat-messages-container" class="flex-1 p-4 overflow-y-auto bg-gray-50 space-y-3 flex flex-col">
-                <div class="text-center text-gray-400 text-xs py-4">Inicie a conversa...</div>
-            </div>
-
-            <!-- Rodapé de Envio de Mensagem -->
-            <div class="p-3 bg-white border-t border-gray-200 flex items-center space-x-2">
-                <input type="text" id="input-chat-message" onkeypress="verificarEnterChat(event)" placeholder="Digite uma mensagem..." class="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm">
-                <button onclick="enviarMensagemChat()" class="bg-indigo-600 text-white p-3 rounded-xl hover:bg-indigo-700 transition shadow flex items-center justify-center">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
-                </button>
-            </div>
+    <header>
+        <div class="logo-container">
+            <i class="fa-solid fa-ice-cream"></i>
+            <h1>Açaíteria Express</h1>
         </div>
+        <button class="cart-icon-btn" onclick="toggleCart()">
+            <i class="fa-solid fa-bag-shopping"></i>
+            <span class="cart-badge" id="cartBadge">0</span>
+        </button>
+    </header>
 
-        <!-- TELA DE PERFIL -->
-        <div id="screen-profile" class="absolute inset-0 bg-white transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col z-20">
-            <div class="bg-indigo-600 text-white p-4 flex items-center shadow-md">
-                <button onclick="fecharTelaPerfil()" class="mr-3 focus:outline-none">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                </button>
-                <h2 class="text-lg font-bold">Editar Perfil</h2>
-            </div>
-
-            <div class="flex-1 p-6 overflow-y-auto">
-                <div class="flex flex-col items-center mb-6">
-                    <div class="relative w-28 h-28 rounded-full bg-gray-200 overflow-hidden border-4 border-indigo-50 shadow-md">
-                        <img id="profile-avatar" src="" alt="Avatar" class="w-full h-full object-cover hidden">
-                        <span id="profile-initial" class="w-full h-full flex items-center justify-center text-3xl font-bold text-gray-500">?</span>
-                    </div>
-                    
-                    <label class="mt-4 cursor-pointer bg-white border border-indigo-600 text-indigo-600 px-4 py-2 rounded-full text-sm font-semibold shadow-sm hover:bg-indigo-50 transition">
-                        Alterar Foto
-                        <input type="file" id="input-file" accept="image/*" class="hidden" onchange="converterImagemBase64(event)">
-                    </label>
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Nome do Perfil</label>
-                    <input type="text" id="input-name" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition text-sm" placeholder="Seu nome">
-                </div>
-
-                <button onclick="salvarPerfil()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold shadow-md hover:bg-indigo-700 transition mt-4">
-                    Salvar Alterações
-                </button>
-            </div>
-        </div>
-
-        <!-- MODAL DE ADICIONAR CONTATO -->
-        <div id="modal-add-contact" class="absolute inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4 hidden z-30 transition-opacity">
-            <div class="bg-white w-full max-w-xs rounded-2xl p-6 shadow-2xl transform scale-95 transition-transform">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-bold text-gray-800">Adicionar Contato</h3>
-                    <button onclick="fecharModalAdicionarContato()" class="text-gray-400 hover:text-gray-600">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
-                </div>
-                <p class="text-xs text-gray-500 mb-4">Digite o número de 11 dígitos do usuário que deseja adicionar aos seus contatos.</p>
-                
-                <input type="text" id="input-contact-code" maxlength="11" placeholder="Ex: 98765432101" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-center font-mono tracking-widest text-lg mb-4">
-                
-                <div class="flex space-x-2">
-                    <button onclick="fecharModalAdicionarContato()" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold text-sm hover:bg-gray-200 transition">Cancelar</button>
-                    <button onclick="adicionarContatoPorId()" class="flex-1 bg-indigo-600 text-white py-3 rounded-xl font-semibold text-sm hover:bg-indigo-700 transition shadow-md">Adicionar</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- MODAL DE ALERTA -->
-        <div id="custom-alert-modal" class="absolute inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4 hidden z-40">
-            <div class="bg-white w-full max-w-xs rounded-2xl p-6 shadow-2xl text-center">
-                <div id="custom-alert-icon" class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center mx-auto mb-3">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </div>
-                <h4 id="custom-alert-title" class="text-base font-bold text-gray-800 mb-1">Aviso</h4>
-                <p id="custom-alert-message" class="text-xs text-gray-600 mb-5">Mensagem do alerta.</p>
-                <button onclick="fecharCustomAlert()" class="w-full bg-indigo-600 text-white py-2.5 rounded-xl font-semibold text-sm shadow hover:bg-indigo-700 transition">OK</button>
-            </div>
-        </div>
-
+    <div class="banner">
+        <h2>Refresque seu dia!</h2>
+        <p>Monte seu açaí do seu jeito e receba em casa rapidinho.</p>
     </div>
 
-    <!-- Scripts de Configuração e Lógica -->
+    <div class="container">
+        <h2 class="section-title">Mais Pedidos</h2>
+        <div class="product-grid" id="productGrid">
+            </div>
+    </div>
+
+    <div class="cart-modal" id="cartModal">
+        <div class="cart-header">
+            <h3>Sua Sacola</h3>
+            <button class="close-cart" onclick="toggleCart()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="cart-items" id="cartItems">
+            </div>
+        <div class="cart-footer">
+            <div class="total-row">
+                <span>Total:</span>
+                <span id="cartTotal">R$ 0,00</span>
+            </div>
+            <button class="checkout-btn" onclick="gerarPagamentoPix()">
+                <i class="fa-solid fa-qrcode"></i> Pagar com Pix (Mercado Pago)
+            </button>
+        </div>
+    </div>
+
+    <div class="pix-modal" id="pixModal">
+        <div class="pix-content" id="pixContentBox">
+            <h3>Pagamento via Pix</h3>
+            <div id="pixLoading">
+                <div class="loading-spinner"></div>
+                <p>Gerando QR Code Pix...</p>
+            </div>
+            <div id="pixResult" style="display: none;">
+                <div class="pix-qr" id="pixQrContainer">
+                    </div>
+                <p style="font-size: 0.8rem; margin-bottom: 5px;">Copie o código Pix Copia e Cola:</p>
+                <input type="text" class="pix-copy-input" id="pixCopyInput" readonly>
+                <button class="btn-action btn-copy" onclick="copiarCodigoPix()">Copiar Código Pix</button>
+                <button class="btn-action btn-close-pix" onclick="fecharPixModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCTkq0uXy5kHg9N8rj9--Dooh8cuguYxPE",
-            databaseURL: "https://subjectrobot-49600-default-rtdb.firebaseio.com",
-            projectId: "subjectrobot-49600",
-            storageBucket: "subjectrobot-49600.appspot.com",
-            appId: "1:731604558049:android:7f47b30b289445814017a0"
-        };
+        // Credenciais do Mercado Pago fornecidas
+        const MP_ACCESS_TOKEN = "APP_USR-860916258352543-011008-b4b09e67a67a7949dd19d892a9c4f7ac-1879788189";
+        
+        // Lista de Produtos
+        const products = [
+            { id: 1, name: "Açaí Tradicional 300ml", description: "Açaí puro batido com xarope de guaraná + 2 complementos grátis.", price: 15.00, icon: "fa-bowl-food" },
+            { id: 2, name: "Açaí Tradicional 500ml", description: "Tamanho ideal para matar a fome + 3 complementos grátis.", price: 22.00, icon: "fa-bowl-food" },
+            { id: 3, name: "Barca de Açaí 750ml", description: "Açaí caprichado com leite condensado, frutas e chocolates variados.", price: 35.00, icon: "fa-plate-wheat" },
+            { id: 4, name: "Copo Supremo 400ml", description: "Camadas de açaí, ninho, nutella e morango.", price: 25.00, icon: "fa-cup-togo" }
+        ];
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        let cart = [];
 
-        let meuDeviceId = "";
-        let meuElevenDigitId = "";
-        let imagemBase64Temp = "";
-        let contatoAtualId11 = null;
-        let chatListenerRef = null;
-        let notifListeners = {};
-        let statusRef = null;
-        let contatoStatusRef = null;
-
-        function mostrarAlerta(titulo, mensagem) {
-            document.getElementById('custom-alert-title').innerText = titulo;
-            document.getElementById('custom-alert-message').innerText = mensagem;
-            document.getElementById('custom-alert-modal').classList.remove('hidden');
+        // Renderizar Produtos na Tela
+        function renderProducts() {
+            const grid = document.getElementById('productGrid');
+            grid.innerHTML = products.map(p => `
+                <div class="product-card">
+                    <div class="product-img">
+                        <i class="fa-solid ${p.icon}"></i>
+                    </div>
+                    <div class="product-info">
+                        <h3>${p.name}</h3>
+                        <p>${p.description}</p>
+                        <div class="product-footer">
+                            <span class="product-price">R$ ${p.price.toFixed(2).replace('.', ',')}</span>
+                            <button class="add-btn" onclick="addToCart(${p.id})">Adicionar</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
         }
 
-        function fecharCustomAlert() {
-            document.getElementById('custom-alert-modal').classList.add('hidden');
+        // Adicionar ao Carrinho
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            const cartItem = cart.find(item => item.id === productId);
+
+            if (cartItem) {
+                cartItem.quantity++;
+            } else {
+                cart.push({ ...product, quantity: 1 });
+            }
+            updateCart();
         }
 
-        // Solicitar Permissão de Notificação nativa do navegador/dispositivo
-        function solicitarPermissaoNotificacao() {
-            if ("Notification" in window) {
-                if (Notification.permission !== "granted" && Notification.permission !== "denied") {
-                    Notification.requestPermission().then(permission => {
-                        console.log("Status da permissão de notificação:", permission);
-                    });
+        // Atualizar Carrinho e Badge
+        function updateCart() {
+            const badge = document.getElementById('cartBadge');
+            const itemsContainer = document.getElementById('cartItems');
+            const totalElement = document.getElementById('cartTotal');
+
+            const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+            badge.innerText = totalCount;
+
+            if (cart.length === 0) {
+                itemsContainer.innerHTML = '<p style="text-align: center; color: #888; font-size: 0.9rem;">Sua sacola está vazia.</p>';
+                totalElement.innerText = 'R$ 0,00';
+                return;
+            }
+
+            let total = 0;
+            itemsContainer.innerHTML = cart.map(item => {
+                total += item.price * item.quantity;
+                return `
+                    <div class="cart-item">
+                        <div class="cart-item-details">
+                            <h4>${item.name}</h4>
+                            <span>R$ ${item.price.toFixed(2).replace('.', ',')} x ${item.quantity}</span>
+                        </div>
+                        <div class="cart-item-controls">
+                            <button onclick="changeQuantity(${item.id}, -1)">-</button>
+                            <span>${item.quantity}</span>
+                            <button onclick="changeQuantity(${item.id}, 1)">+</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            totalElement.innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+        }
+
+        // Alterar Quantidade
+        function changeQuantity(id, delta) {
+            const item = cart.find(i => i.id === id);
+            if (item) {
+                item.quantity += delta;
+                if (item.quantity <= 0) {
+                    cart = cart.filter(i => i.id !== id);
                 }
             }
+            updateCart();
         }
 
-        function dispararNotificacaoNativa(titulo, corpo) {
-            if ("Notification" in window && Notification.permission === "granted") {
-                try {
-                    // Tenta exibir via ServiceWorker se disponível, senão via construtor padrão
-                    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-                        navigator.serviceWorker.ready.then(registration => {
-                            registration.showNotification(titulo, {
-                                body: corpo,
-                                icon: 'https://cdn-icons-png.flaticon.com/512/893/893257.png'
-                            });
-                        });
-                    } else {
-                        new Notification(titulo, {
-                            body: corpo,
-                            icon: 'https://cdn-icons-png.flaticon.com/512/893/893257.png'
-                        });
+        // Abrir/Fechar Carrinho
+        function toggleCart() {
+            const modal = document.getElementById('cartModal');
+            modal.classList.toggle('open');
+        }
+
+        // Requisição para a API do Mercado Pago (Criar Pagamento Pix)
+        async function gerarPagamentoPix() {
+            if (cart.length === 0) {
+                alert("Adicione itens ao carrinho antes de pagar!");
+                return;
+            }
+
+            const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+            // Exibir modal de carregamento Pix
+            document.getElementById('pixModal').style.display = 'flex';
+            document.getElementById('pixLoading').style.display = 'block';
+            document.getElementById('pixResult').style.display = 'none';
+
+            // Fechar o modal da sacola
+            document.getElementById('cartModal').classList.remove('open');
+
+            // Payload para a API do Mercado Pago (v1/payments)
+            const paymentData = {
+                transaction_amount: Number(totalAmount.toFixed(2)),
+                description: "Pedido Açaíteria Express",
+                payment_method_id: "pix",
+                payer: {
+                    email: "cliente@acaiteria.com",
+                    first_name: "Cliente",
+                    last_name: "App",
+                    identification: {
+                        type: "CPF",
+                        number: "3511122233" // CPF fictício genérico para teste de API
                     }
-                } catch(e) {
-                    console.log("Erro ao disparar notificação nativa:", e);
                 }
-            }
-        }
+            };
 
-        window.onload = async function() {
-            solicitarPermissaoNotificacao();
-            await verificarOuCriarPastaNoCelular();
-        };
-
-        async function verificarOuCriarPastaNoCelular() {
             try {
-                let idSalvo = null;
-                if (window.resolveLocalFileSystemURL && window.PERSISTENT) {
-                    idSalvo = await verificarPastaNativaAndroid();
-                } else {
-                    idSalvo = localStorage.getItem('SubjectRobot_Session/device_id');
-                }
-
-                if (!idSalvo) {
-                    idSalvo = 'device_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-                    await criarPastaNoCelular(idSalvo);
-                }
-
-                meuDeviceId = idSalvo;
-                carregarDadosDoBanco();
-
-            } catch (erro) {
-                console.error("Erro ao verificar pasta:", erro);
-                meuDeviceId = localStorage.getItem('SubjectRobot_Session/device_id') || ('fallback_' + Math.random().toString(36).substring(2, 8));
-                localStorage.setItem('SubjectRobot_Session/device_id', meuDeviceId);
-                carregarDadosDoBanco();
-            }
-        }
-
-        async function criarPastaNoCelular(deviceId) {
-            return new Promise((resolve) => {
-                if (window.resolveLocalFileSystemURL) {
-                    window.resolveLocalFileSystemURL(cordova.file.dataDirectory, function (dirEntry) {
-                        dirEntry.getDirectory("SubjectRobot_Session", { create: true }, function (subDir) {
-                            subDir.getFile("session.json", { create: true }, function (fileEntry) {
-                                fileEntry.createWriter(function (fileWriter) {
-                                    fileWriter.write(JSON.stringify({ id: deviceId, createdAt: new Date().toISOString() }));
-                                    resolve();
-                                });
-                            });
-                        });
-                    }, () => {
-                        localStorage.setItem('SubjectRobot_Session/device_id', deviceId);
-                        resolve();
-                    });
-                } else {
-                    localStorage.setItem('SubjectRobot_Session/device_id', deviceId);
-                    setTimeout(resolve, 400);
-                }
-            });
-        }
-
-        function verificarPastaNativaAndroid() {
-            return new Promise((resolve) => {
-                if (window.resolveLocalFileSystemURL && window.cordova) {
-                    window.resolveLocalFileSystemURL(cordova.file.dataDirectory + "SubjectRobot_Session/session.json", function (fileEntry) {
-                        file.file(fileEntry, function (file) {
-                            const reader = new FileReader();
-                            reader.onloadend = function() {
-                                try {
-                                    const data = JSON.parse(this.result);
-                                    resolve(data.id);
-                                } catch(e) { resolve(null); }
-                            };
-                            reader.readAsText(file);
-                        });
-                    }, function () {
-                        resolve(null);
-                    });
-                } else {
-                    resolve(localStorage.getItem('SubjectRobot_Session/device_id'));
-                }
-            });
-        }
-
-        function gerarNumero11Digitos() {
-            let resultado = '';
-            resultado += Math.floor(Math.random() * 9) + 1;
-            for (let i = 0; i < 10; i++) {
-                resultado += Math.floor(Math.random() * 10);
-            }
-            return resultado;
-        }
-
-        function configurarPresencaOnline(elevenId) {
-            const connectedRef = db.ref(".info/connected");
-            statusRef = db.ref('usuarios/' + meuDeviceId + '/statusOnline');
-            
-            connectedRef.on("value", (snap) => {
-                if (snap.val() === true) {
-                    // Quando desconectar ou fechar a aba/app, define como offline
-                    statusRef.onDisconnect().set(false);
-                    // Define como online agora
-                    statusRef.set(true);
-                } else {
-                    statusRef.set(false);
-                }
-            });
-
-            // Gerencia status ao minimizar/sair da janela do navegador ou app
-            window.addEventListener('beforeunload', () => {
-                if (statusRef) statusRef.set(false);
-            });
-            window.addEventListener('blur', () => {
-                if (statusRef) statusRef.set(false);
-            });
-            window.addEventListener('focus', () => {
-                if (statusRef && meuDeviceId) statusRef.set(true);
-            });
-        }
-
-        function carregarDadosDoBanco() {
-            const userRef = db.ref('usuarios/' + meuDeviceId);
-            
-            userRef.on('value', (snapshot) => {
-                const dados = snapshot.val();
-                let nomeUsuario = "Usuário Anônimo";
-                let avatarUrl = "";
-
-                if (dados) {
-                    nomeUsuario = dados.nome || "Usuário Anônimo";
-                    avatarUrl = dados.avatar || "";
-                    meuElevenDigitId = dados.elevenDigitId;
-
-                    if (!meuElevenDigitId) {
-                        meuElevenDigitId = gerarNumero11Digitos();
-                        userRef.update({ elevenDigitId: meuElevenDigitId });
-                        db.ref('indicesId/' + meuElevenDigitId).set(meuDeviceId);
-                    }
-                } else {
-                    meuElevenDigitId = gerarNumero11Digitos();
-                    userRef.set({
-                        nome: "Usuário " + meuDeviceId.substring(0, 6),
-                        avatar: "",
-                        elevenDigitId: meuElevenDigitId,
-                        statusOnline: true,
-                        contatos: {}
-                    });
-                    db.ref('indicesId/' + meuElevenDigitId).set(meuDeviceId);
-                    nomeUsuario = "Usuário " + meuDeviceId.substring(0, 6);
-                }
-
-                configurarPresencaOnline(meuElevenDigitId);
-
-                document.getElementById('header-welcome-title').innerText = `Olá, ${nomeUsuario}`;
-                document.getElementById('my-eleven-digit-id').innerText = meuElevenDigitId;
-                document.getElementById('input-name').value = nomeUsuario;
-                
-                atualizarAvatares(avatarUrl, nomeUsuario);
-                carregarContatos(dados ? dados.contatos : null);
-
-                document.getElementById('screen-loading').classList.add('hidden');
-                document.getElementById('screen-home').classList.remove('hidden');
-            });
-        }
-
-        function carregarContatos(contatosObj) {
-            const container = document.getElementById('contacts-list');
-            const countBadge = document.getElementById('contact-count');
-            
-            Object.values(notifListeners).forEach(listener => listener.off());
-            notifListeners = {};
-
-            if (!contatosObj) {
-                countBadge.innerText = "0";
-                container.innerHTML = `
-                    <div class="text-center text-gray-400 text-xs py-6 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                        Nenhum contato adicionado ainda. Clique no botão de chat abaixo para adicionar.
-                    </div>
-                `;
-                return;
-            }
-
-            const chavesContatos = Object.keys(contatosObj);
-            countBadge.innerText = chavesContatos.length;
-
-            if (chavesContatos.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center text-gray-400 text-xs py-6 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                        Nenhum contato adicionado ainda. Clique no botão de chat abaixo para adicionar.
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = "";
-            chavesContatos.forEach(codigo11 => {
-                const infoContato = contatosObj[codigo11];
-                const nomeContato = infoContato.nome || "Usuário";
-                const avatarContato = infoContato.avatar || "";
-                const inicialContato = nomeContato.charAt(0).toUpperCase();
-
-                let avatarHtml = '';
-                if (avatarContato && avatarContato.startsWith('data:image')) {
-                    avatarHtml = `<img src="${avatarContato}" class="w-full h-full object-cover">`;
-                } else {
-                    avatarHtml = `<span class="font-bold text-xs text-gray-600">${inicialContato}</span>`;
-                }
-
-                const chatId = [meuElevenDigitId, codigo11].sort().join('_');
-
-                const itemHtml = `
-                    <div onclick="abrirChat('${codigo11}', '${nomeContato}', '${avatarContato}')" class="flex items-center justify-between p-3 bg-gray-50 hover:bg-indigo-50/50 rounded-xl border border-gray-100 transition shadow-sm cursor-pointer relative">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 rounded-full bg-indigo-200 overflow-hidden flex items-center justify-center flex-shrink-0 relative">
-                                ${avatarHtml}
-                            </div>
-                            <div>
-                                <h4 class="text-sm font-bold text-gray-800">${nomeContato}</h4>
-                                <p id="last-msg-${codigo11}" class="text-xs text-gray-500 truncate max-w-[160px]">Toque para conversar</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <span id="badge-notif-${codigo11}" class="hidden bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow animate-pulse">Nova</span>
-                            <span class="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">Chat</span>
-                        </div>
-                    </div>
-                `;
-                container.innerHTML += itemHtml;
-
-                // Monitora novas mensagens para pré-visualização e Notificação Real
-                const messagesRef = db.ref('chats/' + chatId + '/mensagens');
-                notifListeners[codigo11] = messagesRef;
-
-                messagesRef.on('child_added', (snapshot) => {
-                    const msgData = snapshot.val();
-                    if (!msgData) return;
-
-                    const previewEl = document.getElementById(`last-msg-${codigo11}`);
-                    if (previewEl) {
-                        previewEl.innerText = (msgData.remetente === meuElevenDigitId ? "Você: " : "") + msgData.texto;
-                    }
-
-                    // Se a mensagem veio do outro contato
-                    if (msgData.remetente !== meuElevenDigitId) {
-                        // Se o chat atual NÃO está aberto com este contato, dispara Notificação Real e Badge
-                        if (contatoAtualId11 !== codigo11) {
-                            const badge = document.getElementById(`badge-notif-${codigo11}`);
-                            if (badge) badge.classList.remove('hidden');
-
-                            const globalBadge = document.getElementById('global-notif-badge');
-                            if (globalBadge) globalBadge.classList.remove('hidden');
-
-                            if (navigator.vibrate) navigator.vibrate(100);
-
-                            // Dispara notificação nativa do sistema operacional/navegador
-                            dispararNotificacaoNativa(nomeContato, msgData.texto);
-                        } else {
-                            // Se o chat JÁ está aberto, marca automaticamente como visualizado!
-                            db.ref('chats/' + chatId + '/mensagens/' + snapshot.key).update({ status: 'visualizada' });
-                        }
-                    }
-                });
-            });
-        }
-
-        // Abre o chat e atualiza o status de entrega para "recebida" ou "visualizada"
-        function abrirChat(codigo11, nome, avatar) {
-            contatoAtualId11 = codigo11;
-
-            const badge = document.getElementById(`badge-notif-${codigo11}`);
-            if (badge) badge.classList.add('hidden');
-
-            document.getElementById('chat-header-name').innerText = nome;
-            const chatAvatarImg = document.getElementById('chat-header-avatar');
-            const chatAvatarInit = document.getElementById('chat-header-initial');
-            const inicial = nome ? nome.charAt(0).toUpperCase() : '?';
-
-            if (avatar && avatar.startsWith('data:image')) {
-                chatAvatarImg.src = avatar;
-                chatAvatarImg.classList.remove('hidden');
-                chatAvatarInit.classList.add('hidden');
-            } else {
-                chatAvatarImg.classList.add('hidden');
-                chatAvatarInit.classList.remove('hidden');
-                chatAvatarInit.innerText = inicial;
-            }
-
-            // Monitorar Status Online do Contato em Tempo Real
-            monitorarStatusContato(codigo11);
-
-            document.getElementById('screen-chat').classList.remove('translate-x-full');
-            carregarMensagensChat();
-        }
-
-        function monitorarStatusContato(codigo11) {
-            if (contatoStatusRef) contatoStatusRef.off();
-
-            db.ref('indicesId/' + codigo11).once('value').then(snap => {
-                const targetDeviceId = snap.val();
-                if (!targetDeviceId) return;
-
-                contatoStatusRef = db.ref('usuarios/' + targetDeviceId + '/statusOnline');
-                contatoStatusRef.on('value', (statusSnap) => {
-                    const isOnline = statusSnap.val();
-                    const statusTextEl = document.getElementById('chat-header-status');
-                    if (isOnline) {
-                        statusTextEl.innerText = "Online";
-                        statusTextEl.classList.remove('text-indigo-200');
-                        statusTextEl.classList.add('text-emerald-300', 'font-semibold');
-                    } else {
-                        statusTextEl.innerText = "Offline";
-                        statusTextEl.classList.remove('text-emerald-300', 'font-semibold');
-                        statusTextEl.classList.add('text-indigo-200');
-                    }
-                });
-            });
-        }
-
-        function fecharChat() {
-            document.getElementById('screen-chat').classList.add('translate-x-full');
-            if (chatListenerRef) {
-                chatListenerRef.off();
-                chatListenerRef = null;
-            }
-            if (contatoStatusRef) {
-                contatoStatusRef.off();
-                contatoStatusRef = null;
-            }
-            contatoAtualId11 = null;
-        }
-
-        function carregarMensagensChat() {
-            const container = document.getElementById('chat-messages-container');
-            container.innerHTML = '<div class="text-center text-gray-400 text-xs py-4">Carregando mensagens...</div>';
-
-            const chatId = [meuElevenDigitId, contatoAtualId11].sort().join('_');
-            const chatRef = db.ref('chats/' + chatId + '/mensagens');
-
-            if (chatListenerRef) chatListenerRef.off();
-            chatListenerRef = chatRef;
-
-            chatRef.on('value', (snapshot) => {
-                const mensagensObj = snapshot.val();
-                container.innerHTML = "";
-
-                if (!mensagensObj) {
-                    container.innerHTML = '<div class="text-center text-gray-400 text-xs py-4">Nenhuma mensagem ainda. Diga olá!</div>';
-                    return;
-                }
-
-                Object.keys(mensagensObj).forEach(key => {
-                    const msg = mensagensObj[key];
-                    const souEu = msg.remetente === meuElevenDigitId;
-
-                    // Se a mensagem foi enviada pelo contato para mim e ainda está como 'enviada', atualiza para 'recebida'
-                    if (!souEu && msg.status === 'enviada') {
-                        db.ref('chats/' + chatId + '/mensagens/' + key).update({ status: 'recebida' });
-                    }
-
-                    // Se a mensagem foi enviada por mim e o chat está aberto, garanto que se o outro leu, vira 'visualizada'
-                    // Lógica de Traços:
-                    // 'enviada' = 1 traço cinza (✓)
-                    // 'recebida' = 2 traços cinzas (✓✓)
-                    // 'visualizada' = 2 traços azuis (✓✓ em azul)
-                    let iconesStatus = '';
-                    if (souEu) {
-                        let corIcone = "text-gray-300";
-                        if (msg.status === 'visualizada') {
-                            corIcone = "text-sky-300 font-bold";
-                            iconesStatus = `<span class="inline-block ml-1 text-xs ${corIcone}" title="Visualizada">✓✓</span>`;
-                        } else if (msg.status === 'recebida') {
-                            iconesStatus = `<span class="inline-block ml-1 text-xs ${corIcone}" title="Recebida">✓✓</span>`;
-                        } else {
-                            iconesStatus = `<span class="inline-block ml-1 text-xs ${corIcone}" title="Enviada">✓</span>`;
-                        }
-                    }
-                    
-                    const alignClass = souEu ? "ml-auto bg-indigo-600 text-white rounded-l-2xl rounded-tr-2xl" : "mr-auto bg-white text-gray-800 border border-gray-200 rounded-r-2xl rounded-tl-2xl";
-                    
-                    const bubbleHtml = `
-                        <div class="max-w-[75%] p-3 shadow-sm text-sm ${alignClass}">
-                            <p class="break-words">${msg.texto}</p>
-                            <div class="flex items-center justify-end space-x-1 mt-1">
-                                <span class="text-[10px] ${souEu ? 'text-indigo-200' : 'text-gray-400'}">${msg.hora || ''}</span>
-                                ${iconesStatus}
-                            </div>
-                        </div>
-                    `;
-                    container.innerHTML += bubbleHtml;
+                const response = await fetch('https://api.mercadopago.com/v1/payments', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${MP_ACCESS_TOKEN}`,
+                        'Content-Type': 'application/json',
+                        'X-Idempotency-Key': 'acai-' + Date.now()
+                    },
+                    body: JSON.stringify(paymentData)
                 });
 
-                container.scrollTop = container.scrollHeight;
-            });
-        }
+                const data = await response.json();
 
-        function verificarEnterChat(event) {
-            if (event.key === 'Enter') {
-                enviarMensagemChat();
-            }
-        }
+                if (response.ok && data.point_of_interaction) {
+                    const qrCodeBase64 = data.point_of_interaction.transaction_data.qr_code_base64;
+                    const qrCodeCopyPaste = data.point_of_interaction.transaction_data.qr_code;
 
-        function enviarMensagemChat() {
-            const input = document.getElementById('input-chat-message');
-            const texto = input.value.trim();
+                    // Inserir QR Code e código copia/cola no modal
+                    document.getElementById('pixQrContainer').innerHTML = `<img src="data:image/png;base64,${qrCodeBase64}" alt="QR Code Pix">`;
+                    document.getElementById('pixCopyInput').value = qrCodeCopyPaste;
 
-            if (!texto || !contatoAtualId11) return;
-
-            const chatId = [meuElevenDigitId, contatoAtualId11].sort().join('_');
-            const agora = new Date();
-            const horaFormatada = agora.getHours().toString().padStart(2, '0') + ':' + agora.getMinutes().toString().padStart(2, '0');
-
-            db.ref('chats/' + chatId + '/mensagens').push({
-                remetente: meuElevenDigitId,
-                texto: texto,
-                timestamp: firebase.database.ServerValue.TIMESTAMP,
-                hora: horaFormatada,
-                status: 'enviada' // 1º estágio: enviada (1 traço)
-            }, (error) => {
-                if (!error) {
-                    input.value = '';
-                }
-            });
-        }
-
-        function atualizarAvatares(base64Data, nome) {
-            const mainAvatarImg = document.getElementById('main-avatar-img');
-            const mainAvatarInit = document.getElementById('main-avatar-initial');
-            const profileAvatar = document.getElementById('profile-avatar');
-            const profileInitial = document.getElementById('profile-initial');
-            const inicialLetra = nome ? nome.charAt(0).toUpperCase() : '?';
-
-            if (base64Data && base64Data.startsWith('data:image')) {
-                mainAvatarImg.src = base64Data;
-                mainAvatarImg.classList.remove('hidden');
-                mainAvatarInit.classList.add('hidden');
-
-                profileAvatar.src = base64Data;
-                profileAvatar.classList.remove('hidden');
-                profileInitial.classList.add('hidden');
-                
-                imagemBase64Temp = base64Data;
-            } else {
-                mainAvatarImg.classList.add('hidden');
-                mainAvatarInit.classList.remove('hidden');
-                mainAvatarInit.innerText = inicialLetra;
-
-                profileAvatar.classList.add('hidden');
-                profileInitial.classList.remove('hidden');
-                profileInitial.innerText = inicialLetra;
-                
-                imagemBase64Temp = "";
-            }
-        }
-
-        function converterImagemBase64(event) {
-            const arquivo = event.target.files[0];
-            if (!arquivo) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    let largura = img.width;
-                    let altura = img.height;
-                    const maxTamanho = 200;
-
-                    if (largura > altura) {
-                        if (largura > maxTamanho) {
-                            altura *= maxTamanho / largura;
-                            largura = maxTamanho;
-                        }
-                    } else {
-                        if (altura > maxTamanho) {
-                            largura *= maxTamanho / altura;
-                            altura = maxTamanho;
-                        }
-                    }
-
-                    canvas.width = largura;
-                    canvas.height = altura;
-                    ctx.drawImage(img, 0, 0, largura, altura);
-
-                    const base64Compactado = canvas.toDataURL('image/jpeg', 0.7);
-                    imagemBase64Temp = base64Compactado;
-                    
-                    const nomeAtual = document.getElementById('input-name').value;
-                    atualizarAvatares(base64Compactado, nomeAtual);
-                }
-                img.src = e.target.result;
-            }
-            reader.readAsDataURL(arquivo);
-        }
-
-        function salvarPerfil() {
-            const novoNome = document.getElementById('input-name').value.trim();
-            
-            if (!novoNome) {
-                mostrarAlerta("Atenção", "O nome não pode ficar vazio!");
-                return;
-            }
-
-            db.ref('usuarios/' + meuDeviceId).update({
-                nome: novoNome,
-                avatar: imagemBase64Temp
-            }, (error) => {
-                if (error) {
-                    mostrarAlerta("Erro", "Erro ao salvar dados no banco!");
+                    document.getElementById('pixLoading').style.display = 'none';
+                    document.getElementById('pixResult').style.display = 'block';
                 } else {
-                    mostrarAlerta("Sucesso", "Perfil atualizado com sucesso!");
-                    fecharTelaPerfil();
+                    alert("Erro ao gerar Pix: " + (data.message || "Verifique os dados."));
+                    fecharPixModal();
                 }
-            });
-        }
-
-        function abrirModalAdicionarContato() {
-            document.getElementById('input-contact-code').value = '';
-            document.getElementById('modal-add-contact').classList.remove('hidden');
-        }
-
-        function fecharModalAdicionarContato() {
-            document.getElementById('modal-add-contact').classList.add('hidden');
-        }
-
-        function adicionarContatoPorId() {
-            const codigoContato = document.getElementById('input-contact-code').value.trim();
-
-            if (codigoContato.length !== 11 || isNaN(codigoContato)) {
-                mostrarAlerta("Código Inválido", "Por favor, digite um número válido de exatamente 11 dígitos.");
-                return;
+            } catch (error) {
+                console.error("Erro na requisição:", error);
+                alert("Erro de conexão com o Mercado Pago.");
+                fecharPixModal();
             }
-
-            if (codigoContato === meuElevenDigitId) {
-                mostrarAlerta("Atenção", "Você não pode adicionar o seu próprio ID aos seus contatos.");
-                return;
-            }
-
-            db.ref('indicesId/' + codigoContato).once('value').then((snapshot) => {
-                const targetDeviceId = snapshot.val();
-
-                if (!targetDeviceId) {
-                    mostrarAlerta("Não Encontrado", "Nenhum usuário foi encontrado com este número de 11 dígitos.");
-                    return;
-                }
-
-                db.ref('usuarios/' + targetDeviceId).once('value').then((userSnapshot) => {
-                    const dadosAlvo = userSnapshot.val();
-
-                    if (!dadosAlvo) {
-                        mostrarAlerta("Erro", "Os dados deste usuário não estão disponíveis.");
-                        return;
-                    }
-
-                    const nomeAlvo = dadosAlvo.nome || "Usuário";
-                    const avatarAlvo = dadosAlvo.avatar || "";
-
-                    db.ref(`usuarios/${meuDeviceId}/contatos/${codigoContato}`).set({
-                        nome: nomeAlvo,
-                        avatar: avatarAlvo,
-                        deviceId: targetDeviceId,
-                        adicionadoEm: new Date().toISOString()
-                    }, (error) => {
-                        if (error) {
-                            mostrarAlerta("Erro", "Não foi possível adicionar o contato.");
-                        } else {
-                            mostrarAlerta("Sucesso", `Contato ${nomeAlvo} adicionado com sucesso!`);
-                            fecharModalAdicionarContato();
-                        }
-                    });
-                });
-            }).catch((err) => {
-                mostrarAlerta("Erro", "Ocorreu um erro ao buscar o contato.");
-            });
         }
 
-        function abrirTelaPerfil() {
-            document.getElementById('screen-profile').classList.remove('translate-x-full');
+        // Copiar o código Pix Copia e Cola
+        function copiarCodigoPix() {
+            const inputCopy = document.getElementById('pixCopyInput');
+            inputCopy.select();
+            inputCopy.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(inputCopy.value);
+            alert("Código Pix copiado com sucesso! Cole no aplicativo do seu banco.");
         }
 
-        function fecharTelaPerfil() {
-            document.getElementById('screen-profile').classList.add('translate-x-full');
+        // Fechar Modal Pix
+        function fecharPixModal() {
+            document.getElementById('pixModal').style.display = 'none';
         }
+
+        // Inicializar aplicação
+        renderProducts();
     </script>
 </body>
 </html>
