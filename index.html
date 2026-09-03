@@ -2,525 +2,335 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NexusChat - Firebase RTDB</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SubjectRobot App</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: #1f2937; }
-        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
-        body { background-color: #0f172a; font-family: system-ui, -apple-system, sans-serif; }
-    </style>
+    <!-- Firebase SDKs (Compat v9) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
-<body class="text-gray-100 h-screen flex justify-center items-center overflow-hidden">
+<body class="bg-gray-100 min-h-screen flex justify-center items-center">
 
-    <!-- Container Principal do Aplicativo Mobile -->
-    <div id="app" class="w-full max-w-md h-full bg-gray-900 flex flex-col relative shadow-2xl border-x border-gray-800">
+    <!-- Container Principal do App Mobile -->
+    <div class="w-full max-w-md bg-white min-h-screen sm:min-h-[700px] sm:h-[800px] sm:rounded-3xl sm:shadow-2xl flex flex-col relative overflow-hidden">
         
-        <!-- HEADER GLOBAL -->
-        <header id="app-header" class="bg-gray-800 px-4 py-3 flex justify-between items-center border-b border-gray-700 z-10 shrink-0">
-            <div class="flex items-center gap-2">
-                <i class="fa-solid fa-bolt text-emerald-400 text-xl"></i>
-                <h1 class="font-bold text-lg tracking-wide">NexusChat</h1>
-            </div>
-            <div id="header-actions" class="flex items-center gap-3">
-                <button onclick="appState.openSearch()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-search"></i></button>
-                <button onclick="appState.logout()" class="text-gray-400 hover:text-red-400"><i class="fa-solid fa-power-off"></i></button>
-            </div>
+        <!-- HEADER -->
+        <header class="bg-indigo-600 text-white p-4 flex justify-between items-center shadow-md">
+            <h1 class="text-lg font-bold">SubjectRobot</h1>
+            
+            <!-- Bolinha de Perfil -->
+            <button onclick="abrirTelaPerfil()" class="w-10 h-10 rounded-full bg-indigo-400 overflow-hidden border-2 border-white focus:outline-none focus:ring-2 focus:ring-white transition shadow">
+                <img id="header-avatar" src="" alt="Perfil" class="w-full h-full object-cover hidden">
+                <span id="header-initial" class="w-full h-full flex items-center justify-center font-bold text-sm">?</span>
+            </button>
         </header>
 
-        <!-- ÁREA DINÂMICA DE CONTEÚDO (FLEX-1 COM SCROLL) -->
-        <main id="main-content" class="flex-1 overflow-y-auto relative flex flex-col">
-            <!-- Injetado Dinamicamente via JavaScript -->
+        <!-- TELA DE LOADING/VERIFICAÇÃO DE PASTA -->
+        <main id="screen-loading" class="flex-1 p-6 flex flex-col justify-center items-center text-center">
+            <div class="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <h2 class="text-lg font-semibold text-gray-700">Verificando credenciais do dispositivo...</h2>
+            <p class="text-xs text-gray-400 mt-2">Buscando pasta de sessão local.</p>
         </main>
 
-        <!-- BARRA DE NAVEGAÇÃO INFERIOR -->
-        <nav id="bottom-nav" class="bg-gray-800 border-t border-gray-700 flex justify-around p-2 z-10 shrink-0 hidden">
-            <button onclick="appState.changeTab('chats')" class="nav-btn flex flex-col items-center text-emerald-400 text-xs py-1" data-tab="chats">
-                <i class="fa-solid fa-comments text-lg"></i><span>Conversas</span>
-            </button>
-            <button onclick="appState.changeTab('groups')" class="nav-btn flex flex-col items-center text-gray-400 text-xs py-1" data-tab="groups">
-                <i class="fa-solid fa-users text-lg"></i><span>Grupos</span>
-            </button>
-            <button onclick="appState.changeTab('status')" class="nav-btn flex flex-col items-center text-gray-400 text-xs py-1" data-tab="status">
-                <i class="fa-solid fa-circle-notch text-lg"></i><span>Status</span>
-            </button>
-            <button onclick="appState.changeTab('ai')" class="nav-btn flex flex-col items-center text-gray-400 text-xs py-1" data-tab="ai">
-                <i class="fa-solid fa-robot text-lg"></i><span>IA & Smart</span>
-            </button>
-        </nav>
+        <!-- TELA PRINCIPAL (HOME) - Oculta até validar a pasta -->
+        <main id="screen-home" class="flex-1 p-6 flex flex-col justify-center items-center text-center hidden">
+            <div class="mb-6">
+                <div class="w-24 h-24 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4 text-indigo-600 shadow-inner">
+                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                </div>
+                <h2 id="welcome-name" class="text-2xl font-bold text-gray-800">Carregando...</h2>
+                <p class="text-sm text-gray-500 mt-1">Sessão validada automaticamente pela pasta local do celular.</p>
+            </div>
+            
+            <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 w-full text-left shadow-sm">
+                <p class="text-xs text-indigo-700 font-semibold uppercase tracking-wider">ID da Sessão (Vinculado à Pasta):</p>
+                <p id="device-id-display" class="text-xs text-gray-600 font-mono mt-1 break-all bg-white p-2 rounded border border-indigo-100"></p>
+            </div>
+        </main>
+
+        <!-- TELA DE PERFIL -->
+        <div id="screen-profile" class="absolute inset-0 bg-white transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col z-20">
+            <!-- Header da Tela de Perfil -->
+            <div class="bg-indigo-600 text-white p-4 flex items-center shadow-md">
+                <button onclick="fecharTelaPerfil()" class="mr-3 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </button>
+                <h2 class="text-lg font-bold">Editar Perfil</h2>
+            </div>
+
+            <!-- Conteúdo da Tela de Perfil -->
+            <div class="flex-1 p-6 overflow-y-auto">
+                <div class="flex flex-col items-center mb-6">
+                    <div class="relative w-28 h-28 rounded-full bg-gray-200 overflow-hidden border-4 border-indigo-50 shadow-md">
+                        <img id="profile-avatar" src="" alt="Avatar" class="w-full h-full object-cover hidden">
+                        <span id="profile-initial" class="w-full h-full flex items-center justify-center text-3xl font-bold text-gray-500">?</span>
+                    </div>
+                    
+                    <label class="mt-4 cursor-pointer bg-white border border-indigo-600 text-indigo-600 px-4 py-2 rounded-full text-sm font-semibold shadow-sm hover:bg-indigo-50 transition">
+                        Alterar Foto
+                        <input type="file" id="input-file" accept="image/*" class="hidden" onchange="converterImagemBase64(event)">
+                    </label>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nome do Perfil</label>
+                    <input type="text" id="input-name" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition text-sm" placeholder="Seu nome">
+                </div>
+
+                <button onclick="salvarPerfil()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold shadow-md hover:bg-indigo-700 transition mt-4">
+                    Salvar Alterações
+                </button>
+            </div>
+        </div>
+
     </div>
 
-    <!-- SCRIPT DO APLICATIVO -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, push, onValue, update, remove, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-        import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
-
+    <!-- Scripts de Configuração e Lógica -->
+    <script>
+        // Configuração do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyCTkq0uXy5kHg9N8rj9--Dooh8cuguYxPE",
-            authDomain: "subjectrobot-49600.firebaseapp.com",
             databaseURL: "https://subjectrobot-49600-default-rtdb.firebaseio.com",
             projectId: "subjectrobot-49600",
             storageBucket: "subjectrobot-49600.appspot.com",
-            messagingSenderId: "731604558049",
             appId: "1:731604558049:android:7f47b30b289445814017a0"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        const storage = getStorage(app);
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-        window.appState = {
-            currentUser: null,
-            currentTab: 'chats',
-            activeChatId: null,
-            mediaRecorder: null,
-            audioChunks: [],
-            
-            init() {
-                const savedUser = localStorage.getItem('nexus_user');
-                if (savedUser) {
-                    this.currentUser = JSON.parse(savedUser);
-                    document.getElementById('bottom-nav').classList.remove('hidden');
-                    this.changeTab('chats');
-                } else {
-                    document.getElementById('bottom-nav').classList.add('hidden');
-                    this.renderAuthScreen('login');
-                }
-            },
+        let meuDeviceId = "";
+        let imagemBase64Temp = "";
 
-            changeTab(tab) {
-                this.currentTab = tab;
-                document.querySelectorAll('.nav-btn').forEach(btn => {
-                    if(btn.dataset.tab === tab) {
-                        btn.classList.remove('text-gray-400');
-                        btn.classList.add('text-emerald-400');
-                    } else {
-                        btn.classList.remove('text-emerald-400');
-                        btn.classList.add('text-gray-400');
-                    }
-                });
-
-                if (tab === 'chats') this.renderChatsView();
-                else if (tab === 'groups') this.renderGroupsView();
-                else if (tab === 'status') this.renderStatusView();
-                else if (tab === 'ai') this.renderAIView();
-            },
-
-            logout() {
-                localStorage.removeItem('nexus_user');
-                this.currentUser = null;
-                document.getElementById('bottom-nav').classList.add('hidden');
-                this.renderAuthScreen('login');
-            },
-
-            renderAuthScreen(mode = 'login') {
-                const main = document.getElementById('main-content');
-                main.innerHTML = `
-                    <div class="flex flex-col justify-center items-center h-full p-6 space-y-4">
-                        <div class="text-center mb-2">
-                            <i class="fa-solid fa-comments text-5xl text-emerald-400 mb-2"></i>
-                            <h2 class="text-2xl font-bold">NexusChat</h2>
-                            <p class="text-xs text-gray-400">Banco de Dados RTDB</p>
-                        </div>
-                        
-                        <div class="w-full space-y-3">
-                            <input type="text" id="auth-name" placeholder="Nome de Usuário" class="w-full bg-gray-800 p-3 rounded-lg text-sm border border-gray-700 focus:border-emerald-500 outline-none">
-                            <input type="password" id="auth-pass" placeholder="Senha" class="w-full bg-gray-800 p-3 rounded-lg text-sm border border-gray-700 focus:border-emerald-500 outline-none">
-                            ${mode === 'register' ? `<input type="password" id="auth-pass-confirm" placeholder="Confirme a Senha" class="w-full bg-gray-800 p-3 rounded-lg text-sm border border-gray-700 focus:border-emerald-500 outline-none">` : ''}
-                            
-                            <button onclick="appState.handleAuth('${mode}')" class="w-full bg-emerald-600 hover:bg-emerald-500 p-3 rounded-lg font-bold text-sm transition">${mode === 'login' ? 'Entrar' : 'Cadastrar'}</button>
-                        </div>
-
-                        <div class="text-center text-xs space-y-2 mt-4">
-                            ${mode === 'login' ? `
-                                <p><a href="#" onclick="appState.renderAuthScreen('register')" class="text-emerald-400 hover:underline">Não tem conta? Cadastre-se</a></p>
-                                <p><a href="#" onclick="appState.recoverPassword()" class="text-gray-400 hover:underline">Esqueceu a senha? Recuperar conta</a></p>
-                            ` : `
-                                <p><a href="#" onclick="appState.renderAuthScreen('login')" class="text-emerald-400 hover:underline">Já tem uma conta? Faça login</a></p>
-                            `}
-                        </div>
-                    </div>
-                `;
-            },
-
-            async handleAuth(mode) {
-                const name = document.getElementById('auth-name').value.trim();
-                const pass = document.getElementById('auth-pass').value;
-                if(!name || !pass) return alert('Preencha todos os campos!');
-
-                const usersRef = ref(db, 'users');
-                const snapshot = await get(usersRef);
-                const users = snapshot.val() || {};
-
-                if (mode === 'register') {
-                    const passConfirm = document.getElementById('auth-pass-confirm').value;
-                    if(pass !== passConfirm) return alert('As senhas não coincidem!');
-                    
-                    let exists = Object.values(users).some(u => u.name.toLowerCase() === name.toLowerCase());
-                    if(exists) return alert('Este nome de usuário já existe!');
-
-                    const newUid = 'user_' + Date.now();
-                    const userData = { uid: newUid, name, pass };
-                    await set(ref(db, 'users/' + newUid), userData);
-                    
-                    this.currentUser = userData;
-                    localStorage.setItem('nexus_user', JSON.stringify(userData));
-                    document.getElementById('bottom-nav').classList.remove('hidden');
-                    this.changeTab('chats');
-                } else {
-                    let foundUser = Object.values(users).find(u => u.name.toLowerCase() === name.toLowerCase() && u.pass === pass);
-                    if(!foundUser) return alert('Nome de usuário ou senha incorretos!');
-
-                    this.currentUser = foundUser;
-                    localStorage.setItem('nexus_user', JSON.stringify(foundUser));
-                    document.getElementById('bottom-nav').classList.remove('hidden');
-                    this.changeTab('chats');
-                }
-            },
-
-            async recoverPassword() {
-                const name = prompt('Digite seu nome de usuário para recuperação:');
-                if(!name) return;
-                const usersRef = ref(db, 'users');
-                const snapshot = await get(usersRef);
-                const users = snapshot.val() || {};
-                let foundUser = Object.values(users).find(u => u.name.toLowerCase() === name.toLowerCase());
-                if(foundUser) {
-                    alert(`Sua senha cadastrada é: ${foundUser.pass}`);
-                } else {
-                    alert('Usuário não encontrado.');
-                }
-            },
-
-            renderChatsView() {
-                const main = document.getElementById('main-content');
-                main.innerHTML = `
-                    <div class="p-3 bg-gray-800 border-b border-gray-700 flex justify-between items-center">
-                        <span class="font-semibold text-sm">Conversas Recentes</span>
-                        <span class="text-xs text-emerald-400">Olá, ${this.currentUser.name}</span>
-                    </div>
-                    <div id="chats-list" class="flex-1 overflow-y-auto divide-y divide-gray-800"></div>
-                `;
-                
-                onValue(ref(db, 'users'), snapshot => {
-                    const list = document.getElementById('chats-list');
-                    if(!list) return;
-                    list.innerHTML = '';
-                    const data = snapshot.val();
-                    if(data) {
-                        Object.keys(data).forEach(uid => {
-                            if(uid !== this.currentUser.uid) {
-                                const user = data[uid];
-                                list.innerHTML += `
-                                    <div onclick="appState.openChat('${uid}', '${user.name}')" class="flex items-center gap-3 p-3 hover:bg-gray-800 cursor-pointer transition">
-                                        <div class="w-10 h-10 rounded-full bg-emerald-700 flex items-center justify-center font-bold text-white">${user.name[0].toUpperCase()}</div>
-                                        <div class="flex-1">
-                                            <h4 class="font-semibold text-sm">${user.name}</h4>
-                                            <p class="text-xs text-gray-400">Toque para iniciar mensagem...</p>
-                                        </div>
-                                        <span class="text-xs text-emerald-400"><i class="fa-solid fa-chevron-right"></i></span>
-                                    </div>
-                                `;
-                            }
-                        });
-                    }
-                });
-            },
-
-            openChat(recipientId, recipientName) {
-                this.activeChatId = [this.currentUser.uid, recipientId].sort().join('_');
-                const main = document.getElementById('main-content');
-                
-                main.innerHTML = `
-                    <div class="bg-gray-800 p-3 border-b border-gray-700 flex items-center gap-3 shrink-0">
-                        <button onclick="appState.changeTab('chats')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-arrow-left"></i></button>
-                        <div class="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center font-bold text-xs">${recipientName[0].toUpperCase()}</div>
-                        <div class="flex-1">
-                            <h3 class="font-bold text-sm">${recipientName}</h3>
-                            <span class="text-[10px] text-emerald-400">online</span>
-                        </div>
-                        <button onclick="appState.smartSummarize()" class="text-xs text-emerald-400 bg-gray-700 px-2 py-1 rounded"><i class="fa-solid fa-wand-magic-sparkles"></i> Resumir</button>
-                    </div>
-
-                    <div id="messages-container" class="flex-1 overflow-y-auto p-3 space-y-3 flex flex-col"></div>
-
-                    <div class="bg-gray-800 p-2 border-t border-gray-700 flex flex-col gap-2 shrink-0">
-                        <div class="flex items-center gap-2">
-                            <label class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-paperclip text-lg"></i><input type="file" id="media-input" class="hidden" onchange="appState.sendMedia(this)"></label>
-                            <input type="text" id="msg-input" placeholder="Digite uma mensagem..." class="flex-1 bg-gray-700 p-2.5 rounded-lg text-sm border border-gray-600 focus:outline-none focus:border-emerald-500">
-                            <button onclick="appState.toggleRecordAudio()" id="mic-btn" class="text-gray-400 hover:text-emerald-400"><i class="fa-solid fa-microphone text-lg"></i></button>
-                            <button onclick="appState.sendMessage()" class="bg-emerald-600 text-white px-3 py-2 rounded-lg"><i class="fa-solid fa-paper-plane"></i></button>
-                        </div>
-                    </div>
-                `;
-
-                this.loadMessages();
-            },
-
-            loadMessages() {
-                const msgRef = ref(db, 'chats/' + this.activeChatId + '/messages');
-                onValue(msgRef, snapshot => {
-                    const container = document.getElementById('messages-container');
-                    if(!container) return;
-                    container.innerHTML = '';
-                    const data = snapshot.val();
-                    if(data) {
-                        Object.keys(data).forEach(msgId => {
-                            const msg = data[msgId];
-                            const isMe = msg.sender === this.currentUser.uid;
-                            
-                            if(!isMe && msg.status !== 'read') {
-                                update(ref(db, `chats/${this.activeChatId}/messages/${msgId}`), { status: 'read' });
-                            }
-
-                            let contentHtml = `<p class="text-sm">${msg.text || ''}</p>`;
-                            if(msg.type === 'image') contentHtml = `<img src="${msg.url}" class="max-w-xs rounded mb-1">`;
-                            if(msg.type === 'audio') contentHtml = `<audio controls class="w-48"><source src="${msg.url}" type="audio/webm"></audio>`;
-                            if(msg.type === 'document') contentHtml = `<a href="${msg.url}" target="_blank" class="text-blue-400 underline text-xs flex items-center gap-1"><i class="fa-solid fa-file"></i> Documento Anexado</a>`;
-
-                            container.innerHTML += `
-                                <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'} group">
-                                    <div class="max-w-[75%] rounded-lg p-2.5 relative ${isMe ? 'bg-emerald-800 text-white' : 'bg-gray-800 text-gray-100'} shadow">
-                                        ${msg.pinned ? '<span class="text-[9px] text-amber-400 block mb-1"><i class="fa-solid fa-thumbtack"></i> Fixada</span>' : ''}
-                                        ${contentHtml}
-                                        <div class="flex items-center justify-end gap-1 mt-1 text-[10px] text-gray-300">
-                                            <span>${new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                                            ${isMe ? `<span>${msg.status === 'read' ? '✓✓' : '✓'}</span>` : ''}
-                                        </div>
-                                    </div>
-                                    <div class="flex gap-2 text-xs text-gray-400 mt-1 opacity-0 group-hover:opacity-100 transition">
-                                        <button onclick="appState.pinMsg('${msgId}', ${!msg.pinned})" title="Fixar"><i class="fa-solid fa-thumbtack"></i></button>
-                                        <button onclick="appState.reactMsg('${msgId}', '❤️')" title="Reagir"><i class="fa-solid fa-heart"></i></button>
-                                        <button onclick="appState.translateMsg('${msgId}', '${msg.text}')" title="Traduzir"><i class="fa-solid fa-language"></i></button>
-                                        ${isMe ? `<button onclick="appState.deleteMsg('${msgId}')" title="Apagar"><i class="fa-solid fa-trash"></i></button>` : ''}
-                                    </div>
-                                </div>
-                            `;
-                        });
-                        container.scrollTop = container.scrollHeight;
-                    }
-                });
-            },
-
-            sendMessage(customText = null, type = 'text', url = null) {
-                const input = document.getElementById('msg-input');
-                const text = customText || (input ? input.value : '');
-                if(!text && !url) return;
-
-                const msgData = {
-                    sender: this.currentUser.uid,
-                    text: text,
-                    type: type,
-                    url: url || '',
-                    timestamp: Date.now(),
-                    status: 'delivered',
-                    pinned: false
-                };
-
-                push(ref(db, 'chats/' + this.activeChatId + '/messages'), msgData);
-                if(input && !customText) input.value = '';
-            },
-
-            async sendMedia(inputElement) {
-                const file = inputElement.files[0];
-                if(!file) return;
-                const fileRef = sRef(storage, `media/${Date.now()}_${file.name}`);
-                await uploadBytes(fileRef, file);
-                const url = await getDownloadURL(fileRef);
-                
-                let type = 'document';
-                if(file.type.startsWith('image/')) type = 'image';
-                else if(file.type.startsWith('video/')) type = 'video';
-
-                this.sendMessage(file.name, type, url);
-            },
-
-            async toggleRecordAudio() {
-                if(!this.mediaRecorder || this.mediaRecorder.state === 'inactive') {
-                    try {
-                        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                        this.mediaRecorder = new MediaRecorder(stream);
-                        this.audioChunks = [];
-                        
-                        this.mediaRecorder.ondataavailable = e => this.audioChunks.push(e.data);
-                        this.mediaRecorder.onstop = async () => {
-                            const blob = new Blob(this.audioChunks, { type: 'audio/webm' });
-                            const audioRef = sRef(storage, `audios/${Date.now()}.webm`);
-                            await uploadBytes(audioRef, blob);
-                            const url = await getDownloadURL(audioRef);
-                            this.sendMessage('Mensagem de Áudio', 'audio', url);
-                        };
-
-                        this.mediaRecorder.start();
-                        document.getElementById('mic-btn').classList.add('text-red-500', 'animate-pulse');
-                    } catch(e) {
-                        alert('Permissão de microfone negada.');
-                    }
-                } else {
-                    this.mediaRecorder.stop();
-                    document.getElementById('mic-btn').classList.remove('text-red-500', 'animate-pulse');
-                }
-            },
-
-            pinMsg(msgId, pinStatus) {
-                update(ref(db, `chats/${this.activeChatId}/messages/${msgId}`), { pinned: pinStatus });
-            },
-
-            deleteMsg(msgId) {
-                remove(ref(db, `chats/${this.activeChatId}/messages/${msgId}`));
-            },
-
-            reactMsg(msgId, emoji) {
-                alert(`Reação ${emoji} adicionada!`);
-            },
-
-            translateMsg(msgId, text) {
-                if(!text) return;
-                alert(`Tradução: ${text}`);
-            },
-
-            renderGroupsView() {
-                const main = document.getElementById('main-content');
-                main.innerHTML = `
-                    <div class="p-4 space-y-4">
-                        <div class="flex justify-between items-center">
-                            <h2 class="font-bold text-lg">Grupos</h2>
-                            <button onclick="appState.createGroupModal()" class="bg-emerald-600 text-xs px-3 py-2 rounded-lg font-bold"><i class="fa-solid fa-users-plus"></i> Criar Grupo</button>
-                        </div>
-                        <div id="groups-list" class="space-y-2"></div>
-                    </div>
-                `;
-                
-                onValue(ref(db, 'groups'), snapshot => {
-                    const list = document.getElementById('groups-list');
-                    if(!list) return;
-                    list.innerHTML = '';
-                    const data = snapshot.val();
-                    if(data) {
-                        Object.keys(data).forEach(gId => {
-                            const group = data[gId];
-                            list.innerHTML += `
-                                <div onclick="appState.openChat('${gId}', '${group.name}')" class="bg-gray-800 p-3 rounded-lg flex items-center gap-3 cursor-pointer border border-gray-700">
-                                    <div class="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center font-bold"><i class="fa-solid fa-users"></i></div>
-                                    <div>
-                                        <h4 class="font-bold text-sm">${group.name}</h4>
-                                        <p class="text-xs text-gray-400">Admin: ${group.adminName}</p>
-                                    </div>
-                                </div>
-                            `;
-                        });
-                    } else {
-                        list.innerHTML = `<p class="text-xs text-gray-500 text-center mt-10">Nenhum grupo criado.</p>`;
-                    }
-                });
-            },
-
-            createGroupModal() {
-                const name = prompt('Nome do Grupo:');
-                if(name) {
-                    const groupRef = push(ref(db, 'groups'));
-                    set(groupRef, {
-                        name: name,
-                        admin: this.currentUser.uid,
-                        adminName: this.currentUser.name,
-                        createdAt: Date.now()
-                    });
-                }
-            },
-
-            renderStatusView() {
-                const main = document.getElementById('main-content');
-                main.innerHTML = `
-                    <div class="p-4 space-y-4">
-                        <div class="flex justify-between items-center">
-                            <h2 class="font-bold text-lg">Status (24h)</h2>
-                            <button onclick="appState.postStatus()" class="bg-emerald-600 text-xs px-3 py-2 rounded-lg font-bold"><i class="fa-solid fa-plus"></i> Novo Status</button>
-                        </div>
-                        <div id="status-list" class="space-y-3"></div>
-                    </div>
-                `;
-
-                onValue(ref(db, 'status'), snapshot => {
-                    const list = document.getElementById('status-list');
-                    if(!list) return;
-                    list.innerHTML = '';
-                    const data = snapshot.val();
-                    if(data) {
-                        const now = Date.now();
-                        Object.keys(data).forEach(sId => {
-                            const st = data[sId];
-                            if(now - st.timestamp < 86400000) {
-                                list.innerHTML += `
-                                    <div class="bg-gray-800 p-3 rounded-lg border border-gray-700 flex flex-col gap-1">
-                                        <span class="text-xs text-emerald-400 font-bold">${st.author}</span>
-                                        <p class="text-sm">${st.text}</p>
-                                    </div>
-                                `;
-                            }
-                        });
-                    }
-                });
-            },
-
-            postStatus() {
-                const text = prompt('O que deseja postar no Status?');
-                if(text) {
-                    push(ref(db, 'status'), {
-                        author: this.currentUser.name,
-                        text: text,
-                        timestamp: Date.now()
-                    });
-                }
-            },
-
-            renderAIView() {
-                const main = document.getElementById('main-content');
-                main.innerHTML = `
-                    <div class="flex flex-col h-full">
-                        <div class="bg-gray-800 p-3 border-b border-gray-700 flex items-center gap-2 shrink-0">
-                            <i class="fa-solid fa-robot text-emerald-400"></i>
-                            <h3 class="font-bold text-sm">Assistente Inteligente</h3>
-                        </div>
-                        <div id="ai-chat-box" class="flex-1 overflow-y-auto p-3 space-y-3 flex flex-col">
-                            <div class="bg-gray-800 p-3 rounded-lg max-w-[80%] text-sm">Olá! Como posso ajudar você hoje?</div>
-                        </div>
-                        <div class="bg-gray-800 p-2 border-t border-gray-700 flex gap-2 shrink-0">
-                            <input type="text" id="ai-input" placeholder="Pergunte à IA..." class="flex-1 bg-gray-700 p-2.5 rounded-lg text-sm border border-gray-600 focus:outline-none focus:border-emerald-500">
-                            <button onclick="appState.askAI()" class="bg-emerald-600 px-4 rounded-lg"><i class="fa-solid fa-paper-plane"></i></button>
-                        </div>
-                    </div>
-                `;
-            },
-
-            askAI() {
-                const input = document.getElementById('ai-input');
-                const box = document.getElementById('ai-chat-box');
-                const val = input.value;
-                if(!val) return;
-
-                box.innerHTML += `<div class="bg-emerald-800 p-3 rounded-lg max-w-[80%] self-end text-sm">${val}</div>`;
-                input.value = '';
-
-                setTimeout(() => {
-                    box.innerHTML += `<div class="bg-gray-800 p-3 rounded-lg max-w-[80%] text-sm">Entendido! Processando consulta inteligente.</div>`;
-                    box.scrollTop = box.scrollHeight;
-                }, 1000);
-            },
-
-            smartSummarize() {
-                alert("Resumo gerado: Conversa ativa e funcional.");
-            },
-
-            openSearch() {
-                const query = prompt('Busca Inteligente:');
-                if(query) alert(`Resultados para: "${query}"`);
-            }
+        // Inicialização ao carregar a página
+        window.onload = async function() {
+            await verificarOuCriarPastaNoCelular();
         };
 
-        appState.init();
+        /**
+         * Simula a lógica de verificação de diretório/pasta no armazenamento do celular.
+         * Em WebViews nativas do Android (Sketchware/Cordova/Capacitor), isso utiliza o sistema de arquivos. 
+         * No navegador padrão, emula uma "pasta" de dados persistente segura.
+         */
+        async function verificarOuCriarPastaNoCelular() {
+            try {
+                let idSalvo = null;
+
+                // Tenta verificar se o ambiente possui FileSystem nativo (ex: Cordova/Capacitor)
+                if (window.resolveLocalFileSystemURL && window.PERSISTENT) {
+                    idSalvo = await verificarPastaNativaAndroid();
+                } else {
+                    // Fallback estruturado simulando a pasta no armazenamento persistente do app
+                    idSalvo = localStorage.getItem('SubjectRobot_Session/device_id');
+                }
+
+                if (!idSalvo) {
+                    // Primeira vez abrindo o app: Cria o ID único e a "pasta/registro" de sessão
+                    idSalvo = 'device_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                    await criarPastaNoCelular(idSalvo);
+                }
+
+                meuDeviceId = idSalvo;
+                document.getElementById('device-id-display').innerText = meuDeviceId;
+                
+                // Faz o login automático carregando os dados do RTDB
+                carregarDadosDoBanco();
+
+            } catch (erro) {
+                console.error("Erro ao verificar pasta do celular:", erro);
+                // Fallback de segurança caso ocorra erro no acesso ao sistema de arquivos
+                meuDeviceId = localStorage.getItem('SubjectRobot_Session/device_id') || ('fallback_' + Math.random().toString(36).substring(2, 8));
+                localStorage.setItem('SubjectRobot_Session/device_id', meuDeviceId);
+                carregarDadosDoBanco();
+            }
+        }
+
+        // Função para simular a criação da pasta física de sessão no dispositivo
+        async function criarPastaNoCelular(deviceId) {
+            return new Promise((resolve) => {
+                // Se estiver rodando dentro do Android nativo, tenta criar o diretório real
+                if (window.resolveLocalFileSystemURL) {
+                    window.resolveLocalFileSystemURL(cordova.file.dataDirectory, function (dirEntry) {
+                        dirEntry.getDirectory("SubjectRobot_Session", { create: true }, function (subDir) {
+                            subDir.getFile("session.json", { create: true }, function (fileEntry) {
+                                fileEntry.createWriter(function (fileWriter) {
+                                    fileWriter.write(JSON.stringify({ id: deviceId, createdAt: new Date().toISOString() }));
+                                    resolve();
+                                });
+                            });
+                        });
+                    }, () => {
+                        // Caso falhe, grava no armazenamento local padrão simulando a pasta
+                        localStorage.setItem('SubjectRobot_Session/device_id', deviceId);
+                        resolve();
+                    });
+                } else {
+                    // Ambiente Web/WebView padrão: Armazena a chave simulando a pasta de sessão
+                    localStorage.setItem('SubjectRobot_Session/device_id', deviceId);
+                    setTimeout(resolve, 400); // Pequeno delay simulando leitura/escrita de I/O de diretório
+                }
+            });
+        }
+
+        // Verifica se a pasta e o arquivo de sessão já existem no armazenamento nativo
+        function verificarPastaNativaAndroid() {
+            return new Promise((resolve) => {
+                if (window.resolveLocalFileSystemURL && window.cordova) {
+                    window.resolveLocalFileSystemURL(cordova.file.dataDirectory + "SubjectRobot_Session/session.json", function (fileEntry) {
+                        file.file(fileEntry, function (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = function() {
+                                try {
+                                    const data = JSON.parse(this.result);
+                                    resolve(data.id);
+                                } catch(e) { resolve(null); }
+                            };
+                            reader.readAsText(file);
+                        });
+                    }, function () {
+                        resolve(null); // Pasta ou arquivo não encontrado (primeiro acesso)
+                    });
+                } else {
+                    resolve(localStorage.getItem('SubjectRobot_Session/device_id'));
+                }
+            });
+        }
+
+        // Sincroniza e puxa os dados do Firebase RTDB para o login automático
+        function carregarDadosDoBanco() {
+            const userRef = db.ref('usuarios/' + meuDeviceId);
+            
+            userRef.on('value', (snapshot) => {
+                const dados = snapshot.val();
+                let nomeUsuario = "Usuário Anônimo";
+                let avatarUrl = "";
+
+                if (dados) {
+                    nomeUsuario = dados.nome || "Usuário Anônimo";
+                    avatarUrl = dados.avatar || "";
+                } else {
+                    // Primeiro registro deste dispositivo no banco de dados
+                    userRef.set({
+                        nome: "Usuário " + meuDeviceId.substring(0, 6),
+                        avatar: ""
+                    });
+                    nomeUsuario = "Usuário " + meuDeviceId.substring(0, 6);
+                }
+
+                document.getElementById('welcome-name').innerText = `Olá, ${nomeUsuario}`;
+                document.getElementById('input-name').value = nomeUsuario;
+                
+                atualizarAvatares(avatarUrl, nomeUsuario);
+
+                // Alterna para a tela principal ocultando o carregamento
+                document.getElementById('screen-loading').classList.add('hidden');
+                document.getElementById('screen-home').classList.remove('hidden');
+            });
+        }
+
+        // Atualiza elementos visuais da foto/iniciais
+        function atualizarAvatares(base64Data, nome) {
+            const headerAvatar = document.getElementById('header-avatar');
+            const headerInitial = document.getElementById('header-initial');
+            const profileAvatar = document.getElementById('profile-avatar');
+            const profileInitial = document.getElementById('profile-initial');
+            const inicialLetra = nome ? nome.charAt(0).toUpperCase() : '?';
+
+            if (base64Data && base64Data.startsWith('data:image')) {
+                headerAvatar.src = base64Data;
+                headerAvatar.classList.remove('hidden');
+                headerInitial.classList.add('hidden');
+
+                profileAvatar.src = base64Data;
+                profileAvatar.classList.remove('hidden');
+                profileInitial.classList.add('hidden');
+                
+                imagemBase64Temp = base64Data;
+            } else {
+                headerAvatar.classList.add('hidden');
+                headerInitial.classList.remove('hidden');
+                headerInitial.innerText = inicialLetra;
+
+                profileAvatar.classList.add('hidden');
+                profileInitial.classList.remove('hidden');
+                profileInitial.innerText = inicialLetra;
+                
+                imagemBase64Temp = "";
+            }
+        }
+
+        // Conversão de imagem para Base64 com redimensionamento otimizado
+        function converterImagemBase64(event) {
+            const arquivo = event.target.files[0];
+            if (!arquivo) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    let largura = img.width;
+                    let altura = img.height;
+                    const maxTamanho = 200;
+
+                    if (largura > altura) {
+                        if (largura > maxTamanho) {
+                            altura *= maxTamanho / largura;
+                            largura = maxTamanho;
+                        }
+                    } else {
+                        if (altura > maxTamanho) {
+                            largura *= maxTamanho / altura;
+                            altura = maxTamanho;
+                        }
+                    }
+
+                    canvas.width = largura;
+                    canvas.height = altura;
+                    ctx.drawImage(img, 0, 0, largura, altura);
+
+                    const base64Compactado = canvas.toDataURL('image/jpeg', 0.7);
+                    imagemBase64Temp = base64Compactado;
+                    
+                    const nomeAtual = document.getElementById('input-name').value;
+                    atualizarAvatares(base64Compactado, nomeAtual);
+                }
+                img.src = e.target.result;
+            }
+            reader.readAsDataURL(arquivo);
+        }
+
+        // Salvar alterações no perfil e enviar imagem em Base64 para o Realtime Database
+        function salvarPerfil() {
+            const novoNome = document.getElementById('input-name').value.trim();
+            
+            if (!novoNome) {
+                alert("O nome não pode ficar vazio!");
+                return;
+            }
+
+            db.ref('usuarios/' + meuDeviceId).update({
+                nome: novoNome,
+                avatar: imagemBase64Temp
+            }, (error) => {
+                if (error) {
+                    alert("Erro ao salvar dados no banco!");
+                } else {
+                    alert("Perfil atualizado com sucesso!");
+                    fecharTelaPerfil();
+                }
+            });
+        }
+
+        function abrirTelaPerfil() {
+            document.getElementById('screen-profile').classList.remove('translate-x-full');
+        }
+
+        function fecharTelaPerfil() {
+            document.getElementById('screen-profile').classList.add('translate-x-full');
+        }
     </script>
 </body>
 </html>
