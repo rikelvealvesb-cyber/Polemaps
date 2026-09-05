@@ -62,8 +62,27 @@
             <div id="itens-carrinho" class="flex-1 overflow-y-auto p-4 space-y-3">
                 <!-- Cards horizontais do carrinho -->
             </div>
-            <div class="p-4 border-t bg-gray-50">
-                <div class="flex justify-between mb-4 font-bold text-lg">
+            
+            <!-- Opções de Pagamento -->
+            <div class="p-4 border-t bg-gray-50 space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Forma de Pagamento:</label>
+                    <select id="forma-pagamento" class="w-full p-2 bg-white border rounded-xl text-xs">
+                        <option value="Pagar na Entrega">Pagar na Entrega</option>
+                        <option value="Pagar no Ato (Online/Pix)">Pagar no Ato</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Meio de Pagamento:</label>
+                    <select id="meio-pagamento" class="w-full p-2 bg-white border rounded-xl text-xs">
+                        <option value="Pix">PIX</option>
+                        <option value="Cartão de Crédito">Cartão de Crédito</option>
+                        <option value="Cartão de Débito">Cartão de Débito</option>
+                        <option value="Dinheiro">Dinheiro</option>
+                    </select>
+                </div>
+
+                <div class="flex justify-between pt-2 font-bold text-lg border-t">
                     <span>Total:</span>
                     <span id="total-carrinho" class="text-orange-600">R$ 0,00</span>
                 </div>
@@ -200,6 +219,9 @@
 
             try {
                 const total = carrinho.reduce((acc, item) => acc + (item.preco * item.qtd), 0);
+                const formaPagamento = document.getElementById('forma-pagamento').value;
+                const meioPagamento = document.getElementById('meio-pagamento').value;
+
                 const novoPedidoRef = push(ref(db, 'pedidos'));
                 const pedidoId = novoPedidoRef.key;
 
@@ -207,13 +229,14 @@
                     id: pedidoId,
                     itens: carrinho,
                     total: total,
-                    status: 'Preparando',
+                    formaPagamento: formaPagamento,
+                    meioPagamento: meioPagamento,
+                    status: 'Aguardando confirmação da loja',
                     criadoEm: Date.now()
                 };
 
                 await set(novoPedidoRef, dadosPedido);
 
-                // Gerencia o armazenamento mantendo apenas os últimos 10 pedidos para evitar estouro de cota
                 let meusPedidos = [];
                 try {
                     meusPedidos = JSON.parse(localStorage.getItem('meus_pedidos') || '[]');
@@ -222,8 +245,7 @@
                 }
                 
                 meusPedidos.push(pedidoId);
-                if (meusPedidos.length > 10) meusPedidos.shift(); // Remove os mais antigos
-                
+                if (meusPedidos.length > 10) meusPedidos.shift();
                 localStorage.setItem('meus_pedidos', JSON.stringify(meusPedidos));
 
                 carrinho = [];
@@ -232,7 +254,7 @@
                 abrirAba('pedidos');
                 carregarMeusPedidos();
 
-                const numeroWhatsApp = "5511999999999"; 
+                const numeroWhatsApp = "5511954962246"; 
                 const mensagem = encodeURIComponent(`Olá! Meu código de pedido é: ${pedidoId}`);
                 window.open(`https://wa.me/${numeroWhatsApp}?text=${mensagem}`, '_blank');
             } catch (error) {
@@ -265,7 +287,8 @@
                     const pedido = data[id];
                     if (!pedido) return;
 
-                    let corStatus = 'bg-yellow-100 text-yellow-700';
+                    let corStatus = 'bg-orange-100 text-orange-700';
+                    if (pedido.status === 'Preparando') corStatus = 'bg-yellow-100 text-yellow-700';
                     if (pedido.status === 'A caminho') corStatus = 'bg-blue-100 text-blue-700';
                     if (pedido.status === 'Entregue') corStatus = 'bg-green-100 text-green-700';
 
@@ -278,7 +301,10 @@
                             <div class="border-t border-b py-2 space-y-1 text-xs">
                                 ${pedido.itens.map(i => `<div class="flex justify-between"><span>${i.qtd}x ${i.nome}</span><span>R$ ${(i.preco * i.qtd).toFixed(2)}</span></div>`).join('')}
                             </div>
-                            <div class="flex justify-between items-center text-sm font-bold">
+                            <div class="text-xs text-gray-500">
+                                <p><strong>Pagamento:</strong> ${pedido.formaPagamento} (${pedido.meioPagamento})</p>
+                            </div>
+                            <div class="flex justify-between items-center text-sm font-bold pt-1 border-t">
                                 <span>Total: R$ ${pedido.total.toFixed(2)}</span>
                                 ${pedido.status === 'A caminho' ? `<button onclick="confirmarChegada('${id}')" class="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-2 rounded-xl transition shadow-md flex items-center gap-1"><i data-lucide="check" class="w-3.5 h-3.5"></i> Chegou</button>` : ''}
                             </div>
