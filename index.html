@@ -3,855 +3,312 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Omni Game & Bank | Mundo Aberto 3D, Empregos e Atendimento</title>
+    <title>Loja Virtual - Cliente</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></link>
-    <!-- Three.js para Gráficos 3D -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; touch-action: none; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 flex justify-center items-center min-h-screen p-0 sm:p-4">
+<body class="bg-gray-50 text-gray-800 font-sans pb-24">
 
-    <!-- Container do App Mobile (Estilo Smartphone) -->
-    <div class="w-full max-w-md bg-slate-900 sm:rounded-3xl shadow-2xl overflow-hidden min-h-screen sm:min-h-[880px] flex flex-col border border-slate-800 relative select-none">
-        
-        <!-- Modal de Confirmação Sim / Não -->
-        <div id="confirm-modal" class="hidden absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-6">
-            <div class="bg-slate-900 border border-slate-700/80 w-full max-w-xs rounded-3xl p-6 text-center space-y-4 shadow-2xl">
-                <div class="w-12 h-12 bg-violet-600/10 border border-violet-500/20 rounded-2xl mx-auto flex items-center justify-center text-violet-400 text-xl">
-                    <i class="fa-solid fa-circle-question"></i>
-                </div>
-                <div>
-                    <h3 id="confirm-title" class="text-base font-bold text-white">Confirmação</h3>
-                    <p id="confirm-message" class="text-xs text-slate-400 mt-1">Deseja realizar esta ação?</p>
-                </div>
-                <div class="grid grid-cols-2 gap-3 pt-2">
-                    <button id="confirm-no-btn" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs transition">Não</button>
-                    <button id="confirm-yes-btn" class="w-full py-3 bg-violet-600 hover:bg-violet-500 text-white font-semibold rounded-xl text-xs transition shadow-lg shadow-violet-600/20">Sim</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Menu Lateral de Interação com Jogador (Chat Privado / Presentes) -->
-        <div id="player-action-sidebar" class="absolute inset-y-0 right-0 w-80 bg-slate-900 border-l border-slate-800 z-50 transform translate-x-full transition-transform duration-300 flex flex-col shadow-2xl">
-            <div class="p-4 bg-slate-800/80 border-b border-slate-700/60 flex justify-between items-center">
-                <h3 id="sidebar-player-name" class="text-sm font-bold text-white">Ações do Jogador</h3>
-                <button onclick="closePlayerSidebar()" class="text-slate-400 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="flex-1 p-4 space-y-4 overflow-y-auto">
-                <div class="bg-slate-950/60 p-3 rounded-2xl border border-slate-800 space-y-2">
-                    <span class="text-[11px] font-bold text-violet-400 uppercase tracking-wider">Chat Privado</span>
-                    <div id="private-chat-messages" class="h-40 overflow-y-auto space-y-2 text-xs bg-slate-900/80 p-2 rounded-xl border border-slate-800/60"></div>
-                    <div class="flex gap-2">
-                        <input type="text" id="private-msg-input" placeholder="Mensagem privada..." class="flex-1 p-2 bg-slate-900 rounded-xl border border-slate-700 text-xs text-white focus:outline-none focus:border-violet-500">
-                        <button onclick="sendPrivateMessage()" class="px-3 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-xs font-semibold"><i class="fa-solid fa-paper-plane"></i></button>
-                    </div>
-                </div>
-                <div class="bg-slate-950/60 p-3 rounded-2xl border border-slate-800 space-y-2">
-                    <span class="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">Enviar Presente (Omni)</span>
-                    <input type="number" id="gift-amount" placeholder="Qtd Omni" class="w-full p-2 bg-slate-900 rounded-xl border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500">
-                    <button onclick="sendGift()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-emerald-600/20">Enviar Presente</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal de Chat Global -->
-        <div id="global-chat-modal" class="hidden absolute inset-0 bg-slate-950/85 backdrop-blur-sm z-40 flex flex-col p-4">
-            <div class="flex justify-between items-center pb-3 border-b border-slate-800">
-                <h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-comments text-violet-400"></i> Chat Global</h3>
-                <button onclick="toggleGlobalChat()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-            <div id="global-chat-messages" class="flex-1 overflow-y-auto space-y-2 py-3 text-xs"></div>
-            <div class="flex gap-2 pt-2 border-t border-slate-800">
-                <input type="text" id="global-msg-input" placeholder="Digite sua mensagem global..." class="flex-1 p-3 bg-slate-950 rounded-2xl border border-slate-700 text-xs text-white focus:outline-none focus:border-violet-500">
-                <button onclick="sendGlobalMessage()" class="px-4 bg-violet-600 hover:bg-violet-500 text-white rounded-2xl text-xs font-semibold"><i class="fa-solid fa-paper-plane"></i></button>
-            </div>
-        </div>
-
-        <!-- Modal de Trabalho / Balcão de Atendimento -->
-        <div id="job-modal" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex flex-col p-6 items-center justify-center text-center">
-            <div class="bg-slate-900 border border-slate-700 w-full max-w-sm rounded-3xl p-6 space-y-4 shadow-2xl">
-                <div id="job-icon" class="w-16 h-16 bg-violet-600/10 border border-violet-500/20 rounded-3xl mx-auto flex items-center justify-center text-violet-400 text-2xl">
-                    <i class="fa-solid fa-store"></i>
-                </div>
-                <div>
-                    <h3 id="job-title" class="text-lg font-bold text-white">Estabelecimento</h3>
-                    <p id="job-desc" class="text-xs text-slate-400 mt-1">Torne-se o atendente ou faça um pedido.</p>
-                </div>
-                <div id="attendant-area" class="space-y-3 py-2">
-                    <div id="current-attendant-box" class="bg-slate-950 p-3 rounded-2xl border border-slate-800 text-xs">
-                        <span class="text-slate-400">Atendente Atual: </span><strong id="attendant-name" class="text-violet-400">Ninguém</strong>
-                    </div>
-                    <div id="active-order-box" class="hidden bg-violet-950/40 p-3 rounded-2xl border border-violet-800/50 text-xs space-y-2">
-                        <p class="font-semibold text-violet-300" id="order-request-text">Novo Pedido Chegando...</p>
-                        <button onclick="prepareAndDeliverOrder()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-semibold shadow">Preparar e Entregar Pedido</button>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <button onclick="closeJobModal()" class="py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-2xl text-xs transition">Sair</button>
-                    <button id="job-action-btn" onclick="takeAttendantRole()" class="py-3 bg-violet-600 hover:bg-violet-500 text-white font-semibold rounded-2xl text-xs transition shadow-lg shadow-violet-600/20">Assumir Balcão</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Barra Superior -->
-        <div class="bg-slate-900 px-6 py-3 flex justify-between items-center border-b border-slate-800/60 z-30">
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-violet-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                    <i class="fa-solid fa-gamepad text-white text-sm"></i>
-                </div>
-                <span class="font-extrabold tracking-wide text-lg bg-gradient-to-r from-violet-400 to-indigo-300 bg-clip-text text-transparent">OMNI WORLD</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <button onclick="toggleGlobalChat()" class="w-9 h-9 bg-slate-800 hover:bg-slate-700 rounded-xl flex items-center justify-center text-violet-400 text-xs border border-slate-700/50 transition">
-                    <i class="fa-solid fa-comments"></i>
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-40">
+        <div class="max-w-md mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-orange-600 flex items-center gap-2">
+                <i data-lucide="store" class="w-6 h-6"></i> Minha Loja
+            </h1>
+            <div class="flex gap-2">
+                <button onclick="abrirAba('pedidos')" class="relative p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition">
+                    <i data-lucide="clock" class="w-5 h-5 text-gray-700"></i>
                 </button>
-                <div class="flex items-center gap-2 text-slate-400 text-xs font-medium bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700/50">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span>Online</span>
-                </div>
+                <button onclick="abrirAba('carrinho')" class="relative p-2 bg-orange-100 text-orange-600 rounded-full hover:bg-orange-200 transition">
+                    <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                    <span id="badge-carrinho" class="absolute -top-1 -right-1 bg-orange-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold hidden">0</span>
+                </button>
             </div>
         </div>
+    </header>
 
-        <!-- CONTEÚDO PRINCIPAL -->
-        <div class="flex-1 flex flex-col overflow-y-auto relative pb-16">
-
-            <!-- 1. TELA DE LOGIN -->
-            <div id="auth-screen" class="flex-1 flex flex-col justify-between p-6 py-12 z-20 bg-slate-900">
-                <div class="text-center space-y-3 mt-8">
-                    <div class="w-20 h-20 bg-violet-600/10 border border-violet-500/20 rounded-3xl mx-auto flex items-center justify-center text-violet-400 text-3xl shadow-2xl mb-6">
-                        <i class="fa-solid fa-user-pen animate-pulse"></i>
-                    </div>
-                    <h1 class="text-2xl font-bold tracking-tight">Acesso ao Jogo</h1>
-                    <p class="text-slate-400 text-sm max-w-[260px] mx-auto">Digite seu nome para entrar ou cadastrar sua conta e carteira Omni.</p>
-                </div>
-
-                <div class="space-y-4 my-auto">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1.5">Seu Nome de Usuário</label>
-                        <input type="text" id="username-input" placeholder="Ex: João Silva" class="w-full p-4 bg-slate-950 rounded-2xl border border-slate-700 text-sm focus:outline-none focus:border-violet-500 text-white font-medium">
-                    </div>
-                    <button onclick="handleLogin()" class="w-full group relative bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-semibold p-4 rounded-2xl shadow-xl shadow-indigo-600/20 transition-all duration-300 flex items-center justify-center gap-3">
-                        <i class="fa-solid fa-right-to-bracket text-xl group-hover:scale-110 transition-transform"></i>
-                        <span>Entrar no Mundo</span>
-                    </button>
-                    <p id="login-error" class="text-rose-400 text-xs text-center hidden">Por favor, digite um nome válido.</p>
-                </div>
-
-                <div class="text-center text-xs text-slate-500">
-                    <i class="fa-solid fa-shield-halved mr-1"></i> Cadastro Simples por Nome
-                </div>
-            </div>
-
-            <!-- 2. TELA DO JOGO 3D -->
-            <div id="game-screen" class="hidden flex-1 flex flex-col relative overflow-hidden bg-slate-950">
-                <div id="game-container" class="absolute inset-0 w-full h-full"></div>
-                <div class="absolute top-4 left-4 right-4 flex justify-between items-center z-10 pointer-events-none">
-                    <div class="bg-slate-900/80 backdrop-blur px-3 py-1.5 rounded-xl border border-slate-700/50 flex items-center gap-2 pointer-events-auto">
-                        <i class="fa-solid fa-wallet text-violet-400 text-xs"></i>
-                        <span id="game-balance" class="text-xs font-extrabold text-white">0,00 Omni</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 3. TELA DE GUARDA-ROUPA E MEGA LOJA -->
-            <div id="wardrobe-screen" class="hidden p-6 space-y-6 flex-1">
-                <div>
-                    <h2 class="text-xl font-bold tracking-tight text-white">Guarda-Roupa & Mega Loja</h2>
-                    <p class="text-xs text-slate-400">Compre utensílios, objetos e automóveis. Seus itens vão direto para seu inventário!</p>
-                </div>
-
-                <!-- Meus Itens Adquiridos -->
-                <div class="bg-slate-800/60 p-4 rounded-2xl border border-slate-700/50 space-y-2">
-                    <span class="text-xs font-bold text-violet-400 uppercase tracking-wider">Meu Inventário / Meus Itens</span>
-                    <div id="my-inventory-grid" class="grid grid-cols-2 gap-2 max-h-36 overflow-y-auto pr-1 text-xs text-slate-300">
-                        <span class="text-slate-500">Nenhum item comprado ainda.</span>
-                    </div>
-                </div>
-
-                <div class="space-y-4">
-                    <div class="bg-slate-800/60 p-4 rounded-2xl border border-slate-700/50 space-y-2">
-                        <span class="text-xs font-bold text-slate-300">Utensílios (100 Disponíveis)</span>
-                        <div id="store-utensils-grid" class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1"></div>
-                    </div>
-                    <div class="bg-slate-800/60 p-4 rounded-2xl border border-slate-700/50 space-y-2">
-                        <span class="text-xs font-bold text-slate-300">Objetos & Decoração (100 Disponíveis)</span>
-                        <div id="store-objects-grid" class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1"></div>
-                    </div>
-                    <div class="bg-slate-800/60 p-4 rounded-2xl border border-slate-700/50 space-y-2">
-                        <span class="text-xs font-bold text-slate-300">Automóveis & Veículos (100 Disponíveis)</span>
-                        <div id="store-vehicles-grid" class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 4. TELA DA CARTEIRA & BANCO -->
-            <div id="wallet-screen" class="hidden p-6 space-y-6 flex-1">
-                <div class="relative bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 p-6 rounded-3xl border border-slate-700/80 shadow-xl overflow-hidden">
-                    <div class="flex justify-between items-start mb-6">
-                        <div>
-                            <span class="text-xs uppercase tracking-widest text-slate-400 font-semibold">Carteira Omni Game</span>
-                            <div class="flex items-center gap-2 mt-1">
-                                <span id="user-key-display" class="text-xs font-mono text-violet-300 bg-violet-950/60 px-2.5 py-1 rounded-lg border border-violet-800/40">Carregando...</span>
-                                <button onclick="copyKey()" class="text-slate-400 hover:text-white text-xs"><i class="fa-regular fa-copy"></i></button>
-                            </div>
-                        </div>
-                        <div class="w-10 h-10 rounded-2xl bg-slate-700/50 border border-slate-600/40 flex items-center justify-center text-violet-400">
-                            <i class="fa-solid fa-coins"></i>
-                        </div>
-                    </div>
-                    <div class="space-y-1">
-                        <span class="text-xs text-slate-400">Saldo Disponível</span>
-                        <div class="flex items-baseline gap-2">
-                            <h2 id="user-balance" class="text-3xl font-extrabold tracking-tight text-white">0,00</h2>
-                            <span class="text-sm font-bold text-violet-400">Omni</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-slate-800/60 p-5 rounded-3xl border border-slate-700/50 space-y-4">
-                    <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
-                        <i class="fa-solid fa-bolt text-violet-400"></i> Enviar Omni para Outro Jogador
-                    </h3>
-                    <div class="space-y-3">
-                        <input type="text" id="target-key" placeholder="Chave do Jogador (omni_...)" class="w-full p-3.5 bg-slate-900 rounded-xl border border-slate-700 text-sm focus:outline-none focus:border-violet-500 font-mono">
-                        <input type="number" id="pay-amount" placeholder="Quantidade Omni" class="w-full p-3.5 bg-slate-900 rounded-xl border border-slate-700 text-sm focus:outline-none focus:border-violet-500 font-semibold text-violet-300">
-                        <button onclick="initiatePayment()" class="w-full bg-violet-600 hover:bg-violet-500 text-white font-semibold p-3.5 rounded-xl transition shadow-lg shadow-violet-600/20 text-sm">Enviar Transferência</button>
-                    </div>
-                </div>
-            </div>
-
+    <!-- Conteúdo Principal (Cardápio) -->
+    <main class="max-w-md mx-auto p-4 animate-fade-in">
+        <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+            <i data-lucide="utensils" class="w-5 h-5 text-orange-600"></i> Cardápio
+        </h2>
+        <div id="lista-produtos" class="space-y-4">
+            <!-- Produtos injetados via JS -->
         </div>
+    </main>
 
-        <!-- BARRA DE NAVEGAÇÃO INFERIOR -->
-        <div id="bottom-nav" class="hidden bg-slate-900/95 backdrop-blur border-t border-slate-800 px-6 py-3 flex justify-around items-center z-30">
-            <button onclick="switchTab('game')" id="nav-btn-game" class="flex flex-col items-center gap-1 text-violet-400 transition">
-                <i class="fa-solid fa-gamepad text-lg"></i>
-                <span class="text-[10px] font-semibold">Mundo 3D</span>
-            </button>
-            <button onclick="switchTab('wardrobe')" id="nav-btn-wardrobe" class="flex flex-col items-center gap-1 text-slate-400 transition">
-                <i class="fa-solid fa-shirt text-lg"></i>
-                <span class="text-[10px] font-semibold">Loja & Itens</span>
-            </button>
-            <button onclick="switchTab('wallet')" id="nav-btn-wallet" class="flex flex-col items-center gap-1 text-slate-400 transition">
-                <i class="fa-solid fa-wallet text-lg"></i>
-                <span class="text-[10px] font-semibold">Carteira</span>
-            </button>
+    <!-- Modal / Aba do Carrinho -->
+    <div id="modal-carrinho" class="fixed inset-0 bg-black/50 z-50 hidden flex justify-end">
+        <div class="bg-white w-full max-w-md h-full shadow-xl flex flex-col animate-fade-in">
+            <div class="p-4 border-b flex justify-between items-center">
+                <h3 class="font-bold text-lg flex items-center gap-2">
+                    <i data-lucide="shopping-bag" class="w-5 h-5 text-orange-600"></i> Seu Carrinho
+                </h3>
+                <button onclick="fecharAbas()" class="p-1 text-gray-500 hover:text-black">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <div id="itens-carrinho" class="flex-1 overflow-y-auto p-4 space-y-3">
+                <!-- Cards horizontais do carrinho -->
+            </div>
+            <div class="p-4 border-t bg-gray-50">
+                <div class="flex justify-between mb-4 font-bold text-lg">
+                    <span>Total:</span>
+                    <span id="total-carrinho" class="text-orange-600">R$ 0,00</span>
+                </div>
+                <button onclick="finalizarPedido()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition shadow-lg shadow-green-600/20">
+                    <i data-lucide="check-circle" class="w-5 h-5"></i> Finalizar Pedido
+                </button>
+            </div>
         </div>
-
     </div>
 
-    <!-- Script Principal -->
-    <script>
+    <!-- Modal / Aba de Pedidos -->
+    <div id="modal-pedidos" class="fixed inset-0 bg-black/50 z-50 hidden flex justify-end">
+        <div class="bg-white w-full max-w-md h-full shadow-xl flex flex-col animate-fade-in">
+            <div class="p-4 border-b flex justify-between items-center">
+                <h3 class="font-bold text-lg flex items-center gap-2">
+                    <i data-lucide="package" class="w-5 h-5 text-orange-600"></i> Meus Pedidos
+                </h3>
+                <button onclick="fecharAbas()" class="p-1 text-gray-500 hover:text-black">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <div id="lista-meus-pedidos" class="flex-1 overflow-y-auto p-4 space-y-3">
+                <!-- Cards horizontais de acompanhamento -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, push, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
         const firebaseConfig = {
-            apiKey: "AIzaSyCTkqOuXy5kHgN9Nrj9--Dooh8cuguYxPE",
-            authDomain: "subjectrobot-49600.firebaseapp.com",
-            databaseURL: "https://subjectrobot-49600-default-rtdb.firebaseio.com",
-            projectId: "subjectrobot-49600",
+            databaseURL: "https://subjectrobot-49600-default-rtdb.firebaseio.com/",
+            apiKey: "AlzaSyCTkqOuXy5kHg9N8r9--Dooh8cuguYxPE",
             storageBucket: "subjectrobot-49600.appspot.com",
-            messagingSenderId: "731604558049",
             appId: "1:731604558049:android:7f47b30b289445814017a0"
         };
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-        let sanitizedUserId = null;
-        let originalUsername = null;
-        let currentUserKey = null;
-        let currentBalance = 500;
-        let userInventory = {};
-        let selectedTargetUserId = null;
+        const produtos = [
+            { id: 1, nome: "X-Burger Especial", preco: 28.90, desc: "Pão, carne artesanal, cheddar e bacon", imagem: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&auto=format&fit=crop&q=60" },
+            { id: 2, nome: "Pizza Margherita", preco: 45.00, desc: "Molho de tomate, mussarela de búfala e manjericão", imagem: "https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=500&auto=format&fit=crop&q=60" },
+            { id: 3, nome: "Batata Frita Suprema", preco: 19.90, desc: "Porção com cheddar e bacon crocante", imagem: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=500&auto=format&fit=crop&q=60" }
+        ];
 
-        let playerCustomization = {
-            skinColor: 0xfcd34d,
-            clothesColor: 0x7c3aed,
-            pantsColor: 0x1e1b4b,
-            shoesColor: 0x0f172a
-        };
+        let carrinho = [];
 
-        let scene, camera, renderer;
-        let playerGroup;
-        let animStep = 0;
-        let targetPosition = null;
-        let touchMarker = null;
-        let otherPlayersMeshes = {};
-        let jobBuildings = [];
-        let currentBuildingType = null;
-
-        function generateOmniKey() {
-            const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-            let key = 'omni_';
-            for (let i = 0; i < 12; i++) key += chars.charAt(Math.floor(Math.random() * chars.length));
-            return key;
+        function renderizarCardapio() {
+            const container = document.getElementById('lista-produtos');
+            container.innerHTML = produtos.map(p => `
+                <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex gap-4 items-center">
+                    <img src="${p.imagem}" class="w-20 h-20 object-cover rounded-xl shadow-inner" alt="${p.nome}">
+                    <div class="flex-1">
+                        <h3 class="font-bold text-sm">${p.nome}</h3>
+                        <p class="text-xs text-gray-500 line-clamp-1">${p.desc}</p>
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="font-extrabold text-orange-600 text-sm">R$ ${p.preco.toFixed(2)}</span>
+                            <button onclick="adicionarAoCarrinho(${p.id})" class="bg-orange-600 hover:bg-orange-700 text-white p-2 rounded-xl transition shadow-md shadow-orange-600/20">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
         }
 
-        function showConfirm(title, message) {
-            return new Promise((resolve) => {
-                const modal = document.getElementById('confirm-modal');
-                document.getElementById('confirm-title').innerText = title;
-                document.getElementById('confirm-message').innerText = message;
-                modal.classList.remove('hidden');
+        window.adicionarAoCarrinho = function(id) {
+            const prod = produtos.find(p => p.id === id);
+            const itemExistente = carrinho.find(item => item.id === id);
+            if (itemExistente) {
+                itemExistente.qtd++;
+            } else {
+                carrinho.push({ ...prod, qtd: 1 });
+            }
+            atualizarCarrinhoUI();
+        }
 
-                const yesBtn = document.getElementById('confirm-yes-btn');
-                const noBtn = document.getElementById('confirm-no-btn');
+        function atualizarCarrinhoUI() {
+            const badge = document.getElementById('badge-carrinho');
+            const totalItens = carrinho.reduce((acc, item) => acc + item.qtd, 0);
+            
+            if (totalItens > 0) {
+                badge.innerText = totalItens;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
 
-                const cleanup = (result) => {
-                    modal.classList.add('hidden');
-                    yesBtn.onclick = null;
-                    noBtn.onclick = null;
-                    resolve(result);
+            const container = document.getElementById('itens-carrinho');
+            if (carrinho.length === 0) {
+                container.innerHTML = `<div class="text-center text-gray-400 py-12"><i data-lucide="shopping-cart" class="w-12 h-12 mx-auto mb-2 opacity-50"></i><p>Seu carrinho está vazio</p></div>`;
+            } else {
+                container.innerHTML = carrinho.map(item => `
+                    <div class="flex items-center gap-3 bg-gray-50 p-2 rounded-xl border border-gray-100">
+                        <img src="${item.imagem}" class="w-14 h-14 object-cover rounded-lg">
+                        <div class="flex-1">
+                            <h4 class="font-bold text-xs">${item.nome}</h4>
+                            <span class="text-orange-600 text-xs font-bold">R$ ${item.preco.toFixed(2)}</span>
+                        </div>
+                        <div class="flex items-center gap-2 bg-white px-2 py-1 rounded-lg border shadow-xs">
+                            <button onclick="alterarQtd(${item.id}, -1)" class="text-gray-500 hover:text-black"><i data-lucide="minus" class="w-3 h-3"></i></button>
+                            <span class="text-xs font-bold">${item.qtd}</span>
+                            <button onclick="alterarQtd(${item.id}, 1)" class="text-gray-500 hover:text-black"><i data-lucide="plus" class="w-3 h-3"></i></button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            const total = carrinho.reduce((acc, item) => acc + (item.preco * item.qtd), 0);
+            document.getElementById('total-carrinho').innerText = `R$ ${total.toFixed(2)}`;
+            lucide.createIcons();
+        }
+
+        window.alterarQtd = function(id, delta) {
+            const item = carrinho.find(i => i.id === id);
+            if (item) {
+                item.qtd += delta;
+                if (item.qtd <= 0) {
+                    carrinho = carrinho.filter(i => i.id !== id);
+                }
+            }
+            atualizarCarrinhoUI();
+        }
+
+        window.finalizarPedido = async function() {
+            if (carrinho.length === 0) {
+                alert("Seu carrinho está vazio!");
+                return;
+            }
+
+            try {
+                const total = carrinho.reduce((acc, item) => acc + (item.preco * item.qtd), 0);
+                const novoPedidoRef = push(ref(db, 'pedidos'));
+                const pedidoId = novoPedidoRef.key;
+
+                const dadosPedido = {
+                    id: pedidoId,
+                    itens: carrinho,
+                    total: total,
+                    status: 'Preparando',
+                    criadoEm: Date.now()
                 };
 
-                yesBtn.onclick = () => cleanup(true);
-                noBtn.onclick = () => cleanup(false);
-            });
-        }
+                await set(novoPedidoRef, dadosPedido);
 
-        function handleLogin() {
-            const usernameInput = document.getElementById('username-input').value.trim();
-            const errorEl = document.getElementById('login-error');
-            errorEl.classList.add('hidden');
-
-            if (!usernameInput) {
-                errorEl.classList.remove('hidden');
-                return;
-            }
-
-            originalUsername = usernameInput;
-            sanitizedUserId = usernameInput.toLowerCase().replace(/[^a-z0-9]/g, '_');
-            checkOrCreateAccount(sanitizedUserId);
-        }
-
-        function checkOrCreateAccount(userId) {
-            const userRef = db.ref('bank_users/' + userId);
-
-            userRef.once('value', (snapshot) => {
-                if (snapshot.exists()) {
-                    const userData = snapshot.val();
-                    currentUserKey = userData.key;
-                    currentBalance = userData.balance;
-                    userInventory = userData.inventory || {};
-                    if (userData.customization) playerCustomization = userData.customization;
-                    loadDashboard();
-                } else {
-                    const newKey = generateOmniKey();
-                    userRef.set({ balance: 500, key: newKey, customization: playerCustomization, inventory: {}, createdAt: Date.now() }, (error) => {
-                        if (!error) {
-                            currentUserKey = newKey;
-                            currentBalance = 500;
-                            userInventory = {};
-                            loadDashboard();
-                        }
-                    });
+                // Gerencia o armazenamento mantendo apenas os últimos 10 pedidos para evitar estouro de cota
+                let meusPedidos = [];
+                try {
+                    meusPedidos = JSON.parse(localStorage.getItem('meus_pedidos') || '[]');
+                } catch (e) {
+                    meusPedidos = [];
                 }
-            });
-        }
-
-        function loadDashboard() {
-            document.getElementById('auth-screen').classList.add('hidden');
-            document.getElementById('game-screen').classList.remove('hidden');
-            document.getElementById('bottom-nav').classList.remove('hidden');
-            
-            document.getElementById('user-key-display').innerText = currentUserKey;
-            updateBalanceUI();
-            renderInventoryUI();
-
-            db.ref('bank_users/' + sanitizedUserId + '/balance').on('value', (snapshot) => {
-                if (snapshot.exists()) {
-                    currentBalance = snapshot.val();
-                    updateBalanceUI();
-                }
-            });
-
-            db.ref('bank_users/' + sanitizedUserId + '/inventory').on('value', (snapshot) => {
-                userInventory = snapshot.val() || {};
-                renderInventoryUI();
-            });
-
-            initStoreItems();
-            init3DWorld();
-            initTouchMovement();
-            initMultiplayerSync();
-            initGlobalChatSync();
-        }
-
-        function updateBalanceUI() {
-            const val = currentBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-            document.getElementById('user-balance').innerText = val;
-            document.getElementById('game-balance').innerText = val + " Omni";
-        }
-
-        function switchTab(tabName) {
-            document.getElementById('game-screen').classList.add('hidden');
-            document.getElementById('wardrobe-screen').classList.add('hidden');
-            document.getElementById('wallet-screen').classList.add('hidden');
-            document.getElementById('nav-btn-game').className = "flex flex-col items-center gap-1 text-slate-400 transition";
-            document.getElementById('nav-btn-wardrobe').className = "flex flex-col items-center gap-1 text-slate-400 transition";
-            document.getElementById('nav-btn-wallet').className = "flex flex-col items-center gap-1 text-slate-400 transition";
-
-            if (tabName === 'game') {
-                document.getElementById('game-screen').classList.remove('hidden');
-                document.getElementById('nav-btn-game').className = "flex flex-col items-center gap-1 text-violet-400 transition";
-            } else if (tabName === 'wardrobe') {
-                document.getElementById('wardrobe-screen').classList.remove('hidden');
-                document.getElementById('nav-btn-wardrobe').className = "flex flex-col items-center gap-1 text-violet-400 transition";
-            } else {
-                document.getElementById('wallet-screen').classList.remove('hidden');
-                document.getElementById('nav-btn-wallet').className = "flex flex-col items-center gap-1 text-violet-400 transition";
-            }
-        }
-
-        function copyKey() {
-            if (currentUserKey) {
-                navigator.clipboard.writeText(currentUserKey);
-                alert("Chave copiada!");
-            }
-        }
-
-        // --- MEGA LOJA E INVENTÁRIO CORRIGIDO ---
-        function initStoreItems() {
-            const utensilsContainer = document.getElementById('store-utensils-grid');
-            const objectsContainer = document.getElementById('store-objects-grid');
-            const vehiclesContainer = document.getElementById('store-vehicles-grid');
-
-            utensilsContainer.innerHTML = '';
-            objectsContainer.innerHTML = '';
-            vehiclesContainer.innerHTML = '';
-
-            for (let i = 1; i <= 100; i++) {
-                const price = i * 2;
-                utensilsContainer.innerHTML += `
-                    <button onclick="buyStoreItem('Utensílio #${i}', ${price})" class="p-2.5 bg-slate-900 rounded-xl border border-slate-700 text-xs flex justify-between items-center hover:border-violet-500 transition">
-                        <span>Utensílio ${i}</span>
-                        <span class="text-violet-400 font-bold">${price} Omni</span>
-                    </button>
-                `;
-            }
-
-            for (let i = 1; i <= 100; i++) {
-                const price = i * 5;
-                objectsContainer.innerHTML += `
-                    <button onclick="buyStoreItem('Objeto #${i}', ${price})" class="p-2.5 bg-slate-900 rounded-xl border border-slate-700 text-xs flex justify-between items-center hover:border-violet-500 transition">
-                        <span>Objeto ${i}</span>
-                        <span class="text-violet-400 font-bold">${price} Omni</span>
-                    </button>
-                `;
-            }
-
-            for (let i = 1; i <= 100; i++) {
-                const price = i * 50;
-                vehiclesContainer.innerHTML += `
-                    <button onclick="buyStoreItem('Automóvel #${i}', ${price})" class="p-2.5 bg-slate-900 rounded-xl border border-slate-700 text-xs flex justify-between items-center hover:border-violet-500 transition">
-                        <span>Carro ${i}</span>
-                        <span class="text-violet-400 font-bold">${price} Omni</span>
-                    </button>
-                `;
-            }
-        }
-
-        async function buyStoreItem(itemName, price) {
-            if (currentBalance < price) {
-                alert("Saldo insuficiente para adquirir este item!");
-                return;
-            }
-
-            const confirmed = await showConfirm("Mega Loja Omni", `Deseja comprar "${itemName}" por ${price} Omni?`);
-            if (!confirmed) return;
-
-            currentBalance -= price;
-            userInventory[itemName] = (userInventory[itemName] || 0) + 1;
-
-            await db.ref('bank_users/' + sanitizedUserId).update({
-                balance: currentBalance,
-                inventory: userInventory
-            });
-
-            alert(`Parabéns! "${itemName}" foi adicionado ao seu inventário com sucesso.`);
-        }
-
-        function renderInventoryUI() {
-            const container = document.getElementById('my-inventory-grid');
-            container.innerHTML = '';
-            const items = Object.keys(userInventory);
-
-            if (items.length === 0) {
-                container.innerHTML = `<span class="text-slate-500">Nenhum item comprado ainda.</span>`;
-                return;
-            }
-
-            items.forEach(item => {
-                container.innerHTML += `
-                    <div class="bg-slate-900 p-2 rounded-xl border border-slate-700 flex justify-between items-center">
-                        <span>${item}</span>
-                        <span class="text-violet-400 font-bold">x${userInventory[item]}</span>
-                    </div>
-                `;
-            });
-        }
-
-        // --- MOTOR 3D E LOJAS DE TRABALHO DE ATENDENTE ---
-        function init3DWorld() {
-            const container = document.getElementById('game-container');
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x090d16);
-
-            camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
-            camera.position.set(0, 8, 12);
-
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(container.clientWidth, container.clientHeight);
-            container.appendChild(renderer.domElement);
-
-            scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            dirLight.position.set(10, 20, 10);
-            scene.add(dirLight);
-
-            const floor = new THREE.Mesh(new THREE.PlaneGeometry(250, 250), new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 }));
-            floor.rotation.x = -Math.PI / 2;
-            scene.add(floor);
-
-            const markerGeo = new THREE.RingGeometry(0.3, 0.4, 32);
-            markerGeo.rotateX(-Math.PI / 2);
-            touchMarker = new THREE.Mesh(markerGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, opacity: 0.8 }));
-            touchMarker.position.y = 0.01;
-            touchMarker.visible = false;
-            scene.add(touchMarker);
-
-            createJobBuildings();
-
-            playerGroup = createCharacterMesh(playerCustomization);
-            playerGroup.position.set(0, 0, 3);
-            scene.add(playerGroup);
-            targetPosition = playerGroup.position.clone();
-
-            animateGame();
-        }
-
-        function createJobBuildings() {
-            const buildingsData = [
-                { name: 'Cafeteria', color: 0xd97706, x: -15, z: -15 },
-                { name: 'Hamburgueria', color: 0xef4444, x: 15, z: -15 },
-                { name: 'Pizzaria', color: 0xeab308, x: -15, z: 15 },
-                { name: 'Sorveteria', color: 0xec4899, x: 15, z: 15 }
-            ];
-
-            buildingsData.forEach(b => {
-                const group = new THREE.Group();
-                const mesh = new THREE.Mesh(new THREE.BoxGeometry(6, 4, 6), new THREE.MeshStandardMaterial({ color: b.color }));
-                mesh.position.y = 2;
-                group.add(mesh);
-                group.position.set(b.x, 0, b.z);
-                group.userData = { type: b.name };
-                scene.add(group);
-                jobBuildings.push(group);
-            });
-        }
-
-        function createCharacterMesh(cust) {
-            const group = new THREE.Group();
-            const skinMat = new THREE.MeshStandardMaterial({ color: cust.skinColor || 0xfcd34d });
-            const clothesMat = new THREE.MeshStandardMaterial({ color: cust.clothesColor || 0x7c3aed });
-            const pantsMat = new THREE.MeshStandardMaterial({ color: cust.pantsColor || 0x1e1b4b });
-            const shoesMat = new THREE.MeshStandardMaterial({ color: cust.shoesColor || 0x0f172a });
-
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.4), skinMat);
-            head.position.y = 1.4;
-            const torso = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 0.3), clothesMat);
-            torso.position.y = 0.9;
-            const lLeg = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.35, 0.2), pantsMat);
-            lLeg.position.set(-0.15, 0.37, 0);
-            const rLeg = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.35, 0.2), pantsMat);
-            rLeg.position.set(0.15, 0.37, 0);
-
-            group.add(head, torso, lLeg, rLeg);
-            group.userData = { lLeg, rLeg };
-            return group;
-        }
-
-        function initTouchMovement() {
-            const container = document.getElementById('game-container');
-            const raycaster = new THREE.Raycaster();
-            const mouse = new THREE.Vector2();
-            const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
-
-            container.addEventListener('pointerdown', (e) => {
-                const rect = container.getBoundingClientRect();
-                mouse.x = ((e.clientX - rect.left) / container.clientWidth) * 2 - 1;
-                mouse.y = -((e.clientY - rect.top) / container.clientHeight) * 2 + 1;
-                raycaster.setFromCamera(mouse, camera);
-
-                let intersects = raycaster.intersectObjects(scene.children, true);
-                for (let hit of intersects) {
-                    let obj = hit.object;
-                    while (obj.parent && obj.parent !== scene) obj = obj.parent;
-                    if (obj.userData && obj.userData.userId && obj.userData.userId !== sanitizedUserId) {
-                        openPlayerSidebar(obj.userData.userId, obj.userData.userName);
-                        return;
-                    }
-                }
-
-                for (let b of jobBuildings) {
-                    let hitDist = raycaster.ray.distanceToPoint(b.position);
-                    if (hitDist < 4) {
-                        openJobModal(b.userData.type);
-                        return;
-                    }
-                }
-
-                const targetPoint = new THREE.Vector3();
-                raycaster.ray.intersectPlane(plane, targetPoint);
-                if (targetPoint) {
-                    targetPosition.set(targetPoint.x, 0, targetPoint.z);
-                    touchMarker.position.set(targetPoint.x, 0.01, targetPoint.z);
-                    touchMarker.visible = true;
-                }
-            });
-        }
-
-        // --- SISTEMA DE BALCÃO E ATENDENTE DE ESTABELECIMENTO ---
-        function openJobModal(buildingType) {
-            currentBuildingType = buildingType;
-            document.getElementById('job-title').innerText = `Balcão da ${buildingType}`;
-            document.getElementById('job-desc').innerText = `Assuma o balcão para atender clientes ou aguarde pedidos.`;
-            document.getElementById('job-modal').classList.remove('hidden');
-            syncBuildingData(buildingType);
-        }
-
-        function closeJobModal() {
-            document.getElementById('job-modal').classList.add('hidden');
-            currentBuildingType = null;
-        }
-
-        function syncBuildingData(type) {
-            db.ref('buildings/' + type).on('value', (snapshot) => {
-                if (!snapshot.exists()) return;
-                const data = snapshot.val();
-                document.getElementById('attendant-name').innerText = data.attendantName || "Ninguém";
                 
-                const orderBox = document.getElementById('active-order-box');
-                const actionBtn = document.getElementById('job-action-btn');
+                meusPedidos.push(pedidoId);
+                if (meusPedidos.length > 10) meusPedidos.shift(); // Remove os mais antigos
+                
+                localStorage.setItem('meus_pedidos', JSON.stringify(meusPedidos));
 
-                if (data.attendantId === sanitizedUserId) {
-                    actionBtn.innerText = 'Você é o Atendente';
-                    actionBtn.disabled = true;
-                    if (data.currentOrder) {
-                        orderBox.classList.remove('hidden');
-                        document.getElementById('order-request-text').innerText = `Pedido: ${data.currentOrder.item} (Cliente: ${data.currentOrder.clientName})`;
-                    } else {
-                        orderBox.classList.add('hidden');
-                        simulateIncomingCustomer(type);
-                    }
-                } else {
-                    actionBtn.innerText = 'Assumir Balcão';
-                    actionBtn.disabled = false;
-                    orderBox.classList.add('hidden');
-                }
-            });
+                carrinho = [];
+                atualizarCarrinhoUI();
+                fecharAbas();
+                abrirAba('pedidos');
+                carregarMeusPedidos();
+
+                const numeroWhatsApp = "5511999999999"; 
+                const mensagem = encodeURIComponent(`Olá! Meu código de pedido é: ${pedidoId}`);
+                window.open(`https://wa.me/${numeroWhatsApp}?text=${mensagem}`, '_blank');
+            } catch (error) {
+                console.error("Erro detalhado Firebase:", error);
+                alert("Erro ao enviar pedido: " + error.message);
+            }
         }
 
-        async function takeAttendantRole() {
-            if (!currentBuildingType) return;
-            await db.ref('buildings/' + currentBuildingType).set({
-                attendantId: sanitizedUserId,
-                attendantName: originalUsername,
-                currentOrder: null
-            });
-            alert(`Você assumiu o balcão da ${currentBuildingType}! Fique atento aos pedidos.`);
-        }
+        function carregarMeusPedidos() {
+            let meusPedidosIds = [];
+            try {
+                meusPedidosIds = JSON.parse(localStorage.getItem('meus_pedidos') || '[]');
+            } catch (e) {
+                meusPedidosIds = [];
+            }
 
-        function simulateIncomingCustomer(type) {
-            setTimeout(async () => {
-                const ref = db.ref('buildings/' + type);
-                const snap = await ref.once('value');
-                if (snap.exists() && snap.val().attendantId === sanitizedUserId && !snap.val().currentOrder) {
-                    const itemsList = { 'Cafeteria': 'Café Expresso', 'Hamburgueria': 'X-Bacon Duplo', 'Pizzaria': 'Pizza de Calabresa', 'Sorveteria': 'Sorvete de Baunilha' };
-                    await ref.update({
-                        currentOrder: {
-                            item: itemsList[type] || 'Lanche Especial',
-                            clientName: 'Cliente do Mundo'
-                        }
-                    });
-                }
-            }, 5000);
-        }
+            const container = document.getElementById('lista-meus-pedidos');
 
-        async function prepareAndDeliverOrder() {
-            if (!currentBuildingType) return;
-            const reward = 60;
-            currentBalance += reward;
-
-            await db.ref('bank_users/' + sanitizedUserId + '/balance').set(currentBalance);
-            await db.ref('buildings/' + currentBuildingType + '/currentOrder').remove();
-
-            alert(`Pedido entregue com sucesso! Você ganhou ${reward} Omni pelo atendimento.`);
-        }
-
-        // --- CHAT E MULTIPLAYER ---
-        function toggleGlobalChat() {
-            document.getElementById('global-chat-modal').classList.toggle('hidden');
-        }
-
-        function sendGlobalMessage() {
-            const input = document.getElementById('global-msg-input');
-            if (!input.value.trim()) return;
-            db.ref('global_chat').push({ sender: originalUsername, text: input.value.trim(), time: Date.now() });
-            input.value = '';
-        }
-
-        function initGlobalChatSync() {
-            db.ref('global_chat').limitToLast(50).on('child_added', (snapshot) => {
-                const msg = snapshot.val();
-                const container = document.getElementById('global-chat-messages');
-                container.innerHTML += `<div><strong class="text-violet-400">${msg.sender}:</strong> <span class="text-slate-200">${msg.text}</span></div>`;
-                container.scrollTop = container.scrollHeight;
-            });
-        }
-
-        function openPlayerSidebar(userId, userName) {
-            selectedTargetUserId = userId;
-            document.getElementById('sidebar-player-name').innerText = userName || "Jogador";
-            document.getElementById('player-action-sidebar').classList.remove('translate-x-full');
-            loadPrivateChat(userId);
-        }
-
-        function closePlayerSidebar() {
-            document.getElementById('player-action-sidebar').classList.add('translate-x-full');
-            selectedTargetUserId = null;
-        }
-
-        function sendPrivateMessage() {
-            if (!selectedTargetUserId) return;
-            const input = document.getElementById('private-msg-input');
-            if (!input.value.trim()) return;
-            const chatId = [sanitizedUserId, selectedTargetUserId].sort().join('_');
-            db.ref('private_chats/' + chatId).push({ sender: sanitizedUserId, text: input.value.trim(), time: Date.now() });
-            input.value = '';
-        }
-
-        function loadPrivateChat(targetId) {
-            const chatId = [sanitizedUserId, targetId].sort().join('_');
-            const container = document.getElementById('private-chat-messages');
-            container.innerHTML = '';
-            db.ref('private_chats/' + chatId).limitToLast(30).on('child_added', (snapshot) => {
-                const msg = snapshot.val();
-                const isMe = msg.sender === sanitizedUserId;
-                container.innerHTML += `<div class="${isMe ? 'text-right text-violet-300' : 'text-left text-slate-300'}"><span>${msg.text}</span></div>`;
-                container.scrollTop = container.scrollHeight;
-            });
-        }
-
-        async function sendGift() {
-            if (!selectedTargetUserId) return;
-            const amount = parseFloat(document.getElementById('gift-amount').value);
-            if (isNaN(amount) || amount <= 0 || currentBalance < amount) {
-                alert("Valor inválido ou saldo insuficiente.");
+            if (meusPedidosIds.length === 0) {
+                container.innerHTML = `<div class="text-center text-gray-400 py-12"><i data-lucide="clock" class="w-12 h-12 mx-auto mb-2 opacity-50"></i><p>Nenhum pedido recente</p></div>`;
                 return;
             }
-            currentBalance -= amount;
-            await db.ref('bank_users/' + sanitizedUserId + '/balance').set(currentBalance);
-            const targetRef = db.ref('bank_users/' + selectedTargetUserId + '/balance');
-            const snap = await targetRef.once('value');
-            if (snap.exists()) await targetRef.set(snap.val() + amount);
-            document.getElementById('gift-amount').value = '';
-            alert("Presente enviado com sucesso!");
-        }
 
-        function animateGame() {
-            requestAnimationFrame(animateGame);
-            if (playerGroup && targetPosition) {
-                const dir = new THREE.Vector3().subVectors(targetPosition, playerGroup.position);
-                const dist = dir.length();
-                if (dist > 0.1) {
-                    dir.normalize();
-                    playerGroup.position.addScaledVector(dir, 0.08);
-                    playerGroup.lookAt(targetPosition.x, playerGroup.position.y, targetPosition.z);
+            onValue(ref(db, 'pedidos'), (snapshot) => {
+                const data = snapshot.val();
+                if (!data) return;
 
-                    animStep += 0.2;
-                    if (playerGroup.userData.lLeg) {
-                        playerGroup.userData.lLeg.rotation.x = Math.sin(animStep) * 0.5;
-                        playerGroup.userData.rLeg.rotation.x = -Math.sin(animStep) * 0.5;
-                    }
+                container.innerHTML = '';
+                meusPedidosIds.forEach(id => {
+                    const pedido = data[id];
+                    if (!pedido) return;
 
-                    db.ref('game_players/' + sanitizedUserId).set({
-                        userName: originalUsername,
-                        x: playerGroup.position.x,
-                        y: playerGroup.position.y,
-                        z: playerGroup.position.z,
-                        rotY: playerGroup.rotation.y,
-                        cust: playerCustomization
-                    });
-                } else {
-                    if (touchMarker) touchMarker.visible = false;
-                }
-                camera.position.set(playerGroup.position.x, playerGroup.position.y + 6, playerGroup.position.z + 10);
-                camera.lookAt(playerGroup.position);
-            }
-            renderer.render(scene, camera);
-        }
+                    let corStatus = 'bg-yellow-100 text-yellow-700';
+                    if (pedido.status === 'A caminho') corStatus = 'bg-blue-100 text-blue-700';
+                    if (pedido.status === 'Entregue') corStatus = 'bg-green-100 text-green-700';
 
-        function initMultiplayerSync() {
-            const myPlayerRef = db.ref('game_players/' + sanitizedUserId);
-            myPlayerRef.onDisconnect().remove();
-
-            db.ref('game_players').on('value', (snapshot) => {
-                const data = snapshot.val() || {};
-                Object.keys(data).forEach((uid) => {
-                    if (uid === sanitizedUserId) return;
-                    const pData = data[uid];
-                    if (!otherPlayersMeshes[uid]) {
-                        const mesh = createCharacterMesh(pData.cust || {});
-                        mesh.userData = { userId: uid, userName: pData.userName };
-                        scene.add(mesh);
-                        otherPlayersMeshes[uid] = mesh;
-                    }
-                    otherPlayersMeshes[uid].position.set(pData.x, pData.y, pData.z);
-                    otherPlayersMeshes[uid].rotation.y = pData.rotY;
+                    container.innerHTML += `
+                        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-mono text-gray-400">Cód: ${id.slice(-6)}</span>
+                                <span class="text-xs px-2.5 py-1 rounded-full font-bold ${corStatus}">${pedido.status}</span>
+                            </div>
+                            <div class="border-t border-b py-2 space-y-1 text-xs">
+                                ${pedido.itens.map(i => `<div class="flex justify-between"><span>${i.qtd}x ${i.nome}</span><span>R$ ${(i.preco * i.qtd).toFixed(2)}</span></div>`).join('')}
+                            </div>
+                            <div class="flex justify-between items-center text-sm font-bold">
+                                <span>Total: R$ ${pedido.total.toFixed(2)}</span>
+                                ${pedido.status === 'A caminho' ? `<button onclick="confirmarChegada('${id}')" class="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-2 rounded-xl transition shadow-md flex items-center gap-1"><i data-lucide="check" class="w-3.5 h-3.5"></i> Chegou</button>` : ''}
+                            </div>
+                        </div>
+                    `;
                 });
-
-                Object.keys(otherPlayersMeshes).forEach((uid) => {
-                    if (!data[uid]) {
-                        scene.remove(otherPlayersMeshes[uid]);
-                        delete otherPlayersMeshes[uid];
-                    }
-                });
+                lucide.createIcons();
             });
         }
 
-        async function initiatePayment() {
-            const targetKey = document.getElementById('target-key').value.trim();
-            const amount = parseFloat(document.getElementById('pay-amount').value);
-            if (!targetKey || isNaN(amount) || amount <= 0) {
-                alert("Informe uma chave válida e valor maior que zero.");
-                return;
-            }
-            const snapshot = await db.ref('bank_users').once('value');
-            let receiverId = null;
-            const allUsers = snapshot.val();
-            for (let uid in allUsers) {
-                if (allUsers[uid].key === targetKey) { receiverId = uid; break; }
-            }
-            if (!receiverId) { alert("Chave não encontrada!"); return; }
-
-            const senderRef = db.ref('bank_users/' + sanitizedUserId);
-            const receiverRef = db.ref('bank_users/' + receiverId);
-            const senderSnap = await senderRef.once('value');
-            if (senderSnap.val().balance < amount) { alert("Saldo insuficiente."); return; }
-
-            const receiverSnap = await receiverRef.once('value');
-            await senderRef.update({ balance: senderSnap.val().balance - amount });
-            await receiverRef.update({ balance: receiverSnap.val().balance + amount });
-            alert("Transferência realizada com sucesso!");
+        window.confirmarChegada = async function(id) {
+            await update(ref(db, `pedidos/${id}`), { status: 'Entregue' });
+            carregarMeusPedidos();
         }
+
+        window.abrirAba = function(tipo) {
+            if (tipo === 'carrinho') {
+                document.getElementById('modal-carrinho').classList.remove('hidden');
+            } else {
+                document.getElementById('modal-pedidos').classList.remove('hidden');
+                carregarMeusPedidos();
+            }
+        }
+
+        window.fecharAbas = function() {
+            document.getElementById('modal-carrinho').classList.add('hidden');
+            document.getElementById('modal-pedidos').classList.add('hidden');
+        }
+
+        renderizarCardapio();
     </script>
 </body>
 </html>
