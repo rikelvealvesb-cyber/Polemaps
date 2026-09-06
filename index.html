@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoNexus Maps - Navegação Inteligente</title>
+    <title>GeoNexus Maps - Gratuito</title>
     
-    <link href="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
+    <!-- FontAwesome para Ícones Vetoriais -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
@@ -20,7 +23,7 @@
             --accent: #1a73e8;
             --accent-hover: #1557b0;
             --border: #dadce0;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             --radius: 12px;
         }
 
@@ -38,7 +41,6 @@
             display: flex;
         }
 
-        /* Painel Lateral Inteligente */
         aside {
             width: 400px;
             height: 100%;
@@ -46,9 +48,8 @@
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            z-index: 10;
+            z-index: 1000;
             box-shadow: var(--shadow);
-            transition: transform 0.3s ease;
         }
 
         .sidebar-header {
@@ -72,10 +73,8 @@
             font-size: 20px;
             font-weight: 700;
             color: var(--text-main);
-            letter-spacing: -0.5px;
         }
 
-        /* Barra de Pesquisa Avançada */
         .search-box {
             position: relative;
             display: flex;
@@ -89,25 +88,15 @@
             border: 1px solid var(--border);
             border-radius: var(--radius);
             font-size: 14px;
-            color: var(--text-main);
             outline: none;
-            transition: all 0.2s;
-        }
-
-        .search-box input:focus {
-            background: var(--bg-primary);
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15);
         }
 
         .search-box i {
             position: absolute;
             left: 14px;
             color: var(--text-muted);
-            font-size: 16px;
         }
 
-        /* Seção de Ferramentas / Categorias */
         .tools-section {
             padding: 20px;
             flex-grow: 1;
@@ -119,8 +108,8 @@
             font-weight: 600;
             text-transform: uppercase;
             color: var(--text-muted);
-            letter-spacing: 0.8px;
             margin-bottom: 12px;
+            letter-spacing: 0.8px;
         }
 
         .category-grid {
@@ -152,132 +141,22 @@
         }
 
         .category-btn i {
-            font-size: 16px;
             color: var(--accent);
         }
 
-        /* Painel de Rotas Inteligentes */
-        .route-panel {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 15px;
-            margin-top: 15px;
-        }
-
-        .route-input-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-            position: relative;
-        }
-
-        .route-input-group i {
-            color: var(--text-muted);
-        }
-
-        .route-input-group input {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 13px;
-            outline: none;
-        }
-
-        .route-btn {
-            width: 100%;
-            padding: 10px;
-            background: var(--accent);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .route-btn:hover {
-            background: var(--accent-hover);
-        }
-
-        /* Container do Mapa */
         #map {
             flex-grow: 1;
             height: 100%;
-            position: relative;
+            z-index: 1;
         }
 
-        /* Controles Flutuantes do Mapa */
-        .map-controls {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            z-index: 5;
-        }
-
-        .control-btn {
-            width: 40px;
-            height: 40px;
-            background: var(--bg-primary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: var(--shadow);
-            color: var(--text-main);
-            transition: all 0.2s;
-        }
-
-        .control-btn:hover {
-            background: var(--bg-secondary);
-            color: var(--accent);
-        }
-
-        /* Seletor de Estilo Flutuante */
-        .style-selector {
-            position: absolute;
-            bottom: 30px;
-            right: 30px;
-            background: var(--bg-primary);
-            padding: 6px;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            display: flex;
-            gap: 6px;
-            z-index: 5;
-            border: 1px solid var(--border);
-        }
-
-        .style-option {
-            padding: 8px 12px;
-            font-size: 12px;
-            font-weight: 500;
-            border: none;
+        /* Marcador Vetorial com FontAwesome */
+        .vector-marker {
             background: transparent;
-            border-radius: 6px;
-            cursor: pointer;
-            color: var(--text-muted);
-            transition: all 0.2s;
+            border: none;
         }
 
-        .style-option.active, .style-option:hover {
-            background: var(--accent);
-            color: white;
-        }
-
-        /* Marcadores Customizados com FontAwesome */
-        .custom-marker {
+        .marker-icon {
             width: 36px;
             height: 36px;
             background: var(--accent);
@@ -288,25 +167,18 @@
             justify-content: center;
             color: white;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            cursor: pointer;
-            transition: transform 0.2s;
         }
 
-        .custom-marker:hover {
-            transform: scale(1.15);
-        }
-
-        /* Responsividade para Telas Menores */
         @media(max-width: 768px) {
             body {
                 flex-direction: column-reverse;
             }
             aside {
                 width: 100%;
-                height: 40vh;
+                height: 45vh;
             }
             #map {
-                height: 60vh;
+                height: 55vh;
             }
         }
     </style>
@@ -317,161 +189,66 @@
         <div class="sidebar-header">
             <div class="logo-area">
                 <i class="fa-solid fa-earth-americas"></i>
-                <h1>GeoNexus Maps</h1>
+                <h1>GeoNexus Free</h1>
             </div>
             <div class="search-box">
                 <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" id="searchInput" placeholder="Pesquisar local, endereço ou ponto...">
+                <input type="text" placeholder="Pesquisar local...">
             </div>
         </div>
 
         <div class="tools-section">
-            <p class="section-title">Explorar Categoria</p>
+            <p class="section-title">Explorar Capitais</p>
             <div class="category-grid">
-                <button class="category-btn" onclick="flyToLocation(-46.6333, -23.5505, 'São Paulo, SP')">
-                    <i class="fa-solid fa-city"></i> Capitais
+                <button class="category-btn" onclick="moveTo(-23.5505, -46.6333, 13)">
+                    <i class="fa-solid fa-city"></i> São Paulo
                 </button>
-                <button class="category-btn" onclick="flyToLocation(-43.1729, -22.9068, 'Rio de Janeiro')">
-                    <i class="fa-solid fa-umbrella-beach"></i> Praias
+                <button class="category-btn" onclick="moveTo(-22.9068, -43.1729, 13)">
+                    <i class="fa-solid fa-umbrella-beach"></i> Rio
                 </button>
-                <button class="category-btn" onclick="flyToLocation(-49.2733, -25.4284, 'Curitiba')">
-                    <i class="fa-solid fa-tree-city"></i> Parques
+                <button class="category-btn" onclick="moveTo(-25.4284, -49.2733, 13)">
+                    <i class="fa-solid fa-tree-city"></i> Curitiba
                 </button>
-                <button class="category-btn" onclick="flyToLocation(-47.9292, -15.7801, 'Brasília')">
-                    <i class="fa-solid fa-landmark"></i> Monumentos
-                </button>
-            </div>
-
-            <p class="section-title">Navegação e Rotas Inteligentes</p>
-            <div class="route-panel">
-                <div class="route-input-group">
-                    <i class="fa-solid fa-location-dot" style="color: #ea4335;"></i>
-                    <input type="text" id="originInput" placeholder="Ponto de Partida">
-                </div>
-                <div class="route-input-group">
-                    <i class="fa-solid fa-flag-checkered" style="color: #34a853;"></i>
-                    <input type="text" id="destinationInput" placeholder="Destino Final">
-                </div>
-                <button class="route-btn" onclick="calculateRoute()">
-                    <i class="fa-solid fa-route"></i> Calcular Rota Ótima
+                <button class="category-btn" onclick="moveTo(-15.7801, -47.9292, 13)">
+                    <i class="fa-solid fa-landmark"></i> Brasília
                 </button>
             </div>
         </div>
     </aside>
 
-    <main id="map">
-        <div class="map-controls">
-            <button class="control-btn" onclick="resetNorth()" title="Nortear Mapa">
-                <i class="fa-solid fa-compass"></i>
-            </button>
-            <button class="control-btn" onclick="toggle3D()" title="Alternar Visão 3D">
-                <i class="fa-solid fa-cube"></i>
-            </button>
-            <button class="control-btn" onclick="getUserLocation()" title="Minha Localização">
-                <i class="fa-solid fa-crosshairs"></i>
-            </button>
-        </div>
+    <main id="map"></main>
 
-        <div class="style-selector">
-            <button class="style-option active" onclick="changeMapStyle('mapbox://styles/mapbox/streets-v12', this)">Ruas</button>
-            <button class="style-option" onclick="changeMapStyle('mapbox://styles/mapbox/satellite-streets-v12', this)">Satélite</button>
-            <button class="style-option" onclick="changeMapStyle('mapbox://styles/mapbox/dark-v11', this)">Dark Mode</button>
-        </div>
-    </main>
-
-    <script src="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <script>
-        // ATENÇÃO: Insira sua chave pública do Mapbox aqui gratuitamente (mapbox.com)
-        mapboxgl.accessToken = 'SUA_TOKEN_DO_MAPBOX_AQUI';
+        // Inicialização do mapa gratuito (OpenStreetMap)
+        const map = L.map('map').setView([-23.5505, -46.6333], 13);
 
-        // Inicialização do Mapa
-        const map = new mapboxgl.Map({
-            container: 'map',
-            style: 'mapbox://styles/mapbox/streets-v12',
-            center: [-46.6333, -23.5505], // Coordenadas iniciais (São Paulo)
-            zoom: 12,
-            pitch: 0,
-            bearing: 0
+        // Camada de tiles gratuita do OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Criando um ícone vetorial personalizado com FontAwesome
+        const vectorIcon = L.divIcon({
+            className: 'vector-marker',
+            html: '<div class="marker-icon"><i class="fa-solid fa-star"></i></div>',
+            iconSize: [36, 36],
+            iconAnchor: [18, 18]
         });
 
-        // Adicionar marcador vetorial inteligente customizado (Exemplo: Marco Zero SP)
-        const el = document.createElement('div');
-        el.className = 'custom-marker';
-        el.innerHTML = '<i class="fa-solid fa-star"></i>';
+        // Adicionando marcador no mapa
+        L.marker([-23.5505, -46.6333], { icon: vectorIcon })
+            .addTo(map)
+            .bindPopup('<b>Marco Zero</b><br>São Paulo - SP');
 
-        const marker = new mapboxgl.Marker(el)
-            .setLngLat([-46.6333, -23.5505])
-            .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML('<h3>Marco Zero</h3><p>Coração de São Paulo</p>'))
-            .addTo(map);
-
-        // Funções de Interação Avançada
-        function flyToLocation(lng, lat, name) {
-            map.flyTo({
-                center: [lng, lat],
-                zoom: 14,
-                essential: true,
-                duration: 2000
+        // Função de navegação rápida
+        function moveTo(lat, lng, zoom) {
+            map.flyTo([lat, lng], zoom, {
+                duration: 2
             });
-        }
-
-        function changeMapStyle(styleUrl, btnElement) {
-            map.setStyle(styleUrl);
-            document.querySelectorAll('.style-option').forEach(b => b.classList.remove('active'));
-            btnElement.classList.add('active');
-        }
-
-        function resetNorth() {
-            map.easeTo({ bearing: 0, pitch: 0, duration: 1000 });
-        }
-
-        let is3D = false;
-        function toggle3D() {
-            is3D = !is3D;
-            map.easeTo({
-                pitch: is3D ? 60 : 0,
-                bearing: is3D ? -17.6 : 0,
-                duration: 1000
-            });
-        }
-
-        function getUserLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(position => {
-                    const userLng = position.coords.longitude;
-                    const userLat = position.coords.latitude;
-                    
-                    map.flyTo({ center: [userLng, userLat], zoom: 15 });
-
-                    // Marcador de localização do usuário com ícone vetorial
-                    const userEl = document.createElement('div');
-                    userEl.className = 'custom-marker';
-                    userEl.style.background = '#34a853';
-                    userEl.innerHTML = '<i class="fa-solid fa-user"></i>';
-
-                    new mapboxgl.Marker(userEl)
-                        .setLngLat([userLng, userLat])
-                        .setPopup(new mapboxgl.Popup().setText('Você está aqui'))
-                        .addTo(map);
-                }, () => {
-                    alert('Não foi possível obter sua localização.');
-                });
-            } else {
-                alert('Geolocalização não é suportada pelo seu navegador.');
-            }
-        }
-
-        function calculateRoute() {
-            const origin = document.getElementById('originInput').value;
-            const destination = document.getElementById('destinationInput').value;
-
-            if(!origin || !destination) {
-                alert('Por favor, preencha o ponto de partida e o destino para calcular a rota.');
-                return;
-            }
-
-            // Simulação avançada de feedback visual de rota (Mapbox Directions API pode ser integrada aqui)
-            alert(`Calculando trajeto otimizado via IA de "${origin}" para "${destination}"...`);
         }
     </script>
 </body>
