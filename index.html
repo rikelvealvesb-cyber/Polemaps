@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoNexus Maps - Navegação GPS</title>
+    <title>GeoNexus Maps - GPS Avançado</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
@@ -219,15 +219,16 @@
             position: relative;
         }
 
-        /* Controles Flutuantes do Mapa */
+        /* Controles Flutuantes Alinhados Lado a Lado (Painel HUD + Botão Centralizar) */
         .map-floating-controls {
             position: absolute;
             bottom: 30px;
             right: 30px;
             display: flex;
+            flex-direction: row;
+            align-items: center;
             gap: 12px;
             z-index: 1000;
-            align-items: center;
         }
 
         .geo-fab {
@@ -244,6 +245,7 @@
             color: var(--accent);
             font-size: 20px;
             transition: all 0.2s;
+            flex-shrink: 0;
         }
 
         .geo-fab:hover {
@@ -251,7 +253,7 @@
             transform: scale(1.05);
         }
 
-        /* Novo Painel de Navegação Ativa (HUD) ao lado do botão centralizar */
+        /* Painel de Navegação Ativa (HUD) Posicionado perfeitamente à esquerda do botão centralizar */
         .active-nav-panel {
             display: none;
             background: white;
@@ -345,8 +347,6 @@
             .map-floating-controls {
                 bottom: 20px;
                 right: 20px;
-                flex-direction: column-reverse;
-                align-items: flex-end;
             }
         }
     </style>
@@ -427,7 +427,11 @@
     <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
     <script>
-        const map = L.map('map').setView([-23.5505, -46.6333], 13);
+        const map = L.map('map', {
+            zoomControl: true,
+            // Força a orientação cardeal travada em 0 graus (norte sempre para cima / mapa reto)
+            bearing: 0 
+        }).setView([-23.5505, -46.6333], 13);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
@@ -456,7 +460,7 @@
             iconAnchor: [18, 18]
         });
 
-        // Geolocalização em Tempo Real e Cálculo de Velocidade
+        // Geolocalização em Tempo Real com Zoom Máximo e Orientação Reta (Norte fixo)
         function initUserLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.watchPosition(
@@ -481,15 +485,15 @@
                             userMarker.setLatLng(userCoords);
                         }
 
-                        // Se estiver navegando, centraliza e mantém zoom máximo dinamicamente
+                        // Se estiver navegando, centraliza mantendo o zoom máximo de nível 19 e o mapa perfeitamente reto
                         if (isNavigating) {
-                            map.setView(userCoords, 18, { animate: true });
+                            map.setView(userCoords, 19, { animate: true });
                         }
                     },
                     (error) => {
                         console.warn('Erro ao obter geolocalização:', error.message);
                     },
-                    { enableHighAccuracy: true, maximumAge: 5000, timeout: 5000 }
+                    { enableHighAccuracy: true, maximumAge: 3000, timeout: 5000 }
                 );
             }
         }
@@ -497,8 +501,8 @@
 
         function centerOnUserLocation() {
             if (userCoords) {
-                const targetZoom = isNavigating ? 18 : 16;
-                map.flyTo(userCoords, targetZoom, { duration: 1.5 });
+                const targetZoom = isNavigating ? 19 : 16;
+                map.setView(userCoords, targetZoom, { animate: true });
             } else {
                 alert('Aguardando sinal de GPS para centralizar.');
             }
@@ -528,7 +532,7 @@
                                 .bindPopup(`<b>${result.display_name}</b>`)
                                 .openPopup();
 
-                            map.flyTo(searchedCoords, 15, { duration: 1.5 });
+                            map.setView(searchedCoords, 16, { animate: true });
                         } else {
                             alert('Local não encontrado.');
                         }
@@ -546,7 +550,7 @@
             if (mode === 'walk') currentTravelMode = 'walking';
         }
 
-        // Iniciar Rota: Oculta Sidebar, centraliza no usuário com Zoom Máximo e mostra o painel HUD ao lado do botão
+        // Iniciar Rota com Zoom Máximo Absoluto (Nível 19), painel HUD ao lado e mapa reto
         function startRouteToSearchedPlace() {
             if (!userCoords) {
                 alert('Aguardando sua localização atual via GPS.');
@@ -559,7 +563,7 @@
 
             isNavigating = true;
 
-            // Oculta painel lateral e exibe painel HUD de navegação
+            // Oculta painel lateral e exibe painel HUD ao lado do botão de centralizar
             document.getElementById('sidebar').classList.add('hidden');
             document.getElementById('activeNavPanel').classList.add('visible');
 
@@ -587,7 +591,6 @@
                 show: false
             }).addTo(map);
 
-            // Captura o tempo estimado (ETA) calculado pela API de rotas para o veículo selecionado
             routingControl.on('routesfound', function(e) {
                 const routes = e.routes;
                 if (routes && routes.length > 0) {
@@ -597,19 +600,17 @@
                 }
             });
 
-            // Centraliza o mapa instantaneamente no local onde o usuário está com zoom máximo
-            map.setView(userCoords, 18, { animate: true });
+            // Força imediata do zoom máximo (19) na posição exata do usuário com o mapa reto
+            map.setView(userCoords, 19, { animate: true });
         }
 
         // Sair da Navegação
         function exitNavigation() {
             isNavigating = false;
 
-            // Restaura a interface original
             document.getElementById('sidebar').classList.remove('hidden');
             document.getElementById('activeNavPanel').classList.remove('visible');
 
-            // Remove a linha da rota do mapa
             if (routingControl) {
                 map.removeControl(routingControl);
                 routingControl = null;
@@ -624,7 +625,7 @@
             document.getElementById('searchInput').value = '';
 
             if (userCoords) {
-                map.flyTo(userCoords, 15, { duration: 1.5 });
+                map.setView(userCoords, 16, { animate: true });
             }
         }
 
@@ -637,7 +638,7 @@
                 .addTo(map)
                 .bindPopup(`<b>${name}</b>`)
                 .openPopup();
-            map.flyTo([lat, lng], zoom, { duration: 2 });
+            map.setView([lat, lng], zoom, { animate: true });
         }
     </script>
 </body>
