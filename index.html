@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoNexus Maps - GPS Avançado</title>
+    <title>GeoNexus Maps - Navegação GPS 3D</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
@@ -217,15 +217,26 @@
             height: 100%;
             z-index: 1;
             position: relative;
+            overflow: hidden;
         }
 
-        /* Controles Flutuantes Alinhados Lado a Lado (Painel HUD + Botão Centralizar) */
+        /* EFEITO DE PERSPECTIVA 3D IMERSIVA NO MAPA */
+        .leaflet-container {
+            perspective: 700px;
+        }
+
+        .leaflet-track-3d {
+            transform: rotateX(35deg) scale(1.15);
+            transform-origin: 50% 70%;
+            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        /* Controles Flutuantes Padrão (fora da navegação) */
         .map-floating-controls {
             position: absolute;
             bottom: 30px;
             right: 30px;
             display: flex;
-            flex-direction: row;
             align-items: center;
             gap: 12px;
             z-index: 1000;
@@ -253,20 +264,31 @@
             transform: scale(1.05);
         }
 
-        /* Painel de Navegação Ativa (HUD) Posicionado perfeitamente à esquerda do botão centralizar */
+        /* PAINEL DE NAVEGAÇÃO ATIVA 3D (Grande, de ponta a ponta, no topo com o botão de centralizar embutido) */
         .active-nav-panel {
             display: none;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
             background: white;
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            padding: 10px 18px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            padding: 16px 20px;
             align-items: center;
-            gap: 16px;
+            justify-content: space-between;
+            z-index: 2000;
         }
 
         .active-nav-panel.visible {
             display: flex;
+        }
+
+        .nav-info-group {
+            display: flex;
+            align-items: center;
+            gap: 24px;
         }
 
         .nav-info-item {
@@ -276,29 +298,37 @@
         }
 
         .nav-info-label {
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 600;
             text-transform: uppercase;
             color: var(--text-muted);
+            letter-spacing: 0.5px;
         }
 
         .nav-info-value {
-            font-size: 15px;
+            font-size: 20px;
             font-weight: 700;
             color: var(--text-main);
+        }
+
+        .nav-actions-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         .exit-nav-btn {
             background: #ea4335;
             color: white;
             border: none;
-            padding: 8px 12px;
+            padding: 10px 16px;
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 6px;
+            font-size: 14px;
             transition: background 0.2s;
         }
 
@@ -344,9 +374,18 @@
             #map {
                 height: 50vh;
             }
-            .map-floating-controls {
-                bottom: 20px;
-                right: 20px;
+            .active-nav-panel {
+                top: 10px;
+                left: 10px;
+                right: 10px;
+                padding: 12px 14px;
+                gap: 10px;
+            }
+            .nav-info-value {
+                font-size: 16px;
+            }
+            .nav-info-group {
+                gap: 12px;
             }
         }
     </style>
@@ -402,8 +441,8 @@
     </aside>
 
     <main id="map">
-        <div class="map-floating-controls">
-            <div class="active-nav-panel" id="activeNavPanel">
+        <div class="active-nav-panel" id="activeNavPanel">
+            <div class="nav-info-group">
                 <div class="nav-info-item">
                     <span class="nav-info-label">Tempo Restante</span>
                     <span class="nav-info-value" id="etaDisplay">-- min</span>
@@ -412,11 +451,18 @@
                     <span class="nav-info-label">Velocidade</span>
                     <span class="nav-info-value" id="speedDisplay">0 km/h</span>
                 </div>
+            </div>
+            <div class="nav-actions-group">
+                <button class="geo-fab" onclick="centerOnUserLocation()" title="Centralizar na minha localização" style="width: 42px; height: 42px; font-size: 16px;">
+                    <i class="fa-solid fa-crosshairs"></i>
+                </button>
                 <button class="exit-nav-btn" onclick="exitNavigation()">
                     <i class="fa-solid fa-xmark"></i> Sair
                 </button>
             </div>
+        </div>
 
+        <div class="map-floating-controls" id="defaultFloatingControls">
             <button class="geo-fab" onclick="centerOnUserLocation()" title="Centralizar na minha localização">
                 <i class="fa-solid fa-crosshairs"></i>
             </button>
@@ -429,8 +475,7 @@
     <script>
         const map = L.map('map', {
             zoomControl: true,
-            // Força a orientação cardeal travada em 0 graus (norte sempre para cima / mapa reto)
-            bearing: 0 
+            bearing: 0
         }).setView([-23.5505, -46.6333], 13);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -460,7 +505,17 @@
             iconAnchor: [18, 18]
         });
 
-        // Geolocalização em Tempo Real com Zoom Máximo e Orientação Reta (Norte fixo)
+        // Função utilitária para centralizar mantendo o usuário deslocado para baixo na tela (offset em 3D)
+        function panToUserWithOffset(coords, zoomLevel) {
+            const currentZoom = zoomLevel || map.getZoom();
+            // Calcula um deslocamento para cima do ponto central para que o pino do usuário fique na parte inferior do mapa
+            const point = map.project(coords, currentZoom);
+            point.y += (map.getSize().y * 0.22); // Deslocamento para baixo
+            const adjustedLatLng = map.unproject(point, currentZoom);
+            map.setView(adjustedLatLng, currentZoom, { animate: true });
+        }
+
+        // Geolocalização em Tempo Real com Perspectiva 3D e Posicionamento Inferior
         function initUserLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.watchPosition(
@@ -485,9 +540,9 @@
                             userMarker.setLatLng(userCoords);
                         }
 
-                        // Se estiver navegando, centraliza mantendo o zoom máximo de nível 19 e o mapa perfeitamente reto
+                        // Durante a navegação, atualiza mantendo o foco dinamicamente com deslocamento inferior e zoom máximo 19
                         if (isNavigating) {
-                            map.setView(userCoords, 19, { animate: true });
+                            panToUserWithOffset(userCoords, 19);
                         }
                     },
                     (error) => {
@@ -502,7 +557,7 @@
         function centerOnUserLocation() {
             if (userCoords) {
                 const targetZoom = isNavigating ? 19 : 16;
-                map.setView(userCoords, targetZoom, { animate: true });
+                panToUserWithOffset(userCoords, targetZoom);
             } else {
                 alert('Aguardando sinal de GPS para centralizar.');
             }
@@ -550,7 +605,7 @@
             if (mode === 'walk') currentTravelMode = 'walking';
         }
 
-        // Iniciar Rota com Zoom Máximo Absoluto (Nível 19), painel HUD ao lado e mapa reto
+        // Iniciar Rota com Visão 3D Imersiva, Painel Superior Expandido e Centralização Inferior
         function startRouteToSearchedPlace() {
             if (!userCoords) {
                 alert('Aguardando sua localização atual via GPS.');
@@ -563,8 +618,15 @@
 
             isNavigating = true;
 
-            // Oculta painel lateral e exibe painel HUD ao lado do botão de centralizar
+            // Ativa o efeito visual de perspectiva 3D imersiva no container do mapa
+            const mapPane = document.querySelector('.leaflet-pane.leaflet-map-pane');
+            if (mapPane) {
+                mapPane.classList.add('leaflet-track-3d');
+            }
+
+            // Oculta sidebar e controles flutuantes comuns, exibindo o painel HUD superior estendido
             document.getElementById('sidebar').classList.add('hidden');
+            document.getElementById('defaultFloatingControls').style.display = 'none';
             document.getElementById('activeNavPanel').classList.add('visible');
 
             if (routingControl) {
@@ -600,16 +662,25 @@
                 }
             });
 
-            // Força imediata do zoom máximo (19) na posição exata do usuário com o mapa reto
-            map.setView(userCoords, 19, { animate: true });
+            // Aplica o zoom máximo (19) com deslocamento focado para baixo (perspectiva 3D)
+            setTimeout(() => {
+                panToUserWithOffset(userCoords, 19);
+            }, 300);
         }
 
         // Sair da Navegação
         function exitNavigation() {
             isNavigating = false;
 
+            // Remove o efeito 3D
+            const mapPane = document.querySelector('.leaflet-pane.leaflet-map-pane');
+            if (mapPane) {
+                mapPane.classList.remove('leaflet-track-3d');
+            }
+
             document.getElementById('sidebar').classList.remove('hidden');
             document.getElementById('activeNavPanel').classList.remove('visible');
+            document.getElementById('defaultFloatingControls').style.display = 'flex';
 
             if (routingControl) {
                 map.removeControl(routingControl);
