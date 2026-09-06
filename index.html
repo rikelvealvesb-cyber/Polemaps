@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoNexus Maps - Completo</title>
+    <title>GeoNexus Maps - Navegação GPS</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
@@ -40,6 +40,7 @@
             display: flex;
         }
 
+        /* Painel Lateral Principal */
         aside {
             width: 420px;
             height: 100%;
@@ -49,6 +50,12 @@
             flex-direction: column;
             z-index: 1000;
             box-shadow: var(--shadow);
+            transition: transform 0.3s ease;
+        }
+
+        aside.hidden {
+            transform: translateX(-100%);
+            display: none;
         }
 
         .sidebar-header {
@@ -212,11 +219,18 @@
             position: relative;
         }
 
-        /* Botão Flutuante de Geolocalização */
-        .geo-fab {
+        /* Controles Flutuantes do Mapa */
+        .map-floating-controls {
             position: absolute;
             bottom: 30px;
             right: 30px;
+            display: flex;
+            gap: 12px;
+            z-index: 1000;
+            align-items: center;
+        }
+
+        .geo-fab {
             width: 50px;
             height: 50px;
             background: white;
@@ -227,7 +241,6 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            z-index: 1000;
             color: var(--accent);
             font-size: 20px;
             transition: all 0.2s;
@@ -236,6 +249,59 @@
         .geo-fab:hover {
             background: var(--bg-secondary);
             transform: scale(1.05);
+        }
+
+        /* Novo Painel de Navegação Ativa (HUD) ao lado do botão centralizar */
+        .active-nav-panel {
+            display: none;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            padding: 10px 18px;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .active-nav-panel.visible {
+            display: flex;
+        }
+
+        .nav-info-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .nav-info-label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .nav-info-value {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .exit-nav-btn {
+            background: #ea4335;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+
+        .exit-nav-btn:hover {
+            background: #c5221f;
         }
 
         /* Marcadores Vetoriais */
@@ -261,6 +327,10 @@
             background: #34a853 !important;
         }
 
+        .leaflet-routing-container {
+            display: none !important;
+        }
+
         @media(max-width: 768px) {
             body {
                 flex-direction: column-reverse;
@@ -272,16 +342,22 @@
             #map {
                 height: 50vh;
             }
+            .map-floating-controls {
+                bottom: 20px;
+                right: 20px;
+                flex-direction: column-reverse;
+                align-items: flex-end;
+            }
         }
     </style>
 </head>
 <body>
 
-    <aside>
+    <aside id="sidebar">
         <div class="sidebar-header">
             <div class="logo-area">
                 <i class="fa-solid fa-earth-americas"></i>
-                <h1>GeoNexus Complete</h1>
+                <h1>GeoNexus GPS</h1>
             </div>
             <div class="search-box">
                 <i class="fa-solid fa-magnifying-glass"></i>
@@ -304,7 +380,7 @@
             </div>
 
             <button class="route-action-btn" onclick="startRouteToSearchedPlace()">
-                <i class="fa-solid fa-route"></i> Traçar Rota Até o Destino
+                <i class="fa-solid fa-route"></i> Iniciar Rota e Navegar
             </button>
 
             <p class="section-title" style="margin-top: 25px;">Explorar Capitais</p>
@@ -326,16 +402,31 @@
     </aside>
 
     <main id="map">
-        <button class="geo-fab" onclick="centerOnUserLocation()" title="Centralizar na minha localização">
-            <i class="fa-solid fa-crosshairs"></i>
-        </button>
+        <div class="map-floating-controls">
+            <div class="active-nav-panel" id="activeNavPanel">
+                <div class="nav-info-item">
+                    <span class="nav-info-label">Tempo Restante</span>
+                    <span class="nav-info-value" id="etaDisplay">-- min</span>
+                </div>
+                <div class="nav-info-item">
+                    <span class="nav-info-label">Velocidade</span>
+                    <span class="nav-info-value" id="speedDisplay">0 km/h</span>
+                </div>
+                <button class="exit-nav-btn" onclick="exitNavigation()">
+                    <i class="fa-solid fa-xmark"></i> Sair
+                </button>
+            </div>
+
+            <button class="geo-fab" onclick="centerOnUserLocation()" title="Centralizar na minha localização">
+                <i class="fa-solid fa-crosshairs"></i>
+            </button>
+        </div>
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
     <script>
-        // Inicialização do mapa
         const map = L.map('map').setView([-23.5505, -46.6333], 13);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -348,9 +439,9 @@
         let searchedCoords = null;
         let searchedMarker = null;
         let routingControl = null;
-        let currentTravelMode = 'driving'; // Padrão OSRM para carro ('driving', 'cycling', 'walking')
+        let currentTravelMode = 'driving';
+        let isNavigating = false;
 
-        // Ícones Vetoriais Personalizados
         const defaultIcon = L.divIcon({
             className: 'vector-marker',
             html: '<div class="marker-icon"><i class="fa-solid fa-star"></i></div>',
@@ -365,7 +456,7 @@
             iconAnchor: [18, 18]
         });
 
-        // 1. Geolocalização em Tempo Real do Usuário
+        // Geolocalização em Tempo Real e Cálculo de Velocidade
         function initUserLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.watchPosition(
@@ -374,6 +465,14 @@
                         const lng = position.coords.longitude;
                         userCoords = [lat, lng];
 
+                        const speedMps = position.coords.speed;
+                        if (speedMps !== null && speedMps >= 0) {
+                            const speedKmh = Math.round(speedMps * 3.6);
+                            document.getElementById('speedDisplay').innerText = `${speedKmh} km/h`;
+                        } else {
+                            document.getElementById('speedDisplay').innerText = `0 km/h`;
+                        }
+
                         if (!userMarker) {
                             userMarker = L.marker(userCoords, { icon: userIcon })
                                 .addTo(map)
@@ -381,27 +480,31 @@
                         } else {
                             userMarker.setLatLng(userCoords);
                         }
+
+                        // Se estiver navegando, centraliza e mantém zoom máximo dinamicamente
+                        if (isNavigating) {
+                            map.setView(userCoords, 18, { animate: true });
+                        }
                     },
                     (error) => {
-                        console.warn('Erro ao obter geolocalização em tempo real:', error.message);
+                        console.warn('Erro ao obter geolocalização:', error.message);
                     },
-                    { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+                    { enableHighAccuracy: true, maximumAge: 5000, timeout: 5000 }
                 );
             }
         }
         initUserLocation();
 
-        // Botão para centralizar instantaneamente onde o usuário está
         function centerOnUserLocation() {
             if (userCoords) {
-                map.flyTo(userCoords, 16, { duration: 1.5 });
-                userMarker.openPopup();
+                const targetZoom = isNavigating ? 18 : 16;
+                map.flyTo(userCoords, targetZoom, { duration: 1.5 });
             } else {
-                alert('Ainda obtendo sua posição atual. Certifique-se de permitir o acesso à localização.');
+                alert('Aguardando sinal de GPS para centralizar.');
             }
         }
 
-        // 2. Busca de Lugares via Nominatim API (OpenStreetMap)
+        // Busca de Lugares
         function handleSearch(e) {
             if (e.key === 'Enter') {
                 const query = document.getElementById('searchInput').value;
@@ -434,7 +537,6 @@
             }
         }
 
-        // 3. Escolher Veículo
         function setTravelMode(mode, element) {
             document.querySelectorAll('.vehicle-option').forEach(el => el.classList.remove('active'));
             element.classList.add('active');
@@ -444,22 +546,27 @@
             if (mode === 'walk') currentTravelMode = 'walking';
         }
 
-        // 4. Iniciar Rota do Local do Usuário até o Destino Escolhido
+        // Iniciar Rota: Oculta Sidebar, centraliza no usuário com Zoom Máximo e mostra o painel HUD ao lado do botão
         function startRouteToSearchedPlace() {
             if (!userCoords) {
-                alert('Aguardando sua localização atual para iniciar a rota.');
+                alert('Aguardando sua localização atual via GPS.');
                 return;
             }
             if (!searchedCoords) {
-                alert('Por favor, pesquise e selecione um destino na barra de pesquisa primeiro.');
+                alert('Selecione um destino na barra de pesquisa primeiro.');
                 return;
             }
+
+            isNavigating = true;
+
+            // Oculta painel lateral e exibe painel HUD de navegação
+            document.getElementById('sidebar').classList.add('hidden');
+            document.getElementById('activeNavPanel').classList.add('visible');
 
             if (routingControl) {
                 map.removeControl(routingControl);
             }
 
-            // Mapeia o perfil de roteamento OSRM correto
             let routerProfile = L.Routing.osrmv1({
                 serviceUrl: 'https://router.project-osrm.org/route/v1',
                 profile: currentTravelMode
@@ -472,16 +579,64 @@
                 ],
                 router: routerProfile,
                 lineOptions: {
-                    styles: [{ color: '#1a73e8', weight: 6, opacity: 0.8 }]
+                    styles: [{ color: '#1a73e8', weight: 6, opacity: 0.9 }]
                 },
-                createMarker: function() { return null; }, // Evita marcadores duplicados do plugin
+                createMarker: function() { return null; },
                 addWaypoints: false,
-                fitSelectedRoutes: true,
-                show: true
+                fitSelectedRoutes: false,
+                show: false
             }).addTo(map);
+
+            // Captura o tempo estimado (ETA) calculado pela API de rotas para o veículo selecionado
+            routingControl.on('routesfound', function(e) {
+                const routes = e.routes;
+                if (routes && routes.length > 0) {
+                    const summary = routes[0].summary;
+                    const durationMinutes = Math.round(summary.totalTime / 60);
+                    document.getElementById('etaDisplay').innerText = `${durationMinutes} min`;
+                }
+            });
+
+            // Centraliza o mapa instantaneamente no local onde o usuário está com zoom máximo
+            map.setView(userCoords, 18, { animate: true });
         }
 
-        function moveTo(lat, lng, zoom) {
+        // Sair da Navegação
+        function exitNavigation() {
+            isNavigating = false;
+
+            // Restaura a interface original
+            document.getElementById('sidebar').classList.remove('hidden');
+            document.getElementById('activeNavPanel').classList.remove('visible');
+
+            // Remove a linha da rota do mapa
+            if (routingControl) {
+                map.removeControl(routingControl);
+                routingControl = null;
+            }
+
+            if (searchedMarker) {
+                map.removeLayer(searchedMarker);
+                searchedMarker = null;
+            }
+
+            searchedCoords = null;
+            document.getElementById('searchInput').value = '';
+
+            if (userCoords) {
+                map.flyTo(userCoords, 15, { duration: 1.5 });
+            }
+        }
+
+        function moveTo(lat, lng, zoom, name) {
+            searchedCoords = [lat, lng];
+            if (searchedMarker) {
+                map.removeLayer(searchedMarker);
+            }
+            searchedMarker = L.marker(searchedCoords, { icon: defaultIcon })
+                .addTo(map)
+                .bindPopup(`<b>${name}</b>`)
+                .openPopup();
             map.flyTo([lat, lng], zoom, { duration: 2 });
         }
     </script>
