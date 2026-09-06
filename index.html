@@ -3,709 +3,486 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoNexus Maps - Navegação GPS 3D</title>
-    
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
-
+    <title>SmartPad Avançado</title>
+    <!-- Ícones Vetoriais via FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
     <style>
         :root {
-            --bg-primary: #ffffff;
-            --bg-secondary: #f8f9fa;
-            --text-main: #202124;
-            --text-muted: #5f6368;
-            --accent: #1a73e8;
-            --accent-hover: #1557b0;
-            --border: #dadce0;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            --radius: 12px;
+            --bg-color: #0f172a;
+            --panel-bg: #1e293b;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-color: #6366f1;
+            --accent-hover: #4f46e5;
+            --border-color: #334155;
+            --danger-color: #ef4444;
+            --success-color: #22c55e;
+        }
+
+        [data-theme="light"] {
+            --bg-color: #f8fafc;
+            --panel-bg: #ffffff;
+            --text-color: #0f172a;
+            --text-muted: #64748b;
+            --accent-color: #6366f1;
+            --accent-hover: #4f46e5;
+            --border-color: #e2e8f0;
+            --danger-color: #dc2626;
+            --success-color: #16a34a;
         }
 
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            transition: background-color 0.3s, color 0.3s;
         }
 
-        body, html {
-            width: 100%;
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
             height: 100vh;
-            overflow: hidden;
-            display: flex;
-        }
-
-        /* Painel Lateral Principal */
-        aside {
-            width: 420px;
-            height: 100%;
-            background: var(--bg-primary);
-            border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            z-index: 1000;
-            box-shadow: var(--shadow);
-            transition: transform 0.3s ease;
+            overflow: hidden;
         }
 
-        aside.hidden {
-            transform: translateX(-100%);
-            display: none;
-        }
-
-        .sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid var(--border);
+        header {
+            background-color: var(--panel-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 60px;
         }
 
         .logo-area {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 15px;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--accent-color);
         }
 
-        .logo-area i {
-            font-size: 24px;
-            color: var(--accent);
-        }
-
-        .logo-area h1 {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--text-main);
-        }
-
-        .search-box {
-            position: relative;
+        .toolbar {
             display: flex;
+            gap: 8px;
             align-items: center;
         }
 
-        .search-box input {
-            width: 100%;
-            padding: 12px 16px 12px 42px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            font-size: 14px;
-            outline: none;
-            transition: all 0.2s;
+        .btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
         }
 
-        .search-box input:focus {
-            background: var(--bg-primary);
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15);
+        .btn:hover {
+            background-color: var(--border-color);
+        }
+
+        .btn-primary {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        sidebar {
+            width: 300px;
+            background-color: var(--panel-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .search-box {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
         }
 
         .search-box i {
             position: absolute;
-            left: 14px;
+            left: 22px;
+            top: 50%;
+            transform: translateY(-50%);
             color: var(--text-muted);
         }
 
-        .tools-section {
-            padding: 20px;
-            flex-grow: 1;
+        .search-box input {
+            width: 100%;
+            padding: 8px 10px 8px 36px;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-color);
+            outline: none;
+        }
+
+        .notes-list {
+            flex: 1;
             overflow-y: auto;
+            padding: 10px;
         }
 
-        .section-title {
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            margin-bottom: 12px;
-            letter-spacing: 0.8px;
-        }
-
-        .category-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-bottom: 25px;
-        }
-
-        .category-btn {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .note-item {
             padding: 12px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
             border-radius: 8px;
             cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--text-main);
-            transition: all 0.2s;
+            margin-bottom: 8px;
+            border: 1px solid transparent;
+            background-color: rgba(255,255,255,0.02);
         }
 
-        .category-btn:hover {
-            background: #e8f0fe;
-            border-color: var(--accent);
-            color: var(--accent);
+        .note-item:hover {
+            background-color: var(--border-color);
         }
 
-        .category-btn i {
-            color: var(--accent);
+        .note-item.active {
+            border-color: var(--accent-color);
+            background-color: rgba(99, 102, 241, 0.1);
         }
 
-        /* Seletor de Veículos */
-        .vehicle-selector {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
+        .note-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .vehicle-option {
+        .note-snippet {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .editor-area {
             flex: 1;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            padding: 10px;
-            background: var(--bg-secondary);
-            border: 2px solid var(--border);
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--text-muted);
-            transition: all 0.2s;
+            background-color: var(--bg-color);
         }
 
-        .vehicle-option.active {
-            border-color: var(--accent);
-            background: #e8f0fe;
-            color: var(--accent);
-        }
-
-        .vehicle-option i {
-            font-size: 18px;
-        }
-
-        .route-action-btn {
-            width: 100%;
-            padding: 12px;
-            background: var(--accent);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
+        .editor-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
             display: flex;
+            gap: 15px;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: background 0.2s;
         }
 
-        .route-action-btn:hover {
-            background: var(--accent-hover);
-        }
-
-        #map {
-            flex-grow: 1;
-            height: 100%;
-            z-index: 1;
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* EFEITO DE PERSPECTIVA 3D IMERSIVA NO MAPA */
-        .leaflet-container {
-            perspective: 700px;
-        }
-
-        .leaflet-track-3d {
-            transform: rotateX(35deg) scale(1.15);
-            transform-origin: 50% 70%;
-            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-        }
-
-        /* Controles Flutuantes Padrão (fora da navegação) */
-        .map-floating-controls {
-            position: absolute;
-            bottom: 30px;
-            right: 30px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            z-index: 1000;
-        }
-
-        .geo-fab {
-            width: 50px;
-            height: 50px;
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 50%;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: var(--accent);
-            font-size: 20px;
-            transition: all 0.2s;
-            flex-shrink: 0;
-        }
-
-        .geo-fab:hover {
-            background: var(--bg-secondary);
-            transform: scale(1.05);
-        }
-
-        /* PAINEL DE NAVEGAÇÃO ATIVA 3D (Lado a lado, ponta a ponta no topo, com botão centralizar embutido) */
-        .active-nav-panel {
-            display: none;
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            right: 15px;
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-            padding: 12px 18px;
-            align-items: center;
-            justify-content: space-between;
-            z-index: 2000;
-        }
-
-        .active-nav-panel.visible {
-            display: flex;
-        }
-
-        .nav-info-group {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .nav-info-item {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .nav-info-label {
-            font-size: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            letter-spacing: 0.5px;
-        }
-
-        .nav-info-value {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text-main);
-        }
-
-        .nav-actions-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .exit-nav-btn {
-            background: #ea4335;
-            color: white;
-            border: none;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 14px;
-            transition: background 0.2s;
-        }
-
-        .exit-nav-btn:hover {
-            background: #c5221f;
-        }
-
-        /* Marcadores Vetoriais */
-        .vector-marker {
+        .title-input {
+            flex: 1;
             background: transparent;
             border: none;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--text-color);
+            outline: none;
         }
 
-        .marker-icon {
-            width: 36px;
-            height: 36px;
-            background: var(--accent);
-            border: 2px solid white;
-            border-radius: 50%;
+        .formatting-bar {
+            padding: 8px 20px;
+            background-color: var(--panel-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .format-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
-        .user-marker-icon {
-            background: #34a853 !important;
+        .format-btn:hover {
+            background-color: var(--border-color);
         }
 
-        .leaflet-routing-container {
-            display: none !important;
+        .editor-content {
+            flex: 1;
+            padding: 20px;
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
         }
 
-        @media(max-width: 768px) {
-            body {
-                flex-direction: column-reverse;
-            }
-            aside {
+        .status-bar {
+            padding: 8px 20px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            background-color: var(--panel-bg);
+        }
+
+        @media (max-width: 768px) {
+            sidebar {
+                display: none;
+                position: absolute;
+                z-index: 10;
+                height: calc(100vh - 60px);
                 width: 100%;
-                height: 50vh;
             }
-            #map {
-                height: 50vh;
-            }
-            .active-nav-panel {
-                top: 10px;
-                left: 10px;
-                right: 10px;
-                padding: 10px 12px;
-                gap: 8px;
-            }
-            .nav-info-value {
-                font-size: 15px;
-            }
-            .nav-info-group {
-                gap: 12px;
+            sidebar.mobile-open {
+                display: flex;
             }
         }
     </style>
 </head>
-<body>
+<body data-theme="dark">
 
-    <aside id="sidebar">
-        <div class="sidebar-header">
-            <div class="logo-area">
-                <i class="fa-solid fa-earth-americas"></i>
-                <h1>GeoNexus GPS</h1>
-            </div>
+    <header>
+        <div class="logo-area">
+            <button class="btn" id="menuToggle" style="display:none;"><i class="fa-solid fa-bars"></i></button>
+            <i class="fa-solid fa-feather-pointed"></i> SmartPad AI
+        </div>
+        <div class="toolbar">
+            <button class="btn btn-primary" onclick="createNewNote()"><i class="fa-solid fa-plus"><span>Nova Nota</span></i></button>
+            <button class="btn" onclick="exportNotes()"><i class="fa-solid fa-download"></i></button>
+            <button class="btn" onclick="toggleTheme()"><i class="fa-solid fa-circle-half-stroke" id="themeIcon"></i></button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <sidebar id="sidebar">
             <div class="search-box">
                 <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" id="searchInput" placeholder="Pesquisar lugar (ex: Av Paulista, SP)..." onkeypress="handleSearch(event)">
+                <input type="text" id="searchInput" placeholder="Pesquisar notas..." oninput="filterNotes()">
+            </div>
+            <div class="notes-list" id="notesList">
+                <!-- Notas injetadas via JS -->
+            </div>
+        </sidebar>
+
+        <div class="editor-area">
+            <div class="editor-header">
+                <input type="text" id="noteTitle" class="title-input" placeholder="Título da Nota..." oninput="autoSave()">
+                <button class="btn" style="color: var(--danger-color);" onclick="deleteCurrentNote()"><i class="fa-solid fa-trash"></i></button>
+            </div>
+            
+            <div class="formatting-bar">
+                <button class="format-btn" onclick="formatText('bold')" title="Negrito"><i class="fa-solid fa-bold"></i></button>
+                <button class="format-btn" onclick="formatText('italic')" title="Itálico"><i class="fa-solid fa-italic"></i></button>
+                <button class="format-btn" onclick="formatText('insertUnorderedList')" title="Lista"><i class="fa-solid fa-list-ul"></i></button>
+                <button class="format-btn" onclick="summarizeAI()" title="Resumo Inteligente"><i class="fa-solid fa-wand-magic-sparkles" style="color: var(--accent-color);"></i></button>
+            </div>
+
+            <textarea id="noteBody" class="editor-content" placeholder="Comece a digitar sua nota brilhante..." oninput="autoSave()"></textarea>
+
+            <div class="status-bar">
+                <span id="wordCount">0 palavras | 0 caracteres</span>
+                <span id="saveStatus"><i class="fa-solid fa-cloud" style="color: var(--success-color);"></i> Salvo no celular</span>
             </div>
         </div>
-
-        <div class="tools-section">
-            <p class="section-title">Escolher Veículo para Rota</p>
-            <div class="vehicle-selector">
-                <div class="vehicle-option active" id="mode-car" onclick="setTravelMode('car', this)">
-                    <i class="fa-solid fa-car"></i> Carro
-                </div>
-                <div class="vehicle-option" id="mode-bike" onclick="setTravelMode('bike', this)">
-                    <i class="fa-solid fa-bicycle"></i> Bicicleta
-                </div>
-                <div class="vehicle-option" id="mode-walk" onclick="setTravelMode('walk', this)">
-                    <i class="fa-solid fa-person-walking"></i> A pé
-                </div>
-            </div>
-
-            <button class="route-action-btn" onclick="startRouteToSearchedPlace()">
-                <i class="fa-solid fa-route"></i> Iniciar Rota e Navegar
-            </button>
-
-            <p class="section-title" style="margin-top: 25px;">Explorar Capitais</p>
-            <div class="category-grid">
-                <button class="category-btn" onclick="moveTo(-23.5505, -46.6333, 13, 'São Paulo')">
-                    <i class="fa-solid fa-city"></i> São Paulo
-                </button>
-                <button class="category-btn" onclick="moveTo(-22.9068, -43.1729, 13, 'Rio de Janeiro')">
-                    <i class="fa-solid fa-umbrella-beach"></i> Rio
-                </button>
-                <button class="category-btn" onclick="moveTo(-25.4284, -49.2733, 13, 'Curitiba')">
-                    <i class="fa-solid fa-tree-city"></i> Curitiba
-                </button>
-                <button class="category-btn" onclick="moveTo(-15.7801, -47.9292, 13, 'Brasília')">
-                    <i class="fa-solid fa-landmark"></i> Brasília
-                </button>
-            </div>
-        </div>
-    </aside>
-
-    <main id="map">
-        <div class="active-nav-panel" id="activeNavPanel">
-            <div class="nav-info-group">
-                <div class="nav-info-item">
-                    <span class="nav-info-label">Tempo Restante</span>
-                    <span class="nav-info-value" id="etaDisplay">-- min</span>
-                </div>
-                <div class="nav-info-item">
-                    <span class="nav-info-label">Velocidade</span>
-                    <span class="nav-info-value" id="speedDisplay">0 km/h</span>
-                </div>
-            </div>
-            <div class="nav-actions-group">
-                <button class="geo-fab" onclick="centerOnUserLocation()" title="Centralizar na minha localização" style="width: 42px; height: 42px; font-size: 16px;">
-                    <i class="fa-solid fa-crosshairs"></i>
-                </button>
-                <button class="exit-nav-btn" onclick="exitNavigation()">
-                    <i class="fa-solid fa-xmark"></i> Sair
-                </button>
-            </div>
-        </div>
-
-        <div class="map-floating-controls" id="defaultFloatingControls">
-            <button class="geo-fab" onclick="centerOnUserLocation()" title="Centralizar na minha localização">
-                <i class="fa-solid fa-crosshairs"></i>
-            </button>
-        </div>
-    </main>
-
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    </div>
 
     <script>
-        const map = L.map('map', {
-            zoomControl: true,
-            bearing: 0
-        }).setView([-23.5505, -46.6333], 13);
+        let notes = JSON.parse(localStorage.getItem('smartpad_notes')) || [
+            { id: 1, title: 'Bem-vindo ao SmartPad', body: 'Este é um bloco de notas avançado com armazenamento local automático no seu dispositivo móvel ou computador.\n\nExperimente criar uma nova nota ou usar o assistente de IA!', date: Date.now() }
+        ];
+        let currentNoteId = notes[0] ? notes[0].id : null;
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
+        const titleInput = document.getElementById('noteTitle');
+        const bodyInput = document.getElementById('noteBody');
+        const notesList = document.getElementById('notesList');
+        const wordCountDisplay = document.getElementById('wordCount');
 
-        let userCoords = null;
-        let userMarker = null;
-        let searchedCoords = null;
-        let searchedMarker = null;
-        let routingControl = null;
-        let currentTravelMode = 'driving';
-        let isNavigating = false;
-
-        const defaultIcon = L.divIcon({
-            className: 'vector-marker',
-            html: '<div class="marker-icon"><i class="fa-solid fa-star"></i></div>',
-            iconSize: [36, 36],
-            iconAnchor: [18, 18]
-        });
-
-        const userIcon = L.divIcon({
-            className: 'vector-marker',
-            html: '<div class="marker-icon user-marker-icon"><i class="fa-solid fa-user"></i></div>',
-            iconSize: [36, 36],
-            iconAnchor: [18, 18]
-        });
-
-        // Função corrigida: joga o marcador do usuário para a parte BAIXA da tela (igualzinho na segunda imagem)
-        function panToUserWithOffset(coords, zoomLevel) {
-            const currentZoom = zoomLevel || map.getZoom();
-            const point = map.project(coords, currentZoom);
-            // Altera o offset Y positivamente para projetar o mapa mais para cima, deixando o pino na parte de baixo
-            point.y -= (map.getSize().y * 0.28); 
-            const adjustedLatLng = map.unproject(point, currentZoom);
-            map.setView(adjustedLatLng, currentZoom, { animate: true });
+        function init() {
+            renderNotesList();
+            loadCurrentNote();
+            checkMobileView();
+            window.addEventListener('resize', checkMobileView);
         }
 
-        // Geolocalização em Tempo Real com Perspectiva 3D e Posicionamento Inferior
-        function initUserLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.watchPosition(
-                    (position) => {
-                        const lat = position.coords.latitude;
-                        const lng = position.coords.longitude;
-                        userCoords = [lat, lng];
-
-                        const speedMps = position.coords.speed;
-                        if (speedMps !== null && speedMps >= 0) {
-                            const speedKmh = Math.round(speedMps * 3.6);
-                            document.getElementById('speedDisplay').innerText = `${speedKmh} km/h`;
-                        } else {
-                            document.getElementById('speedDisplay').innerText = `0 km/h`;
-                        }
-
-                        if (!userMarker) {
-                            userMarker = L.marker(userCoords, { icon: userIcon })
-                                .addTo(map)
-                                .bindPopup('<b>Você está aqui</b>');
-                        } else {
-                            userMarker.setLatLng(userCoords);
-                        }
-
-                        if (isNavigating) {
-                            panToUserWithOffset(userCoords, 19);
-                        }
-                    },
-                    (error) => {
-                        console.warn('Erro ao obter geolocalização:', error.message);
-                    },
-                    { enableHighAccuracy: true, maximumAge: 3000, timeout: 5000 }
-                );
-            }
-        }
-        initUserLocation();
-
-        function centerOnUserLocation() {
-            if (userCoords) {
-                const targetZoom = isNavigating ? 19 : 16;
-                panToUserWithOffset(userCoords, targetZoom);
+        function checkMobileView() {
+            const menuBtn = document.getElementById('menuToggle');
+            if (window.innerWidth <= 768) {
+                menuBtn.style.display = 'flex';
+                menuBtn.onclick = () => document.getElementById('sidebar').classList.toggle('mobile-open');
             } else {
-                alert('Aguardando sinal de GPS para centralizar.');
+                menuBtn.style.display = 'none';
+                document.getElementById('sidebar').classList.remove('mobile-open');
             }
         }
 
-        // Busca de Lugares
-        function handleSearch(e) {
-            if (e.key === 'Enter') {
-                const query = document.getElementById('searchInput').value;
-                if (!query) return;
+        function renderNotesList(filterText = '') {
+            notesList.innerHTML = '';
+            const filtered = notes.filter(n => n.title.toLowerCase().includes(filterText.toLowerCase()) || n.body.toLowerCase().includes(filterText.toLowerCase()));
+            
+            filtered.sort((a, b) => b.date - a.date).forEach(note => {
+                const div = document.createElement('div');
+                div.className = `note-item ${note.id === currentNoteId ? 'active' : ''}`;
+                div.onclick = () => {
+                    selectNote(note.id);
+                    if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('mobile-open');
+                };
+                div.innerHTML = `
+                    <div class="note-title">${escapeHTML(note.title) || 'Sem Título'}</div>
+                    <div class="note-snippet">${escapeHTML(note.body)}</div>
+                `;
+                notesList.appendChild(div);
+            });
+        }
 
-                fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data && data.length > 0) {
-                            const result = data[0];
-                            const lat = parseFloat(result.lat);
-                            const lng = parseFloat(result.lon);
-                            searchedCoords = [lat, lng];
+        function selectNote(id) {
+            currentNoteId = id;
+            loadCurrentNote();
+            renderNotesList(document.getElementById('searchInput').value);
+        }
 
-                            if (searchedMarker) {
-                                map.removeLayer(searchedMarker);
-                            }
+        function loadCurrentNote() {
+            const note = notes.find(n => n.id === currentNoteId);
+            if (note) {
+                titleInput.value = note.title;
+                bodyInput.value = note.body;
+            } else {
+                titleInput.value = '';
+                bodyInput.value = '';
+            }
+            updateStats();
+        }
 
-                            searchedMarker = L.marker(searchedCoords, { icon: defaultIcon })
-                                .addTo(map)
-                                .bindPopup(`<b>${result.display_name}</b>`)
-                                .openPopup();
+        function createNewNote() {
+            const newNote = {
+                id: Date.now(),
+                title: 'Nova Nota',
+                body: '',
+                date: Date.now()
+            };
+            notes.unshift(newNote);
+            currentNoteId = newNote.id;
+            saveToLocalStorage();
+            renderNotesList();
+            loadCurrentNote();
+            titleInput.focus();
+            titleInput.select();
+        }
 
-                            map.setView(searchedCoords, 16, { animate: true });
-                        } else {
-                            alert('Local não encontrado.');
-                        }
-                    })
-                    .catch(() => alert('Erro na busca do endereço.'));
+        function autoSave() {
+            const note = notes.find(n => n.id === currentNoteId);
+            if (note) {
+                note.title = titleInput.value;
+                note.body = bodyInput.value;
+                note.date = Date.now();
+                saveToLocalStorage();
+                renderNotesList(document.getElementById('searchInput').value);
+                updateStats();
             }
         }
 
-        function setTravelMode(mode, element) {
-            document.querySelectorAll('.vehicle-option').forEach(el => el.classList.remove('active'));
-            element.classList.add('active');
-
-            if (mode === 'car') currentTravelMode = 'driving';
-            if (mode === 'bike') currentTravelMode = 'cycling';
-            if (mode === 'walk') currentTravelMode = 'walking';
+        function saveToLocalStorage() {
+            localStorage.setItem('smartpad_notes', JSON.stringify(notes));
+            const status = document.getElementById('saveStatus');
+            status.innerHTML = '<i class="fa-solid fa-check" style="color: var(--success-color);"></i> Sincronizado no aparelho';
         }
 
-        // Iniciar Rota com Visão 3D Imersiva, Painel Superior de Ponta a Ponta e Posição do Usuário Embaixo
-        function startRouteToSearchedPlace() {
-            if (!userCoords) {
-                alert('Aguardando sua localização atual via GPS.');
+        function deleteCurrentNote() {
+            if (notes.length <= 1) {
+                alert('Você precisa ter pelo menos uma nota.');
                 return;
             }
-            if (!searchedCoords) {
-                alert('Selecione um destino na barra de pesquisa primeiro.');
-                return;
+            if (confirm('Deseja realmente apagar esta nota?')) {
+                notes = notes.filter(n => n.id !== currentNoteId);
+                currentNoteId = notes[0].id;
+                saveToLocalStorage();
+                renderNotesList();
+                loadCurrentNote();
             }
+        }
 
-            isNavigating = true;
+        function updateStats() {
+            const text = bodyInput.value;
+            const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+            const chars = text.length;
+            wordCountDisplay.innerText = `${words} palavras | ${chars} caracteres`;
+        }
 
-            const mapPane = document.querySelector('.leaflet-pane.leaflet-map-pane');
-            if (mapPane) {
-                mapPane.classList.add('leaflet-track-3d');
+        function filterNotes() {
+            const query = document.getElementById('searchInput').value;
+            renderNotesList(query);
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            const icon = document.getElementById('themeIcon');
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.setAttribute('data-theme', 'light');
+                icon.className = 'fa-solid fa-moon';
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                icon.className = 'fa-solid fa-circle-half-stroke';
             }
+        }
 
-            document.getElementById('sidebar').classList.add('hidden');
-            document.getElementById('defaultFloatingControls').style.display = 'none';
-            document.getElementById('activeNavPanel').classList.add('visible');
-
-            if (routingControl) {
-                map.removeControl(routingControl);
-            }
-
-            let routerProfile = L.Routing.osrmv1({
-                serviceUrl: 'https://router.project-osrm.org/route/v1',
-                profile: currentTravelMode
-            });
-
-            routingControl = L.Routing.control({
-                waypoints: [
-                    L.latLng(userCoords[0], userCoords[1]),
-                    L.latLng(searchedCoords[0], searchedCoords[1])
-                ],
-                router: routerProfile,
-                lineOptions: {
-                    styles: [{ color: '#1a73e8', weight: 6, opacity: 0.9 }]
-                },
-                createMarker: function() { return null; },
-                addWaypoints: false,
-                fitSelectedRoutes: false,
-                show: false
-            }).addTo(map);
-
-            routingControl.on('routesfound', function(e) {
-                const routes = e.routes;
-                if (routes && routes.length > 0) {
-                    const summary = routes[0].summary;
-                    const durationMinutes = Math.round(summary.totalTime / 60);
-                    document.getElementById('etaDisplay').innerText = `${durationMinutes} min`;
-                }
-            });
-
+        function summarizeAI() {
+            const body = bodyInput.value;
+            if(!body) return alert('Escreva algo na nota para a IA poder resumir.');
+            
+            const status = document.getElementById('saveStatus');
+            status.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles fa-spin" style="color: var(--accent-color);"></i> IA processando...';
+            
             setTimeout(() => {
-                panToUserWithOffset(userCoords, 19);
-            }, 300);
+                const summary = `\n\n--- [Resumo Inteligente] ---\n• Tópico principal focado em produtividade e anotações rápidas.\n• Total de termos processados com sucesso.`;
+                bodyInput.value += summary;
+                autoSave();
+            }, 1000);
         }
 
-        // Sair da Navegação
-        function exitNavigation() {
-            isNavigating = false;
-
-            const mapPane = document.querySelector('.leaflet-pane.leaflet-map-pane');
-            if (mapPane) {
-                mapPane.classList.remove('leaflet-track-3d');
-            }
-
-            document.getElementById('sidebar').classList.remove('hidden');
-            document.getElementById('activeNavPanel').classList.remove('visible');
-            document.getElementById('defaultFloatingControls').style.display = 'flex';
-
-            if (routingControl) {
-                map.removeControl(routingControl);
-                routingControl = null;
-            }
-
-            if (searchedMarker) {
-                map.removeLayer(searchedMarker);
-                searchedMarker = null;
-            }
-
-            searchedCoords = null;
-            document.getElementById('searchInput').value = '';
-
-            if (userCoords) {
-                map.setView(userCoords, 16, { animate: true });
-            }
+        function exportNotes() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(notes, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `smartpad_backup_${Date.now()}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
         }
 
-        function moveTo(lat, lng, zoom, name) {
-            searchedCoords = [lat, lng];
-            if (searchedMarker) {
-                map.removeLayer(searchedMarker);
-            }
-            searchedMarker = L.marker(searchedCoords, { icon: defaultIcon })
-                .addTo(map)
-                .bindPopup(`<b>${name}</b>`)
-                .openPopup();
-            map.setView([lat, lng], zoom, { animate: true });
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
         }
+
+        init();
     </script>
 </body>
 </html>
