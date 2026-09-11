@@ -1,488 +1,3902 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartPad Avançado</title>
-    <!-- Ícones Vetoriais via FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --bg-color: #0f172a;
-            --panel-bg: #1e293b;
-            --text-color: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent-color: #6366f1;
-            --accent-hover: #4f46e5;
-            --border-color: #334155;
-            --danger-color: #ef4444;
-            --success-color: #22c55e;
-        }
+<meta charset="UTF-8">
 
-        [data-theme="light"] {
-            --bg-color: #f8fafc;
-            --panel-bg: #ffffff;
-            --text-color: #0f172a;
-            --text-muted: #64748b;
-            --accent-color: #6366f1;
-            --accent-hover: #4f46e5;
-            --border-color: #e2e8f0;
-            --danger-color: #dc2626;
-            --success-color: #16a34a;
-        }
+<meta name="viewport"
+      content="width=device-width,
+               initial-scale=1,
+               maximum-scale=1,
+               user-scalable=no">
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            transition: background-color 0.3s, color 0.3s;
-        }
+<title>Open World Online V3</title>
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+<style>
 
-        header {
-            background-color: var(--panel-bg);
-            border-bottom: 1px solid var(--border-color);
-            padding: 12px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 60px;
-        }
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
 
-        .logo-area {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            color: var(--accent-color);
-        }
+    user-select:none;
+    -webkit-user-select:none;
 
-        .toolbar {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
+    touch-action:none;
+}
 
-        .btn {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 8px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.9rem;
-        }
+html,
+body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
 
-        .btn:hover {
-            background-color: var(--border-color);
-        }
+    background:#080b10;
 
-        .btn-primary {
-            background-color: var(--accent-color);
-            border-color: var(--accent-color);
-            color: #ffffff;
-        }
+    font-family:Arial,sans-serif;
+}
 
-        .btn-primary:hover {
-            background-color: var(--accent-hover);
-        }
+#game{
+    position:fixed;
+    inset:0;
+}
 
-        .main-container {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
+canvas{
+    display:block;
+}
 
-        sidebar {
-            width: 300px;
-            background-color: var(--panel-bg);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-        }
+/* =========================
+   LOADING
+========================= */
 
-        .search-box {
-            padding: 12px;
-            border-bottom: 1px solid var(--border-color);
-            position: relative;
-        }
+#loading{
+    position:fixed;
+    inset:0;
 
-        .search-box i {
-            position: absolute;
-            left: 22px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-        }
+    z-index:9999;
 
-        .search-box input {
-            width: 100%;
-            padding: 8px 10px 8px 36px;
-            background-color: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            color: var(--text-color);
-            outline: none;
-        }
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
 
-        .notes-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-        }
+    background:
+        radial-gradient(
+            circle at center,
+            #172331 0%,
+            #080b10 65%
+        );
 
-        .note-item {
-            padding: 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-bottom: 8px;
-            border: 1px solid transparent;
-            background-color: rgba(255,255,255,0.02);
-        }
+    color:white;
 
-        .note-item:hover {
-            background-color: var(--border-color);
-        }
+    text-align:center;
+}
 
-        .note-item.active {
-            border-color: var(--accent-color);
-            background-color: rgba(99, 102, 241, 0.1);
-        }
+#loading h1{
+    font-size:30px;
+    letter-spacing:2px;
+    margin-bottom:12px;
+}
 
-        .note-title {
-            font-weight: 600;
-            font-size: 0.95rem;
-            margin-bottom: 4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+#loadingText{
+    font-size:14px;
+    opacity:.7;
+}
 
-        .note-snippet {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+#progress{
+    width:250px;
+    height:7px;
 
-        .editor-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background-color: var(--bg-color);
-        }
+    margin-top:20px;
 
-        .editor-header {
-            padding: 15px 20px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
+    border-radius:20px;
 
-        .title-input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            font-size: 1.4rem;
-            font-weight: bold;
-            color: var(--text-color);
-            outline: none;
-        }
+    background:#252a30;
 
-        .formatting-bar {
-            padding: 8px 20px;
-            background-color: var(--panel-bg);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            gap: 6px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
+    overflow:hidden;
+}
 
-        .format-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-color);
-            width: 32px;
-            height: 32px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+#progressBar{
+    width:0%;
+    height:100%;
 
-        .format-btn:hover {
-            background-color: var(--border-color);
-        }
+    background:#4d8dff;
 
-        .editor-content {
-            flex: 1;
-            padding: 20px;
-            background: transparent;
-            border: none;
-            color: var(--text-color);
-            font-size: 1rem;
-            line-height: 1.6;
-            resize: none;
-            outline: none;
-        }
+    transition:.25s;
+}
 
-        .status-bar {
-            padding: 8px 20px;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            background-color: var(--panel-bg);
-        }
+#errorBox{
+    display:none;
 
-        @media (max-width: 768px) {
-            sidebar {
-                display: none;
-                position: absolute;
-                z-index: 10;
-                height: calc(100vh - 60px);
-                width: 100%;
-            }
-            sidebar.mobile-open {
-                display: flex;
-            }
-        }
-    </style>
+    width:90%;
+    max-width:420px;
+
+    margin-top:25px;
+
+    padding:15px;
+
+    background:#351414;
+
+    border:1px solid #8e3838;
+
+    border-radius:12px;
+
+    color:#ffb5b5;
+
+    font-size:13px;
+
+    line-height:1.5;
+}
+
+/* =========================
+   HUD
+========================= */
+
+#hud{
+    position:fixed;
+    inset:0;
+
+    pointer-events:none;
+
+    color:white;
+}
+
+#top{
+    position:absolute;
+
+    top:12px;
+    left:12px;
+    right:12px;
+
+    display:flex;
+    justify-content:space-between;
+}
+
+.panel{
+    padding:8px 12px;
+
+    border-radius:12px;
+
+    background:rgba(0,0,0,.55);
+
+    border:1px solid
+        rgba(255,255,255,.12);
+
+    backdrop-filter:blur(8px);
+}
+
+#healthBox{
+    width:175px;
+}
+
+#healthBar{
+    width:100%;
+    height:7px;
+
+    margin-top:5px;
+
+    overflow:hidden;
+
+    border-radius:20px;
+
+    background:#333;
+}
+
+#healthFill{
+    width:100%;
+    height:100%;
+
+    background:#32d879;
+}
+
+#crosshair{
+    position:absolute;
+
+    left:50%;
+    top:50%;
+
+    width:20px;
+    height:20px;
+
+    transform:
+        translate(-50%,-50%);
+}
+
+#crosshair:before,
+#crosshair:after{
+    content:"";
+
+    position:absolute;
+
+    background:white;
+
+    opacity:.8;
+}
+
+#crosshair:before{
+    width:20px;
+    height:2px;
+
+    top:9px;
+}
+
+#crosshair:after{
+    width:2px;
+    height:20px;
+
+    left:9px;
+}
+
+#weapon{
+    position:absolute;
+
+    right:15px;
+    bottom:150px;
+
+    text-align:right;
+}
+
+#weaponName{
+    font-size:13px;
+    opacity:.7;
+}
+
+#ammo{
+    font-size:25px;
+    font-weight:bold;
+}
+
+#message{
+    position:absolute;
+
+    top:85px;
+    left:50%;
+
+    transform:
+        translateX(-50%);
+
+    padding:9px 15px;
+
+    border-radius:10px;
+
+    background:
+        rgba(0,0,0,.65);
+
+    opacity:0;
+
+    transition:.2s;
+}
+
+/* =========================
+   JOYSTICK
+========================= */
+
+#joystick{
+    position:absolute;
+
+    left:25px;
+    bottom:25px;
+
+    width:145px;
+    height:145px;
+
+    border-radius:50%;
+
+    background:
+        rgba(255,255,255,.08);
+
+    border:2px solid
+        rgba(255,255,255,.18);
+
+    pointer-events:auto;
+}
+
+#stick{
+    position:absolute;
+
+    width:62px;
+    height:62px;
+
+    left:50%;
+    top:50%;
+
+    margin-left:-31px;
+    margin-top:-31px;
+
+    border-radius:50%;
+
+    background:
+        rgba(255,255,255,.25);
+
+    border:2px solid
+        rgba(255,255,255,.15);
+}
+
+/* =========================
+   CAMERA
+========================= */
+
+#cameraArea{
+    position:absolute;
+
+    right:0;
+    top:0;
+
+    width:62%;
+    height:78%;
+
+    pointer-events:auto;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+.btn{
+    position:absolute;
+
+    display:flex;
+
+    justify-content:center;
+    align-items:center;
+
+    border-radius:50%;
+
+    color:white;
+
+    font-size:10px;
+    font-weight:bold;
+
+    background:
+        rgba(255,255,255,.12);
+
+    border:1px solid
+        rgba(255,255,255,.22);
+
+    backdrop-filter:blur(7px);
+
+    pointer-events:auto;
+}
+
+#fire{
+    right:25px;
+    bottom:25px;
+
+    width:80px;
+    height:80px;
+
+    background:
+        rgba(210,40,40,.42);
+}
+
+#jump{
+    right:120px;
+    bottom:40px;
+
+    width:58px;
+    height:58px;
+}
+
+#action{
+    right:180px;
+    bottom:110px;
+
+    width:58px;
+    height:58px;
+}
+
+#pickup{
+    right:105px;
+    bottom:120px;
+
+    width:64px;
+    height:64px;
+
+    display:none;
+
+    background:
+        rgba(35,130,255,.42);
+}
+
+/* =========================
+   DEATH
+========================= */
+
+#dead{
+    position:fixed;
+    inset:0;
+
+    z-index:500;
+
+    display:none;
+
+    flex-direction:column;
+
+    justify-content:center;
+    align-items:center;
+
+    color:white;
+
+    background:
+        rgba(0,0,0,.8);
+}
+
+#dead h1{
+    font-size:42px;
+}
+
+</style>
 </head>
-<body data-theme="dark">
 
-    <header>
-        <div class="logo-area">
-            <button class="btn" id="menuToggle" style="display:none;"><i class="fa-solid fa-bars"></i></button>
-            <i class="fa-solid fa-feather-pointed"></i> SmartPad AI
-        </div>
-        <div class="toolbar">
-            <button class="btn btn-primary" onclick="createNewNote()"><i class="fa-solid fa-plus"><span>Nova Nota</span></i></button>
-            <button class="btn" onclick="exportNotes()"><i class="fa-solid fa-download"></i></button>
-            <button class="btn" onclick="toggleTheme()"><i class="fa-solid fa-circle-half-stroke" id="themeIcon"></i></button>
-        </div>
-    </header>
+<body>
 
-    <div class="main-container">
-        <sidebar id="sidebar">
-            <div class="search-box">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" id="searchInput" placeholder="Pesquisar notas..." oninput="filterNotes()">
-            </div>
-            <div class="notes-list" id="notesList">
-                <!-- Notas injetadas via JS -->
-            </div>
-        </sidebar>
+<!-- =========================
+     LOADING
+========================= -->
 
-        <div class="editor-area">
-            <div class="editor-header">
-                <input type="text" id="noteTitle" class="title-input" placeholder="Título da Nota..." oninput="autoSave()">
-                <button class="btn" style="color: var(--danger-color);" onclick="deleteCurrentNote()"><i class="fa-solid fa-trash"></i></button>
-            </div>
-            
-            <div class="formatting-bar">
-                <button class="format-btn" onclick="formatText('bold')" title="Negrito"><i class="fa-solid fa-bold"></i></button>
-                <button class="format-btn" onclick="formatText('italic')" title="Itálico"><i class="fa-solid fa-italic"></i></button>
-                <button class="format-btn" onclick="formatText('insertUnorderedList')" title="Lista"><i class="fa-solid fa-list-ul"></i></button>
-                <button class="format-btn" onclick="summarizeAI()" title="Resumo Inteligente"><i class="fa-solid fa-wand-magic-sparkles" style="color: var(--accent-color);"></i></button>
-            </div>
+<div id="loading">
 
-            <textarea id="noteBody" class="editor-content" placeholder="Comece a digitar sua nota brilhante..." oninput="autoSave()"></textarea>
+    <h1>OPEN WORLD</h1>
 
-            <div class="status-bar">
-                <span id="wordCount">0 palavras | 0 caracteres</span>
-                <span id="saveStatus"><i class="fa-solid fa-cloud" style="color: var(--success-color);"></i> Salvo no celular</span>
-            </div>
-        </div>
+    <div id="loadingText">
+        Iniciando...
     </div>
 
-    <script>
-        let notes = JSON.parse(localStorage.getItem('smartpad_notes')) || [
-            { id: 1, title: 'Bem-vindo ao SmartPad', body: 'Este é um bloco de notas avançado com armazenamento local automático no seu dispositivo móvel ou computador.\n\nExperimente criar uma nova nota ou usar o assistente de IA!', date: Date.now() }
-        ];
-        let currentNoteId = notes[0] ? notes[0].id : null;
+    <div id="progress">
 
-        const titleInput = document.getElementById('noteTitle');
-        const bodyInput = document.getElementById('noteBody');
-        const notesList = document.getElementById('notesList');
-        const wordCountDisplay = document.getElementById('wordCount');
+        <div id="progressBar"></div>
 
-        function init() {
-            renderNotesList();
-            loadCurrentNote();
-            checkMobileView();
-            window.addEventListener('resize', checkMobileView);
+    </div>
+
+    <div id="errorBox"></div>
+
+</div>
+
+<!-- =========================
+     GAME
+========================= -->
+
+<div id="game"></div>
+
+<!-- =========================
+     HUD
+========================= -->
+
+<div id="hud">
+
+    <div id="top">
+
+        <div
+            class="panel"
+            id="healthBox">
+
+            VIDA
+            <span id="healthText">
+                100
+            </span>
+
+            <div id="healthBar">
+
+                <div id="healthFill"></div>
+
+            </div>
+
+        </div>
+
+        <div class="panel">
+
+            ONLINE:
+            <span id="online">
+                1
+            </span>
+
+        </div>
+
+    </div>
+
+    <div id="message"></div>
+
+    <div id="crosshair"></div>
+
+    <div id="weapon">
+
+        <div id="ammo">
+            0 / 0
+        </div>
+
+        <div id="weaponName">
+            SEM ARMA
+        </div>
+
+    </div>
+
+    <div id="joystick">
+
+        <div id="stick"></div>
+
+    </div>
+
+    <div id="cameraArea"></div>
+
+    <div
+        id="fire"
+        class="btn">
+
+        ATIRAR
+
+    </div>
+
+    <div
+        id="jump"
+        class="btn">
+
+        PULAR
+
+    </div>
+
+    <div
+        id="action"
+        class="btn">
+
+        AÇÃO
+
+    </div>
+
+    <div
+        id="pickup"
+        class="btn">
+
+        PEGAR
+
+    </div>
+
+</div>
+
+<div id="dead">
+
+    <h1>ELIMINADO</h1>
+
+    <p>
+        Você voltará para a cidade...
+    </p>
+
+</div>
+
+
+<!-- =====================================================
+     BIBLIOTECAS
+======================================================
+
+IMPORTANTE:
+
+O jogo NÃO executa aqui.
+
+Esses scripts carregam primeiro.
+
+Depois o código do jogo é iniciado.
+
+====================================================== -->
+
+<script
+src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r160/three.min.js"
+onload="threeLoaded=true;checkLibraries();"
+onerror="libraryError('Three.js')">
+</script>
+
+<script
+src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"
+onload="firebaseAppLoaded=true;checkLibraries();"
+onerror="libraryError('Firebase App')">
+</script>
+
+<script
+src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"
+onload="firebaseDatabaseLoaded=true;checkLibraries();"
+onerror="libraryError('Firebase Database')">
+</script>
+
+
+<script>
+
+/* =====================================================
+   CONTROLE DE CARREGAMENTO
+===================================================== */
+
+let threeLoaded=false;
+
+let firebaseAppLoaded=false;
+
+let firebaseDatabaseLoaded=false;
+
+let gameStarted=false;
+
+
+function setLoading(
+    text,
+    progress
+){
+
+    document.getElementById(
+        "loadingText"
+    ).textContent=text;
+
+    document.getElementById(
+        "progressBar"
+    ).style.width=
+        progress+"%";
+}
+
+
+function libraryError(name){
+
+    const box=
+        document.getElementById(
+            "errorBox"
+        );
+
+    box.style.display="block";
+
+    box.innerHTML=
+        "<b>Não foi possível carregar "+
+        name+
+        ".</b><br><br>"+
+        "Verifique se o WebView está "+
+        "com acesso à internet. "+
+        "Depois recarregue o jogo.";
+
+    setLoading(
+        "Erro ao carregar biblioteca",
+        0
+    );
+}
+
+
+function checkLibraries(){
+
+    if(gameStarted)
+        return;
+
+    if(
+        threeLoaded &&
+        firebaseAppLoaded &&
+        firebaseDatabaseLoaded
+    ){
+
+        gameStarted=true;
+
+        setLoading(
+            "Bibliotecas carregadas...",
+            15
+        );
+
+        setTimeout(
+            startGame,
+            100
+        );
+    }
+}
+
+</script>
+
+
+<script>
+
+/* =====================================================
+   JOGO
+===================================================== */
+
+function startGame(){
+
+/* =====================================================
+   FIREBASE
+===================================================== */
+
+const firebaseConfig={
+
+    apiKey:
+    "AlzaSyCTkq5yHg9N8rj9--Dooh8cuguYxPE",
+
+    authDomain:
+    "subjectrobot-49600.firebaseapp.com",
+
+    databaseURL:
+    "https://subjectrobot-49600-default-rtdb.firebaseio.com",
+
+    projectId:
+    "subjectrobot-49600",
+
+    storageBucket:
+    "subjectrobot-49600.appspot.com",
+
+    appId:
+    "1:731604558049:android:7f47b30b289445814017a0"
+};
+
+
+let db=null;
+
+
+try{
+
+    firebase.initializeApp(
+        firebaseConfig
+    );
+
+    db=
+        firebase.database();
+
+}catch(error){
+
+    console.error(
+        "Firebase:",
+        error
+    );
+
+    showError(
+        "Erro ao inicializar Firebase:<br>"+
+        error.message
+    );
+
+    return;
+}
+
+
+/* =====================================================
+   THREE
+===================================================== */
+
+const scene=
+    new THREE.Scene();
+
+
+scene.background=
+    new THREE.Color(
+        0x88b8dc
+    );
+
+
+scene.fog=
+    new THREE.Fog(
+        0x88b8dc,
+        80,
+        330
+    );
+
+
+const camera=
+    new THREE.PerspectiveCamera(
+        70,
+        innerWidth/innerHeight,
+        .05,
+        500
+    );
+
+
+const renderer=
+    new THREE.WebGLRenderer({
+
+        antialias:false,
+
+        powerPreference:
+            "high-performance"
+
+    });
+
+
+renderer.setPixelRatio(
+    Math.min(
+        devicePixelRatio,
+        1.25
+    )
+);
+
+
+renderer.setSize(
+    innerWidth,
+    innerHeight
+);
+
+
+document
+    .getElementById("game")
+    .appendChild(
+        renderer.domElement
+    );
+
+
+/* =====================================================
+   LUZ
+===================================================== */
+
+scene.add(
+    new THREE.HemisphereLight(
+        0xffffff,
+        0x405060,
+        2
+    )
+);
+
+
+const sun=
+    new THREE.DirectionalLight(
+        0xffffff,
+        1.5
+    );
+
+
+sun.position.set(
+    80,
+    120,
+    60
+);
+
+
+scene.add(sun);
+
+
+/* =====================================================
+   MATERIAIS
+===================================================== */
+
+const MAT={
+
+    grass:
+        new THREE.MeshLambertMaterial({
+            color:0x4c803d
+        }),
+
+    road:
+        new THREE.MeshLambertMaterial({
+            color:0x292929
+        }),
+
+    sidewalk:
+        new THREE.MeshLambertMaterial({
+            color:0x777777
+        }),
+
+    wall:
+        new THREE.MeshLambertMaterial({
+            color:0xd5d0c5
+        }),
+
+    wall2:
+        new THREE.MeshLambertMaterial({
+            color:0xaebbc5
+        }),
+
+    roof:
+        new THREE.MeshLambertMaterial({
+            color:0x704a38
+        }),
+
+    wood:
+        new THREE.MeshLambertMaterial({
+            color:0x70452d
+        }),
+
+    metal:
+        new THREE.MeshLambertMaterial({
+            color:0x555b61
+        }),
+
+    black:
+        new THREE.MeshLambertMaterial({
+            color:0x171717
+        }),
+
+    white:
+        new THREE.MeshLambertMaterial({
+            color:0xe9e9e9
+        }),
+
+    blue:
+        new THREE.MeshLambertMaterial({
+            color:0x356aa0
+        }),
+
+    green:
+        new THREE.MeshLambertMaterial({
+            color:0x36783d
+        }),
+
+    red:
+        new THREE.MeshLambertMaterial({
+            color:0xb52e2e
+        }),
+
+    yellow:
+        new THREE.MeshLambertMaterial({
+            color:0xe0ad2c
+        }),
+
+    glass:
+        new THREE.MeshLambertMaterial({
+            color:0x66a5c4,
+            transparent:true,
+            opacity:.55
+        })
+};
+
+
+/* =====================================================
+   ARRAYS
+===================================================== */
+
+const colliders=[];
+
+const doors=[];
+
+const pickups=[];
+
+const remotePlayers={};
+
+
+/* =====================================================
+   CRIAR BOX
+===================================================== */
+
+function createBox(
+    x,y,z,
+    w,h,d,
+    material,
+    solid=true
+){
+
+    const mesh=
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                w,h,d
+            ),
+            material
+        );
+
+
+    mesh.position.set(
+        x,y,z
+    );
+
+
+    scene.add(mesh);
+
+
+    if(solid){
+
+        colliders.push({
+
+            minX:x-w/2,
+            maxX:x+w/2,
+
+            minY:y-h/2,
+            maxY:y+h/2,
+
+            minZ:z-d/2,
+            maxZ:z+d/2,
+
+            active:true
+
+        });
+    }
+
+
+    return mesh;
+}
+
+
+/* =====================================================
+   CHÃO
+===================================================== */
+
+setLoading(
+    "Criando terreno...",
+    25
+);
+
+
+createBox(
+    0,
+    -.3,
+    0,
+    420,
+    .5,
+    420,
+    MAT.grass,
+    false
+);
+
+
+/* =====================================================
+   RUAS
+===================================================== */
+
+for(
+    let i=-4;
+    i<=4;
+    i++
+){
+
+    createBox(
+        0,
+        .01,
+        i*42,
+        420,
+        .04,
+        10,
+        MAT.road,
+        false
+    );
+
+
+    createBox(
+        i*42,
+        .01,
+        0,
+        10,
+        .04,
+        420,
+        MAT.road,
+        false
+    );
+}
+
+
+/* =====================================================
+   ÁRVORES
+===================================================== */
+
+function createTree(
+    x,z
+){
+
+    createBox(
+        x,
+        2,
+        z,
+        .7,
+        4,
+        .7,
+        MAT.wood,
+        true
+    );
+
+
+    const crown=
+        new THREE.Mesh(
+            new THREE.IcosahedronGeometry(
+                2.8,
+                1
+            ),
+            MAT.green
+        );
+
+
+    crown.position.set(
+        x,
+        5,
+        z
+    );
+
+
+    scene.add(crown);
+}
+
+
+for(
+    let i=0;
+    i<50;
+    i++
+){
+
+    const x=
+        Math.round(
+            (Math.random()*300-150)/5
+        )*5;
+
+
+    const z=
+        Math.round(
+            (Math.random()*300-150)/5
+        )*5;
+
+
+    if(
+        Math.abs(x%42)<8 ||
+        Math.abs(z%42)<8
+    )
+        continue;
+
+
+    createTree(
+        x,z
+    );
+}
+
+
+/* =====================================================
+   POSTES
+===================================================== */
+
+function createLamp(
+    x,z
+){
+
+    createBox(
+        x,
+        3.5,
+        z,
+        .12,
+        7,
+        .12,
+        MAT.metal,
+        false
+    );
+
+
+    createBox(
+        x,
+        7,
+        z,
+        .45,
+        .25,
+        .45,
+        MAT.yellow,
+        false
+    );
+}
+
+
+for(
+    let i=-7;
+    i<=7;
+    i++
+){
+
+    createLamp(
+        i*21,
+        -5
+    );
+
+    createLamp(
+        i*21,
+        5
+    );
+}
+
+
+/* =====================================================
+   PORTA
+===================================================== */
+
+function createDoor(
+    x,y,z
+){
+
+    const pivot=
+        new THREE.Group();
+
+
+    pivot.position.set(
+        x-.6,
+        y,
+        z
+    );
+
+
+    const mesh=
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                1.2,
+                2.5,
+                .12
+            ),
+            MAT.wood
+        );
+
+
+    mesh.position.x=.6;
+
+
+    pivot.add(mesh);
+
+
+    scene.add(pivot);
+
+
+    const collider={
+
+        minX:x-.6,
+        maxX:x+.6,
+
+        minY:y-1.25,
+        maxY:y+1.25,
+
+        minZ:z-.1,
+        maxZ:z+.1,
+
+        active:true
+
+    };
+
+
+    colliders.push(
+        collider
+    );
+
+
+    const door={
+
+        pivot:pivot,
+
+        collider:collider,
+
+        open:false,
+
+        target:0
+
+    };
+
+
+    doors.push(
+        door
+    );
+
+
+    return door;
+}
+
+
+/* =====================================================
+   CASAS / PRÉDIOS
+===================================================== */
+
+function createBuilding(
+    x,z,w,d,material
+){
+
+    const h=7;
+
+
+    createBox(
+        x,
+        h/2,
+        z-d/2,
+        w,
+        h,
+        .5,
+        material
+    );
+
+
+    createBox(
+        x,
+        h/2,
+        z+d/2,
+        w,
+        h,
+        .5,
+        material
+    );
+
+
+    createBox(
+        x-w/2,
+        h/2,
+        z,
+        .5,
+        h,
+        d,
+        material
+    );
+
+
+    createBox(
+        x+w/2,
+        h/2,
+        z,
+        .5,
+        h,
+        d,
+        material
+    );
+
+
+    /* chão */
+
+    createBox(
+        x,
+        .05,
+        z,
+        w,
+        .1,
+        d,
+        MAT.sidewalk,
+        false
+    );
+
+
+    /* teto */
+
+    createBox(
+        x,
+        h,
+        z,
+        w,
+        .3,
+        d,
+        MAT.roof,
+        false
+    );
+
+
+    /* porta */
+
+    createDoor(
+        x,
+        1.25,
+        z-d/2-.1
+    );
+
+
+    /* mesa */
+
+    createBox(
+        x,
+        .9,
+        z,
+        2,
+        .25,
+        1,
+        MAT.wood
+    );
+
+
+    /* cama */
+
+    createBox(
+        x+w/3,
+        .6,
+        z+d/3,
+        2,
+        .35,
+        3,
+        MAT.white
+    );
+
+
+    /* armário */
+
+    createBox(
+        x-w/3,
+        1.5,
+        z+d/3,
+        1.5,
+        3,
+        .7,
+        MAT.wood
+    );
+}
+
+
+/* =====================================================
+   CASAS
+===================================================== */
+
+const houses=[
+
+    [-65,-65],
+    [-25,-65],
+    [25,-65],
+    [65,-65],
+
+    [-65,65],
+    [-25,65],
+    [25,65],
+    [65,65],
+
+    [-65,-25],
+    [65,-25],
+
+    [-65,25],
+    [65,25]
+
+];
+
+
+for(
+    const p of houses
+){
+
+    createBuilding(
+        p[0],
+        p[1],
+        16,
+        13,
+        MAT.wall
+    );
+}
+
+
+/* =====================================================
+   PRÉDIOS
+===================================================== */
+
+const buildings=[
+
+    [-120,-120],
+    [120,-120],
+    [-120,120],
+    [120,120],
+    [-120,0],
+    [120,0]
+
+];
+
+
+for(
+    const p of buildings
+){
+
+    createBuilding(
+        p[0],
+        p[1],
+        25,
+        20,
+        MAT.wall2
+    );
+}
+
+
+/* =====================================================
+   PERSONAGEM
+===================================================== */
+
+function createCharacter(){
+
+    const root=
+        new THREE.Group();
+
+
+    const body=
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                .9,
+                1.25,
+                .5
+            ),
+            MAT.blue
+        );
+
+
+    body.position.y=2.25;
+
+
+    root.add(body);
+
+
+    const head=
+        new THREE.Mesh(
+            new THREE.SphereGeometry(
+                .42,
+                10,
+                8
+            ),
+            MAT.white
+        );
+
+
+    head.position.y=3.25;
+
+
+    root.add(head);
+
+
+    const armL=
+        new THREE.Group();
+
+    const armR=
+        new THREE.Group();
+
+    const legL=
+        new THREE.Group();
+
+    const legR=
+        new THREE.Group();
+
+
+    const armGeo=
+        new THREE.BoxGeometry(
+            .28,
+            1.15,
+            .28
+        );
+
+
+    const legGeo=
+        new THREE.BoxGeometry(
+            .32,
+            1.15,
+            .35
+        );
+
+
+    const a1=
+        new THREE.Mesh(
+            armGeo,
+            MAT.blue
+        );
+
+
+    const a2=
+        new THREE.Mesh(
+            armGeo,
+            MAT.blue
+        );
+
+
+    const l1=
+        new THREE.Mesh(
+            legGeo,
+            MAT.black
+        );
+
+
+    const l2=
+        new THREE.Mesh(
+            legGeo,
+            MAT.black
+        );
+
+
+    armL.position.set(
+        -.65,
+        2.65,
+        0
+    );
+
+
+    armR.position.set(
+        .65,
+        2.65,
+        0
+    );
+
+
+    legL.position.set(
+        -.25,
+        1.15,
+        0
+    );
+
+
+    legR.position.set(
+        .25,
+        1.15,
+        0
+    );
+
+
+    a1.position.y=-.55;
+    a2.position.y=-.55;
+
+    l1.position.y=-.55;
+    l2.position.y=-.55;
+
+
+    armL.add(a1);
+    armR.add(a2);
+
+    legL.add(l1);
+    legR.add(l2);
+
+
+    root.add(
+        armL,
+        armR,
+        legL,
+        legR
+    );
+
+
+    /* arma */
+
+    const gun=
+        new THREE.Group();
+
+
+    const gunBody=
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                .2,
+                .2,
+                .9
+            ),
+            MAT.black
+        );
+
+
+    gunBody.position.z=-.4;
+
+
+    gun.add(
+        gunBody
+    );
+
+
+    gun.position.set(
+        .1,
+        -.9,
+        -.15
+    );
+
+
+    armR.add(gun);
+
+
+    gun.visible=false;
+
+
+    /* paraquedas */
+
+    const parachute=
+        new THREE.Group();
+
+
+    const canopy=
+        new THREE.Mesh(
+            new THREE.SphereGeometry(
+                3,
+                12,
+                6,
+                0,
+                Math.PI*2,
+                0,
+                Math.PI/2
+            ),
+            MAT.red
+        );
+
+
+    canopy.scale.y=.45;
+
+    canopy.position.y=7;
+
+
+    parachute.add(
+        canopy
+    );
+
+
+    root.add(
+        parachute
+    );
+
+
+    parachute.visible=false;
+
+
+    return{
+
+        root:root,
+
+        armL:armL,
+
+        armR:armR,
+
+        legL:legL,
+
+        legR:legR,
+
+        gun:gun,
+
+        parachute:parachute
+
+    };
+}
+
+
+/* =====================================================
+   PLAYER
+===================================================== */
+
+const player={
+
+    id:
+        "p_"+
+        Math.random()
+        .toString(36)
+        .substring(2,12),
+
+    x:0,
+
+    y:28,
+
+    z:0,
+
+    vy:0,
+
+    yaw:0,
+
+    pitch:-.1,
+
+    hp:100,
+
+    alive:true,
+
+    grounded:false,
+
+    parachuting:true,
+
+    state:"parachute",
+
+    weapon:null,
+
+    ammo:0,
+
+    reserve:0,
+
+    speed:7,
+
+    fireCooldown:0,
+
+    anim:0
+
+};
+
+
+player.model=
+    createCharacter();
+
+
+scene.add(
+    player.model.root
+);
+
+
+/* =====================================================
+   ARMAS
+===================================================== */
+
+const weapons={
+
+    pistol:{
+
+        name:"PISTOLA",
+
+        damage:25,
+
+        range:80,
+
+        rate:.35,
+
+        magazine:12
+
+    },
+
+    rifle:{
+
+        name:"RIFLE",
+
+        damage:18,
+
+        range:130,
+
+        rate:.12,
+
+        magazine:30
+
+    },
+
+    shotgun:{
+
+        name:"ESCOPETA",
+
+        damage:55,
+
+        range:45,
+
+        rate:.8,
+
+        magazine:6
+
+    }
+
+};
+
+
+function equipWeapon(
+    type
+){
+
+    if(!weapons[type])
+        return;
+
+
+    player.weapon=type;
+
+    player.ammo=
+        weapons[type]
+        .magazine;
+
+    player.reserve=
+        weapons[type]
+        .magazine*3;
+
+
+    player.model.gun.visible=true;
+
+
+    updateWeaponUI();
+
+
+    showMessage(
+        weapons[type].name+
+        " equipada"
+    );
+}
+
+
+function updateWeaponUI(){
+
+    document.getElementById(
+        "ammo"
+    ).textContent=
+        player.ammo+
+        " / "+
+        player.reserve;
+
+
+    document.getElementById(
+        "weaponName"
+    ).textContent=
+        player.weapon
+        ? weapons[
+            player.weapon
+          ].name
+        : "SEM ARMA";
+}
+
+
+/* =====================================================
+   LOOT
+===================================================== */
+
+function createLoot(
+    x,z,type,id
+){
+
+    let material;
+
+
+    if(type==="ammo")
+        material=MAT.yellow;
+
+    else if(type==="rifle")
+        material=MAT.black;
+
+    else if(type==="shotgun")
+        material=MAT.wood;
+
+    else
+        material=MAT.blue;
+
+
+    const mesh=
+        new THREE.Mesh(
+
+            type==="ammo"
+
+            ?
+
+            new THREE.BoxGeometry(
+                .6,.3,.6
+            )
+
+            :
+
+            new THREE.BoxGeometry(
+                .2,.25,1
+            ),
+
+            material
+        );
+
+
+    mesh.position.set(
+        x,
+        .25,
+        z
+    );
+
+
+    scene.add(
+        mesh
+    );
+
+
+    pickups.push({
+
+        id:id,
+
+        type:type,
+
+        mesh:mesh,
+
+        taken:false
+
+    });
+}
+
+
+const lootTypes=[
+
+    "pistol",
+    "rifle",
+    "shotgun",
+    "ammo"
+
+];
+
+
+for(
+    let i=0;
+    i<45;
+    i++
+){
+
+    createLoot(
+
+        Math.round(
+            (Math.random()*280-140)/5
+        )*5,
+
+        Math.round(
+            (Math.random()*280-140)/5
+        )*5,
+
+        lootTypes[
+            Math.floor(
+                Math.random()*
+                lootTypes.length
+            )
+        ],
+
+        "loot_"+i
+
+    );
+}
+
+
+/* loot dentro das casas */
+
+let lootID=100;
+
+
+for(
+    const p of houses
+){
+
+    createLoot(
+
+        p[0]+2,
+        p[1]+1,
+
+        "pistol",
+
+        "loot_"+lootID++
+
+    );
+
+
+    createLoot(
+
+        p[0]-2,
+        p[1]-1,
+
+        "ammo",
+
+        "loot_"+lootID++
+
+    );
+}
+
+
+/* =====================================================
+   JOYSTICK
+===================================================== */
+
+let joyX=0;
+
+let joyY=0;
+
+let joyActive=false;
+
+
+const joystick=
+    document.getElementById(
+        "joystick"
+    );
+
+
+const stick=
+    document.getElementById(
+        "stick"
+    );
+
+
+function updateJoystick(e){
+
+    const r=
+        joystick.getBoundingClientRect();
+
+
+    const cx=
+        r.left+
+        r.width/2;
+
+
+    const cy=
+        r.top+
+        r.height/2;
+
+
+    let dx=
+        e.clientX-cx;
+
+
+    let dy=
+        e.clientY-cy;
+
+
+    const max=55;
+
+
+    const len=
+        Math.sqrt(
+            dx*dx+
+            dy*dy
+        );
+
+
+    if(len>max){
+
+        dx=
+            dx/len*max;
+
+        dy=
+            dy/len*max;
+    }
+
+
+    joyX=dx/max;
+
+    joyY=dy/max;
+
+
+    stick.style.transform=
+        "translate("+
+        dx+
+        "px,"+
+        dy+
+        "px)";
+}
+
+
+joystick.addEventListener(
+    "pointerdown",
+    function(e){
+
+        joyActive=true;
+
+        joystick.setPointerCapture(
+            e.pointerId
+        );
+
+        updateJoystick(e);
+    }
+);
+
+
+joystick.addEventListener(
+    "pointermove",
+    function(e){
+
+        if(joyActive)
+            updateJoystick(e);
+    }
+);
+
+
+joystick.addEventListener(
+    "pointerup",
+    function(){
+
+        joyActive=false;
+
+        joyX=0;
+
+        joyY=0;
+
+        stick.style.transform=
+            "translate(0,0)";
+    }
+);
+
+
+/* =====================================================
+   CÂMERA TOUCH
+===================================================== */
+
+let cameraTouch=null;
+
+
+const cameraArea=
+    document.getElementById(
+        "cameraArea"
+    );
+
+
+cameraArea.addEventListener(
+    "pointerdown",
+    function(e){
+
+        cameraTouch={
+
+            id:e.pointerId,
+
+            x:e.clientX,
+
+            y:e.clientY
+
+        };
+
+
+        cameraArea.setPointerCapture(
+            e.pointerId
+        );
+    }
+);
+
+
+cameraArea.addEventListener(
+    "pointermove",
+    function(e){
+
+        if(
+            !cameraTouch ||
+            cameraTouch.id!==e.pointerId
+        )
+            return;
+
+
+        const dx=
+            e.clientX-
+            cameraTouch.x;
+
+
+        const dy=
+            e.clientY-
+            cameraTouch.y;
+
+
+        cameraTouch.x=
+            e.clientX;
+
+
+        cameraTouch.y=
+            e.clientY;
+
+
+        /*
+          CÂMERA NÃO INVERTIDA
+
+          dedo → direita
+          câmera → direita
+
+          dedo → esquerda
+          câmera → esquerda
+
+          dedo → cima
+          câmera → cima
+
+          dedo → baixo
+          câmera → baixo
+        */
+
+        player.yaw+=
+            dx*.006;
+
+
+        player.pitch+=
+            dy*.006;
+
+
+        player.pitch=
+            THREE.MathUtils.clamp(
+                player.pitch,
+                -1.25,
+                1.25
+            );
+    }
+);
+
+
+cameraArea.addEventListener(
+    "pointerup",
+    function(){
+
+        cameraTouch=null;
+
+    }
+);
+
+
+/* =====================================================
+   COLISÃO
+===================================================== */
+
+function blocked(
+    x,z
+){
+
+    const radius=.4;
+
+
+    for(
+        const c of colliders
+    ){
+
+        if(!c.active)
+            continue;
+
+
+        if(
+
+            x+radius>c.minX &&
+            x-radius<c.maxX &&
+            z+radius>c.minZ &&
+            z-radius<c.maxZ
+
+        ){
+
+            return true;
+
         }
+    }
 
-        function checkMobileView() {
-            const menuBtn = document.getElementById('menuToggle');
-            if (window.innerWidth <= 768) {
-                menuBtn.style.display = 'flex';
-                menuBtn.onclick = () => document.getElementById('sidebar').classList.toggle('mobile-open');
-            } else {
-                menuBtn.style.display = 'none';
-                document.getElementById('sidebar').classList.remove('mobile-open');
-            }
-        }
 
-        function renderNotesList(filterText = '') {
-            notesList.innerHTML = '';
-            const filtered = notes.filter(n => n.title.toLowerCase().includes(filterText.toLowerCase()) || n.body.toLowerCase().includes(filterText.toLowerCase()));
-            
-            filtered.sort((a, b) => b.date - a.date).forEach(note => {
-                const div = document.createElement('div');
-                div.className = `note-item ${note.id === currentNoteId ? 'active' : ''}`;
-                div.onclick = () => {
-                    selectNote(note.id);
-                    if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('mobile-open');
-                };
-                div.innerHTML = `
-                    <div class="note-title">${escapeHTML(note.title) || 'Sem Título'}</div>
-                    <div class="note-snippet">${escapeHTML(note.body)}</div>
-                `;
-                notesList.appendChild(div);
-            });
-        }
+    return false;
+}
 
-        function selectNote(id) {
-            currentNoteId = id;
-            loadCurrentNote();
-            renderNotesList(document.getElementById('searchInput').value);
-        }
 
-        function loadCurrentNote() {
-            const note = notes.find(n => n.id === currentNoteId);
-            if (note) {
-                titleInput.value = note.title;
-                bodyInput.value = note.body;
-            } else {
-                titleInput.value = '';
-                bodyInput.value = '';
-            }
-            updateStats();
-        }
+function movePlayer(
+    dx,dz
+){
 
-        function createNewNote() {
-            const newNote = {
-                id: Date.now(),
-                title: 'Nova Nota',
-                body: '',
-                date: Date.now()
-            };
-            notes.unshift(newNote);
-            currentNoteId = newNote.id;
-            saveToLocalStorage();
-            renderNotesList();
-            loadCurrentNote();
-            titleInput.focus();
-            titleInput.select();
-        }
+    if(
+        !blocked(
+            player.x+dx,
+            player.z
+        )
+    ){
 
-        function autoSave() {
-            const note = notes.find(n => n.id === currentNoteId);
-            if (note) {
-                note.title = titleInput.value;
-                note.body = bodyInput.value;
-                note.date = Date.now();
-                saveToLocalStorage();
-                renderNotesList(document.getElementById('searchInput').value);
-                updateStats();
-            }
-        }
+        player.x+=dx;
+    }
 
-        function saveToLocalStorage() {
-            localStorage.setItem('smartpad_notes', JSON.stringify(notes));
-            const status = document.getElementById('saveStatus');
-            status.innerHTML = '<i class="fa-solid fa-check" style="color: var(--success-color);"></i> Sincronizado no aparelho';
-        }
 
-        function deleteCurrentNote() {
-            if (notes.length <= 1) {
-                alert('Você precisa ter pelo menos uma nota.');
-                return;
-            }
-            if (confirm('Deseja realmente apagar esta nota?')) {
-                notes = notes.filter(n => n.id !== currentNoteId);
-                currentNoteId = notes[0].id;
-                saveToLocalStorage();
-                renderNotesList();
-                loadCurrentNote();
-            }
-        }
+    if(
+        !blocked(
+            player.x,
+            player.z+dz
+        )
+    ){
 
-        function updateStats() {
-            const text = bodyInput.value;
-            const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-            const chars = text.length;
-            wordCountDisplay.innerText = `${words} palavras | ${chars} caracteres`;
-        }
+        player.z+=dz;
+    }
+}
 
-        function filterNotes() {
-            const query = document.getElementById('searchInput').value;
-            renderNotesList(query);
-        }
 
-        function toggleTheme() {
-            const body = document.body;
-            const icon = document.getElementById('themeIcon');
-            if (body.getAttribute('data-theme') === 'dark') {
-                body.setAttribute('data-theme', 'light');
-                icon.className = 'fa-solid fa-moon';
-            } else {
-                body.setAttribute('data-theme', 'dark');
-                icon.className = 'fa-solid fa-circle-half-stroke';
-            }
-        }
+/* =====================================================
+   FÍSICA
+===================================================== */
 
-        function summarizeAI() {
-            const body = bodyInput.value;
-            if(!body) return alert('Escreva algo na nota para a IA poder resumir.');
-            
-            const status = document.getElementById('saveStatus');
-            status.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles fa-spin" style="color: var(--accent-color);"></i> IA processando...';
-            
-            setTimeout(() => {
-                const summary = `\n\n--- [Resumo Inteligente] ---\n• Tópico principal focado em produtividade e anotações rápidas.\n• Total de termos processados com sucesso.`;
-                bodyInput.value += summary;
-                autoSave();
-            }, 1000);
-        }
+function updatePhysics(dt){
 
-        function exportNotes() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(notes, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `smartpad_backup_${Date.now()}.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-        }
+    /* PARAQUEDAS */
 
-        function escapeHTML(str) {
-            return str.replace(/[&<>'"]/g, 
-                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+    if(player.parachuting){
+
+        player.y-=2.2*dt;
+
+
+        const fx=
+            Math.sin(
+                player.yaw
+            );
+
+
+        const fz=
+            Math.cos(
+                player.yaw
+            );
+
+
+        const rx=
+            Math.cos(
+                player.yaw
+            );
+
+
+        const rz=
+            -Math.sin(
+                player.yaw
+            );
+
+
+        movePlayer(
+
+            (
+                fx*(-joyY)+
+                rx*joyX
+            )*3*dt,
+
+            (
+                fz*(-joyY)+
+                rz*joyX
+            )*3*dt
+
+        );
+
+
+        if(player.y<=0){
+
+            player.y=0;
+
+            player.parachuting=false;
+
+            player.grounded=true;
+
+            player.state="land";
+
+            player.model
+                .parachute
+                .visible=false;
+
+
+            showMessage(
+                "ATERRISSAGEM!"
             );
         }
 
-        init();
-    </script>
+
+        return;
+    }
+
+
+    /* GRAVIDADE */
+
+    player.vy-=22*dt;
+
+    player.y+=
+        player.vy*dt;
+
+
+    if(player.y<=0){
+
+        player.y=0;
+
+        player.vy=0;
+
+        player.grounded=true;
+
+    }else{
+
+        player.grounded=false;
+    }
+
+
+    /* MOVIMENTO */
+
+    const moving=
+        Math.abs(joyX)>.08 ||
+        Math.abs(joyY)>.08;
+
+
+    if(moving){
+
+        const fx=
+            Math.sin(
+                player.yaw
+            );
+
+
+        const fz=
+            Math.cos(
+                player.yaw
+            );
+
+
+        const rx=
+            Math.cos(
+                player.yaw
+            );
+
+
+        const rz=
+            -Math.sin(
+                player.yaw
+            );
+
+
+        movePlayer(
+
+            (
+                fx*(-joyY)+
+                rx*joyX
+            )*
+            player.speed*
+            dt,
+
+            (
+                fz*(-joyY)+
+                rz*joyX
+            )*
+            player.speed*
+            dt
+
+        );
+
+
+        player.state=
+            player.grounded
+            ? "walk"
+            : "fall";
+
+
+        player.anim+=
+            dt*10;
+
+
+        const dx=
+            fx*(-joyY)+
+            rx*joyX;
+
+
+        const dz=
+            fz*(-joyY)+
+            rz*joyX;
+
+
+        if(
+            Math.abs(dx)+
+            Math.abs(dz)>.01
+        ){
+
+            player.model
+                .root
+                .rotation.y=
+                THREE.MathUtils.lerp(
+
+                    player.model
+                        .root
+                        .rotation.y,
+
+                    Math.atan2(
+                        dx,
+                        dz
+                    ),
+
+                    .2
+                );
+        }
+
+    }else if(
+        player.grounded
+    ){
+
+        player.state="idle";
+    }
+}
+
+
+/* =====================================================
+   ANIMAÇÃO
+===================================================== */
+
+function updateAnimation(){
+
+    const m=
+        player.model;
+
+
+    let swing=0;
+
+
+    if(
+        player.state==="walk"
+    ){
+
+        swing=
+            Math.sin(
+                player.anim
+            )*.65;
+    }
+
+
+    m.armL.rotation.x=
+        THREE.MathUtils.lerp(
+            m.armL.rotation.x,
+            player.weapon
+            ? -.7
+            : swing,
+            .25
+        );
+
+
+    m.armR.rotation.x=
+        THREE.MathUtils.lerp(
+            m.armR.rotation.x,
+            player.weapon
+            ? -1.1
+            : -swing,
+            .25
+        );
+
+
+    m.legL.rotation.x=
+        THREE.MathUtils.lerp(
+            m.legL.rotation.x,
+            -swing,
+            .25
+        );
+
+
+    m.legR.rotation.x=
+        THREE.MathUtils.lerp(
+            m.legR.rotation.x,
+            swing,
+            .25
+        );
+
+
+    m.parachute.visible=
+        player.parachuting;
+}
+
+
+/* =====================================================
+   CÂMERA
+===================================================== */
+
+function updateCamera(){
+
+    const target=
+        new THREE.Vector3(
+
+            player.x,
+
+            player.y+2.2,
+
+            player.z
+
+        );
+
+
+    const cp=
+        Math.cos(
+            player.pitch
+        );
+
+
+    const forward=
+        new THREE.Vector3(
+
+            Math.sin(
+                player.yaw
+            )*cp,
+
+            Math.sin(
+                player.pitch
+            ),
+
+            Math.cos(
+                player.yaw
+            )*cp
+
+        );
+
+
+    const distance=6.5;
+
+
+    const desired=
+        new THREE.Vector3(
+
+            target.x-
+            forward.x*distance,
+
+            target.y-
+            forward.y*distance,
+
+            target.z-
+            forward.z*distance
+
+        );
+
+
+    camera.position.lerp(
+        desired,
+        .18
+    );
+
+
+    camera.lookAt(
+
+        target.x+
+        forward.x*10,
+
+        target.y+
+        forward.y*10,
+
+        target.z+
+        forward.z*10
+
+    );
+}
+
+
+/* =====================================================
+   PORTAS
+===================================================== */
+
+function updateDoors(){
+
+    for(
+        const door of doors
+    ){
+
+        door.pivot.rotation.y=
+            THREE.MathUtils.lerp(
+
+                door.pivot.rotation.y,
+
+                door.target,
+
+                .15
+            );
+
+
+        door.collider.active=
+            !door.open;
+    }
+}
+
+
+function nearestDoor(){
+
+    let best=null;
+
+    let distance=3;
+
+
+    for(
+        const door of doors
+    ){
+
+        const dx=
+            door.pivot.position.x-
+            player.x;
+
+
+        const dz=
+            door.pivot.position.z-
+            player.z;
+
+
+        const d=
+            Math.sqrt(
+                dx*dx+
+                dz*dz
+            );
+
+
+        if(d<distance){
+
+            distance=d;
+
+            best=door;
+        }
+    }
+
+
+    return best;
+}
+
+
+document.getElementById(
+    "action"
+).addEventListener(
+    "pointerdown",
+    function(e){
+
+        e.stopPropagation();
+
+
+        const door=
+            nearestDoor();
+
+
+        if(!door)
+            return;
+
+
+        door.open=
+            !door.open;
+
+
+        door.target=
+            door.open
+            ? -Math.PI/2
+            : 0;
+    }
+);
+
+
+/* =====================================================
+   LOOT
+===================================================== */
+
+function nearestLoot(){
+
+    let best=null;
+
+    let distance=2;
+
+
+    for(
+        const item of pickups
+    ){
+
+        if(item.taken)
+            continue;
+
+
+        const dx=
+            item.mesh.position.x-
+            player.x;
+
+
+        const dz=
+            item.mesh.position.z-
+            player.z;
+
+
+        const d=
+            Math.sqrt(
+                dx*dx+
+                dz*dz
+            );
+
+
+        if(d<distance){
+
+            distance=d;
+
+            best=item;
+        }
+    }
+
+
+    return best;
+}
+
+
+function updatePickupButton(){
+
+    const item=
+        nearestLoot();
+
+
+    document.getElementById(
+        "pickup"
+    ).style.display=
+        item
+        ? "flex"
+        : "none";
+}
+
+
+document.getElementById(
+    "pickup"
+).addEventListener(
+    "pointerdown",
+    function(e){
+
+        e.stopPropagation();
+
+
+        const item=
+            nearestLoot();
+
+
+        if(!item)
+            return;
+
+
+        item.taken=true;
+
+        item.mesh.visible=false;
+
+
+        if(
+            item.type==="ammo"
+        ){
+
+            player.reserve+=30;
+
+            showMessage(
+                "+30 munições"
+            );
+
+        }else{
+
+            equipWeapon(
+                item.type
+            );
+        }
+    }
+);
+
+
+/* =====================================================
+   PULO
+===================================================== */
+
+document.getElementById(
+    "jump"
+).addEventListener(
+    "pointerdown",
+    function(e){
+
+        e.stopPropagation();
+
+
+        if(
+            player.grounded &&
+            !player.parachuting
+        ){
+
+            player.vy=8;
+
+            player.grounded=false;
+
+            player.state="jump";
+        }
+    }
+);
+
+
+/* =====================================================
+   TIRO
+===================================================== */
+
+function shoot(){
+
+    if(
+        !player.alive ||
+        player.parachuting ||
+        !player.weapon
+    )
+        return;
+
+
+    const weapon=
+        weapons[
+            player.weapon
+        ];
+
+
+    if(
+        player.fireCooldown>0
+    )
+        return;
+
+
+    if(
+        player.ammo<=0
+    ){
+
+        showMessage(
+            "SEM MUNIÇÃO"
+        );
+
+        return;
+    }
+
+
+    player.fireCooldown=
+        weapon.rate;
+
+
+    player.ammo--;
+
+    updateWeaponUI();
+
+
+    const origin=
+        camera.position.clone();
+
+
+    const direction=
+        new THREE.Vector3();
+
+
+    camera.getWorldDirection(
+        direction
+    );
+
+
+    const ray=
+        new THREE.Raycaster(
+
+            origin,
+
+            direction.normalize(),
+
+            0,
+
+            weapon.range
+
+        );
+
+
+    const targets=[];
+
+
+    for(
+        const id in remotePlayers
+    ){
+
+        if(
+            remotePlayers[id] &&
+            remotePlayers[id].model
+        ){
+
+            targets.push(
+                remotePlayers[id]
+                    .model
+                    .root
+            );
+        }
+    }
+
+
+    const hits=
+        ray.intersectObjects(
+            targets,
+            true
+        );
+
+
+    let end=
+        origin.clone().add(
+            direction
+                .clone()
+                .multiplyScalar(
+                    weapon.range
+                )
+        );
+
+
+    let targetId=null;
+
+
+    if(
+        hits.length>0
+    ){
+
+        end=
+            hits[0].point.clone();
+
+
+        for(
+            const id in remotePlayers
+        ){
+
+            const root=
+                remotePlayers[id]
+                    .model
+                    .root;
+
+
+            let object=
+                hits[0].object;
+
+
+            while(object){
+
+                if(
+                    object===root
+                ){
+
+                    targetId=id;
+
+                    break;
+                }
+
+
+                object=
+                    object.parent;
+            }
+
+
+            if(targetId)
+                break;
+        }
+    }
+
+
+    createTracer(
+        origin,
+        end
+    );
+
+
+    if(
+        targetId &&
+        db
+    ){
+
+        db.ref(
+            "damageEvents"
+        ).push({
+
+            shooter:player.id,
+
+            target:targetId,
+
+            damage:weapon.damage,
+
+            weapon:player.weapon,
+
+            time:
+                firebase.database
+                    .ServerValue
+                    .TIMESTAMP
+
+        });
+    }
+}
+
+
+function createTracer(
+    start,
+    end
+){
+
+    const geometry=
+        new THREE.BufferGeometry()
+            .setFromPoints([
+                start,
+                end
+            ]);
+
+
+    const material=
+        new THREE.LineBasicMaterial({
+            color:0xffd83d
+        });
+
+
+    const line=
+        new THREE.Line(
+            geometry,
+            material
+        );
+
+
+    scene.add(line);
+
+
+    setTimeout(
+        function(){
+
+            scene.remove(line);
+
+            geometry.dispose();
+
+            material.dispose();
+
+        },
+        100
+    );
+}
+
+
+document.getElementById(
+    "fire"
+).addEventListener(
+    "pointerdown",
+    function(e){
+
+        e.stopPropagation();
+
+        shoot();
+    }
+);
+
+
+/* =====================================================
+   VIDA
+===================================================== */
+
+function updateHealth(){
+
+    document.getElementById(
+        "healthText"
+    ).textContent=
+        Math.round(
+            player.hp
+        );
+
+
+    document.getElementById(
+        "healthFill"
+    ).style.width=
+        Math.max(
+            0,
+            player.hp
+        )+"%";
+}
+
+
+/* =====================================================
+   DANO
+===================================================== */
+
+const processedDamage=
+    new Set();
+
+
+db.ref(
+    "damageEvents"
+).on(
+    "child_added",
+    function(snapshot){
+
+        const id=
+            snapshot.key;
+
+
+        if(
+            processedDamage.has(id)
+        )
+            return;
+
+
+        processedDamage.add(id);
+
+
+        const data=
+            snapshot.val();
+
+
+        if(
+            !data ||
+            data.target!==player.id ||
+            !player.alive
+        )
+            return;
+
+
+        player.hp=
+            Math.max(
+                0,
+                player.hp-data.damage
+            );
+
+
+        updateHealth();
+
+
+        if(
+            player.hp<=0
+        ){
+
+            eliminate(
+                data.shooter
+            );
+        }
+    }
+);
+
+
+/* =====================================================
+   MORTE / RESPAWN
+===================================================== */
+
+function eliminate(
+    killer
+){
+
+    if(
+        !player.alive
+    )
+        return;
+
+
+    player.alive=false;
+
+    player.state="dead";
+
+
+    db.ref(
+        "players/"+player.id
+    ).update({
+
+        alive:false,
+
+        hp:0,
+
+        state:"dead",
+
+        killer:
+            killer||null
+
+    });
+
+
+    document.getElementById(
+        "dead"
+    ).style.display="flex";
+
+
+    setTimeout(
+        respawn,
+        4000
+    );
+}
+
+
+function respawn(){
+
+    player.x=
+        (Math.floor(
+            Math.random()*7
+        )-3)*42;
+
+
+    player.z=
+        (Math.floor(
+            Math.random()*7
+        )-3)*42;
+
+
+    player.y=28;
+
+    player.vy=0;
+
+    player.hp=100;
+
+    player.alive=true;
+
+    player.parachuting=true;
+
+    player.grounded=false;
+
+    player.state="parachute";
+
+    player.weapon=null;
+
+    player.ammo=0;
+
+    player.reserve=0;
+
+    player.model.gun.visible=false;
+
+
+    updateHealth();
+
+    updateWeaponUI();
+
+
+    document.getElementById(
+        "dead"
+    ).style.display="none";
+}
+
+
+/* =====================================================
+   MENSAGEM
+===================================================== */
+
+let messageTimer=null;
+
+
+function showMessage(
+    text
+){
+
+    const element=
+        document.getElementById(
+            "message"
+        );
+
+
+    element.textContent=text;
+
+    element.style.opacity="1";
+
+
+    clearTimeout(
+        messageTimer
+    );
+
+
+    messageTimer=
+        setTimeout(
+            function(){
+
+                element.style.opacity="0";
+
+            },
+            1800
+        );
+}
+
+
+/* =====================================================
+   MULTIPLAYER
+===================================================== */
+
+const playersRef=
+    db.ref("players");
+
+
+function createRemotePlayer(
+    data
+){
+
+    const model=
+        createCharacter();
+
+
+    model.root.position.set(
+
+        data.x||0,
+
+        data.y||0,
+
+        data.z||0
+
+    );
+
+
+    scene.add(
+        model.root
+    );
+
+
+    return{
+
+        model:model,
+
+        data:data,
+
+        targetX:data.x||0,
+
+        targetY:data.y||0,
+
+        targetZ:data.z||0
+
+    };
+}
+
+
+playersRef.on(
+    "child_added",
+    function(snapshot){
+
+        const data=
+            snapshot.val();
+
+
+        if(
+            !data ||
+            data.id===player.id
+        )
+            return;
+
+
+        remotePlayers[
+            data.id
+        ]=
+            createRemotePlayer(
+                data
+            );
+    }
+);
+
+
+playersRef.on(
+    "child_changed",
+    function(snapshot){
+
+        const data=
+            snapshot.val();
+
+
+        if(
+            !data ||
+            data.id===player.id
+        )
+            return;
+
+
+        let remote=
+            remotePlayers[
+                data.id
+            ];
+
+
+        if(!remote){
+
+            remote=
+                createRemotePlayer(
+                    data
+                );
+
+
+            remotePlayers[
+                data.id
+            ]=remote;
+        }
+
+
+        remote.data=data;
+
+        remote.targetX=
+            data.x||0;
+
+        remote.targetY=
+            data.y||0;
+
+        remote.targetZ=
+            data.z||0;
+    }
+);
+
+
+playersRef.on(
+    "child_removed",
+    function(snapshot){
+
+        const id=
+            snapshot.key;
+
+
+        if(
+            remotePlayers[id]
+        ){
+
+            scene.remove(
+                remotePlayers[id]
+                    .model
+                    .root
+            );
+
+
+            delete
+                remotePlayers[id];
+        }
+    }
+);
+
+
+playersRef.on(
+    "value",
+    function(snapshot){
+
+        const players=
+            snapshot.val()||{};
+
+
+        document.getElementById(
+            "online"
+        ).textContent=
+            Object.keys(
+                players
+            ).length;
+    }
+);
+
+
+/* =====================================================
+   CONEXÃO / ONDISCONNECT
+===================================================== */
+
+const myPlayerRef=
+    playersRef.child(
+        player.id
+    );
+
+
+myPlayerRef
+    .onDisconnect()
+    .remove();
+
+
+db.ref(
+    ".info/connected"
+).on(
+    "value",
+    function(snapshot){
+
+        if(
+            snapshot.val()===true
+        ){
+
+            myPlayerRef
+                .onDisconnect()
+                .remove();
+
+
+            savePlayer();
+        }
+    }
+);
+
+
+/* =====================================================
+   SALVAR JOGADOR
+===================================================== */
+
+function savePlayer(){
+
+    if(!db)
+        return;
+
+
+    myPlayerRef.update({
+
+        id:player.id,
+
+        name:"Player",
+
+        x:player.x,
+
+        y:player.y,
+
+        z:player.z,
+
+        rotation:
+            player.model
+                .root
+                .rotation
+                .y,
+
+        cameraYaw:
+            player.yaw,
+
+        cameraPitch:
+            player.pitch,
+
+        hp:player.hp,
+
+        weapon:
+            player.weapon,
+
+        ammo:
+            player.ammo,
+
+        state:
+            player.state,
+
+        alive:
+            player.alive,
+
+        parachuting:
+            player.parachuting,
+
+        timestamp:
+            firebase.database
+                .ServerValue
+                .TIMESTAMP
+
+    });
+}
+
+
+/* =====================================================
+   REMOTOS
+===================================================== */
+
+function updateRemotePlayers(){
+
+    for(
+        const id in remotePlayers
+    ){
+
+        const remote=
+            remotePlayers[id];
+
+
+        const model=
+            remote.model;
+
+
+        model.root.position.x=
+            THREE.MathUtils.lerp(
+
+                model.root.position.x,
+
+                remote.targetX,
+
+                .2
+            );
+
+
+        model.root.position.y=
+            THREE.MathUtils.lerp(
+
+                model.root.position.y,
+
+                remote.targetY,
+
+                .2
+            );
+
+
+        model.root.position.z=
+            THREE.MathUtils.lerp(
+
+                model.root.position.z,
+
+                remote.targetZ,
+
+                .2
+            );
+
+
+        model.root.rotation.y=
+            remote.data.rotation||0;
+
+
+        model.parachute.visible=
+            !!remote.data.parachuting;
+
+
+        model.gun.visible=
+            !!remote.data.weapon;
+
+
+        if(
+            remote.data.state==="walk"
+        ){
+
+            const t=
+                performance.now()*.01;
+
+
+            model.legL.rotation.x=
+                Math.sin(t)*.6;
+
+
+            model.legR.rotation.x=
+                -Math.sin(t)*.6;
+
+
+            model.armL.rotation.x=
+                -Math.sin(t)*.5;
+
+
+            model.armR.rotation.x=
+                Math.sin(t)*.5;
+        }
+    }
+}
+
+
+/* =====================================================
+   LOOP
+===================================================== */
+
+let lastTime=
+    performance.now();
+
+
+function gameLoop(){
+
+    requestAnimationFrame(
+        gameLoop
+    );
+
+
+    const now=
+        performance.now();
+
+
+    const dt=
+        Math.min(
+            .033,
+            (now-lastTime)/1000
+        );
+
+
+    lastTime=now;
+
+
+    updatePhysics(
+        dt
+    );
+
+
+    updateDoors();
+
+    updateAnimation();
+
+    updateCamera();
+
+    updateRemotePlayers();
+
+    updatePickupButton();
+
+
+    if(
+        player.fireCooldown>0
+    ){
+
+        player.fireCooldown=
+            Math.max(
+                0,
+                player.fireCooldown-dt
+            );
+    }
+
+
+    renderer.render(
+        scene,
+        camera
+    );
+}
+
+
+/* =====================================================
+   INICIAR
+===================================================== */
+
+setLoading(
+    "Preparando cidade...",
+    80
+);
+
+
+setTimeout(
+    function(){
+
+        setLoading(
+            "Preparando jogador...",
+            90
+        );
+
+
+        player.model.root.position.set(
+
+            player.x,
+
+            player.y,
+
+            player.z
+
+        );
+
+
+        player.model.parachute.visible=true;
+
+
+        updateHealth();
+
+        updateWeaponUI();
+
+
+        setTimeout(
+            function(){
+
+                setLoading(
+                    "Pronto!",
+                    100
+                );
+
+
+                setTimeout(
+                    function(){
+
+                        document
+                            .getElementById(
+                                "loading"
+                            )
+                            .style
+                            .display="none";
+
+
+                        showMessage(
+                            "Você está descendo de paraquedas!"
+                        );
+
+                    },
+                    300
+                );
+
+            },
+            300
+        );
+
+    },
+    300
+);
+
+
+/* =====================================================
+   REDE
+===================================================== */
+
+setInterval(
+    savePlayer,
+    100
+);
+
+
+/* =====================================================
+   RESIZE
+===================================================== */
+
+window.addEventListener(
+    "resize",
+    function(){
+
+        camera.aspect=
+            innerWidth/
+            innerHeight;
+
+
+        camera.updateProjectionMatrix();
+
+
+        renderer.setSize(
+            innerWidth,
+            innerHeight
+        );
+    }
+);
+
+
+/* =====================================================
+   COMEÇAR LOOP
+===================================================== */
+
+gameLoop();
+
+}
+
+
+/* =====================================================
+   ERRO GERAL
+===================================================== */
+
+function showError(
+    text
+){
+
+    const box=
+        document.getElementById(
+            "errorBox"
+        );
+
+
+    box.style.display="block";
+
+    box.innerHTML=text;
+}
+
+</script>
+
 </body>
 </html>
