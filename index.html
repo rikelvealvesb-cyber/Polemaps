@@ -2,252 +2,391 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Radar Social - App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App de Mobilidade - Firebase</title>
     <!-- Leaflet CSS para o Mapa -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body, html { width: 100%; height: 100%; overflow: hidden; background: #121212; color: #fff; }
-
-        /* Telas */
-        .screen { width: 100%; height: 100%; position: absolute; top: 0; left: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; background: #121212; transition: opacity 0.3s ease; }
-        .hidden { display: none !important; opacity: 0; pointer-events: none; }
-
-        /* Tela de Login */
-        .login-card { width: 90%; max-width: 380px; background: #1e1e1e; padding: 25px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 15px; }
-        .login-card h2 { text-align: center; margin-bottom: 5px; color: #4f46e5; }
-        .login-card label { font-size: 14px; color: #aaa; }
-        .login-card input, .login-card select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #2a2a2a; color: #fff; font-size: 16px; outline: none; }
-        .login-card button { width: 100%; padding: 14px; border-radius: 8px; border: none; background: #4f46e5; color: #fff; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: background 0.2s; }
-        .login-card button:active { background: #4338ca; }
-
-        /* Tela do Mapa */
-        #map { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
-
-        /* Barra de Filtros Superior */
-        .filter-bar { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); z-index: 5; display: flex; gap: 8px; background: rgba(30, 30, 30, 0.85); padding: 8px 12px; border-radius: 30px; backdrop-filter: blur(10px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-        .filter-btn { background: #2a2a2a; border: none; color: #aaa; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-        .filter-btn.active { background: #4f46e5; color: #fff; }
-
-        /* Status flutuante */
-        .status-badge { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 5; background: rgba(30, 30, 30, 0.9); padding: 10px 20px; border-radius: 25px; font-size: 13px; color: #10b981; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.4); display: flex; align-items: center; gap: 8px; backdrop-filter: blur(5px); }
-        .dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
-
-        /* Estilo personalizado dos ícones no mapa */
-        .user-marker { display: flex; justify-content: center; align-items: center; width: 36px; height: 36px; border-radius: 50%; color: white; font-weight: bold; font-size: 14px; box-shadow: 0 3px 10px rgba(0,0,0,0.4); border: 2px solid #fff; }
-        .marker-homem { background-color: #3b82f6; } /* Azul */
-        .marker-mulher { background-color: #ec4899; } /* Rosa */
+        * { box-sizing: border-box; font-family: Arial, sans-serif; }
+        body { margin: 0; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .app-container { width: 100%; max-width: 480px; height: 100%; max-height: 850px; background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        .screen { flex: 1; display: none; flex-direction: column; padding: 20px; overflow-y: auto; }
+        .screen.active { display: flex; }
+        h2 { color: #333; margin-top: 0; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+        button { width: 100%; padding: 12px; background: #000; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        button:hover { background: #333; }
+        .toggle-link { text-align: center; margin-top: 15px; color: #007bff; cursor: pointer; font-size: 14px; }
+        #map { width: 100%; height: 300px; border-radius: 8px; margin: 10px 0; }
+        .card { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #000; }
+        .badge { display: inline-block; padding: 4px 8px; background: #e2e8f0; border-radius: 4px; font-size: 12px; font-weight: bold; margin-bottom: 5px; }
     </style>
 </head>
 <body>
 
-    <!-- TELA DE LOGIN / CADASTRO NO BANCO -->
-    <div id="loginScreen" class="screen">
-        <div class="login-card">
-            <h2>Radar Social</h2>
-            <label for="userName">Seu Nome</label>
-            <input type="text" id="userName" placeholder="Ex: Carlos Silva" autocomplete="off">
-            
-            <label for="userGender">Gênero</label>
-            <select id="userGender">
-                <option value="Homem">Homem</option>
-                <option value="Mulher">Mulher</option>
+<div class="app-container">
+
+    <!-- TELA 1: LOGIN -->
+    <div id="loginScreen" class="screen active">
+        <h2>Entrar</h2>
+        <input type="text" id="loginUser" placeholder="Usuário / Nome">
+        <input type="password" id="loginPass" placeholder="Senha">
+        <button onclick="fazerLogin()">Entrar</button>
+        <div class="toggle-link" onclick="mudarTela('registerScreen')">Não tem conta? Cadastre-se</div>
+    </div>
+
+    <!-- TELA 2: CADASTRO -->
+    <div id="registerScreen" class="screen">
+        <h2>Criar Conta</h2>
+        <select id="regType" onchange="alternarCamposCadastro()">
+            <option value="passageiro">Passageiro</option>
+            <option value="motorista">Motorista</option>
+        </select>
+        <input type="text" id="regName" placeholder="Nome Completo">
+        <input type="password" id="regPass" placeholder="Senha">
+        <input type="text" id="regPhone" placeholder="Telefone">
+        
+        <!-- Campos exclusivos para motorista -->
+        <div id="driverFields" style="display: none;">
+            <input type="text" id="regVehicleModel" placeholder="Modelo do Veículo (ex: Onix, CG 160)">
+            <input type="text" id="regVehiclePlate" placeholder="Placa do Veículo">
+            <select id="regVehicleType">
+                <option value="moto">Moto</option>
+                <option value="carro">Carro</option>
             </select>
+        </div>
 
-            <button id="enterBtn">Entrar no Radar</button>
+        <button onclick="fazerCadastro()">Cadastrar</button>
+        <div class="toggle-link" onclick="mudarTela('loginScreen')">Já tem conta? Faça login</div>
+    </div>
+
+    <!-- TELA 3: PAINEL DO PASSAGEIRO -->
+    <div id="passengerScreen" class="screen">
+        <h2>Olá, <span id="lblPassName"></span></h2>
+        <div id="passengerContent">
+            <label>Para onde vamos?</label>
+            <input type="text" id="destAddress" placeholder="Endereço de destino">
+            <label>Escolha o tipo de veículo:</label>
+            <select id="rideType">
+                <option value="moto">Moto (R$ 10,00)</option>
+                <option value="carro">Carro (R$ 20,00)</option>
+            </select>
+            <button onclick="solicitarCorrida()">Chamar Veículo</button>
+        </div>
+        <div id="passengerStatus" style="display:none;">
+            <div class="card" id="statusCardText">Aguardando motorista aceitar...</div>
+            <div id="mapPass" style="width:100%; height:250px; border-radius:8px;"></div>
+            <div id="pinBox" style="display:none; text-align:center; font-size: 18px; font-weight: bold; margin: 10px 0; background: #e0f2fe; padding: 10px; border-radius: 6px;">
+                Código de verificação: <span id="lblPin" style="color: #0284c7;"></span>
+            </div>
+            <button id="btnConfirmPay" style="display:none; background: #16a34a;" onclick="confirmarPagamentoPassageiro()">Confirmar Pagamento em Dinheiro</button>
         </div>
     </div>
 
-    <!-- TELA DO MAPA -->
-    <div id="mapScreen" class="screen hidden">
-        <div class="filter-bar">
-            <button class="filter-btn active" onclick="setFilter('todos', this)">Todos</button>
-            <button class="filter-btn" onclick="setFilter('Homem', this)">Homens</button>
-            <button class="filter-btn" onclick="setFilter('Mulher', this)">Mulheres</button>
+    <!-- TELA 4: PAINEL DO MOTORISTA -->
+    <div id="driverScreen" class="screen">
+        <h2>Painel Motorista (<span id="lblDriverStatus" style="color: green;">Disponível</span>)</h2>
+        <div id="driverRequests">
+            <p>Procurando solicitações próximas...</p>
         </div>
-
-        <div id="map"></div>
-
-        <div class="status-badge">
-            <div class="dot"></div>
-            <span id="statusText">Obtendo sua localização...</span>
+        <div id="driverActiveRide" style="display:none;">
+            <div class="card" id="activeRideInfo"></div>
+            <div id="mapDriver" style="width:100%; height:250px; border-radius:8px;"></div>
+            <input type="text" id="inputPinCode" placeholder="Digite o PIN informado pelo passageiro">
+            <button onclick="verificarPinEIniciar()">Validar Código da Corrida</button>
+            <button id="btnDriverFinished" style="display:none; background: #16a34a;" onclick="concluirCorridaMotorista()">Confirmar Recebimento do Pagamento</button>
         </div>
     </div>
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</div>
 
-    <!-- Firebase SDKs (Modular v10) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-        // Configurações do Firebase fornecidas
-        const firebaseConfig = {
-            apiKey: "AlzaSyCTkq0uXy5kHg9N8rj9--Dooh8cuguYxPE",
-            databaseURL: "https://subjectrobot-49600-default-rtdb.firebaseio.com",
-            storageBucket: "subjectrobot-49600.appspot.com",
-            appId: "1:731604558049:android:7f47b30b289445814017a0"
-        };
+<script>
+    // Configuração do Firebase fornecida
+    const firebaseConfig = {
+        apiKey: "AlzaSyCTkq0uXy5kHg9N8rj9--Dooh8cuguYxPE",
+        databaseURL: "https://subjectrobot-49600-default-rtdb.firebaseio.com/",
+        projectId: "subjectrobot-49600",
+        storageBucket: "subjectrobot-49600.appspot.com",
+        appId: "1:731604558049:android:7f47b30b289445814017a0"
+    };
 
-        // Inicializar Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-        let currentUser = {
-            id: 'user_' + Math.random().toString(36).substr(2, 9),
-            name: '',
-            gender: 'Homem',
-            lat: 0,
-            lng: 0
-        };
+    let currentUser = null;
+    let currentRideId = null;
+    let mapPass, mapDriver, markerPass, markerDriver;
 
-        let map = null;
-        let markers = {};
-        let currentFilter = 'todos';
-        let watchId = null;
+    function mudarTela(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+    }
 
-        const loginScreen = document.getElementById('loginScreen');
-        const mapScreen = document.getElementById('mapScreen');
-        const enterBtn = document.getElementById('enterBtn');
-        const userNameInput = document.getElementById('userName');
-        const userGenderSelect = document.getElementById('userGender');
-        const statusText = document.getElementById('statusText');
+    function alternarCamposCadastro() {
+        const type = document.getElementById('regType').value;
+        document.getElementById('driverFields').style.display = (type === 'motorista') ? 'block' : 'none';
+    }
 
-        enterBtn.addEventListener('click', () => {
-            const name = userNameInput.value.trim();
-            if (!name) {
-                alert('Por favor, insira seu nome.');
-                return;
+    // CADASTRO NO DATABASE
+    function fazerCadastro() {
+        const type = document.getElementById('regType').value;
+        const name = document.getElementById('regName').value.trim();
+        const pass = document.getElementById('regPass').value;
+        const phone = document.getElementById('regPhone').value.trim();
+
+        if(!name || !pass) {
+            alert('Preencha nome e senha!');
+            return;
+        }
+
+        const userData = { type, name, pass, phone, available: true };
+
+        if(type === 'motorista') {
+            userData.vehicleModel = document.getElementById('regVehicleModel').value;
+            userData.vehiclePlate = document.getElementById('regVehiclePlate').value;
+            userData.vehicleType = document.getElementById('regVehicleType').value;
+            userData.lat = -23.5505; // Coordenada padrão (São Paulo)
+            userData.lng = -46.6333;
+        }
+
+        db.ref('users/' + name.replace(/[.#$\/\[\]]/g, '_')).set(userData)
+        .then(() => {
+            alert('Cadastro realizado com sucesso!');
+            mudarTela('loginScreen');
+        })
+        .catch(err => alert('Erro: ' + err.message));
+    }
+
+    // LOGIN NO DATABASE
+    function fazerLogin() {
+        const name = document.getElementById('loginUser').value.trim();
+        const pass = document.getElementById('loginPass').value;
+
+        db.ref('users/' + name.replace(/[.#$\/\[\]]/g, '_')).once('value', snapshot => {
+            const user = snapshot.val();
+            if(user && user.pass === pass) {
+                currentUser = { id: name.replace(/[.#$\/\[\]]/g, '_'), ...user };
+                if(user.type === 'passageiro') {
+                    document.getElementById('lblPassName').innerText = user.name;
+                    mudarTela('passengerScreen');
+                } else {
+                    mudarTela('driverScreen');
+                    iniciarPainelMotorista();
+                }
+            } else {
+                alert('Usuário ou senha incorretos!');
             }
-
-            currentUser.name = name;
-            currentUser.gender = userGenderSelect.value;
-
-            // Transição de tela
-            loginScreen.classList.add('hidden');
-            mapScreen.classList.remove('hidden');
-
-            initMap();
-            startTracking();
         });
+    }
 
-        function initMap() {
-            // Inicializa o mapa com coordenadas padrão (serão atualizadas pelo GPS)
-            map = L.map('map', { zoomControl: false }).setView([-23.55052, -46.633308], 15);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '&copy; OpenStreetMap'
-            }).addTo(map);
+    // PASSAGEIRO: SOLICITAR CORRIDA
+    function solicitarCorrida() {
+        const destination = document.getElementById('destAddress').value;
+        const rideType = document.getElementById('rideType').value;
+        const pinCode = Math.floor(1000 + Math.random() * 9000).toString();
+
+        if(!destination) {
+            alert('Informe o endereço de destino!');
+            return;
         }
 
-        function startTracking() {
-            if (!navigator.geolocation) {
-                alert('Geolocalização não é suportada pelo seu navegador.');
-                return;
+        const rideData = {
+            passengerId: currentUser.id,
+            passengerName: currentUser.name,
+            destination: destination,
+            rideType: rideType,
+            status: 'procurando', // procurando, aceito, em_andamento, pago, concluido
+            pin: pinCode,
+            lat: -23.5510,
+            lng: -46.6340
+        };
+
+        const newRideRef = db.ref('rides').push();
+        currentRideId = newRideRef.key;
+        newRideRef.set(rideData);
+
+        document.getElementById('passengerContent').style.display = 'none';
+        document.getElementById('passengerStatus').style.display = 'block';
+        document.getElementById('statusCardText').innerText = 'Procurando motorista disponível...';
+
+        setTimeout(() => {
+            initMapPass();
+        }, 300);
+
+        // Ouvir atualizações da corrida
+        db.ref('rides/' + currentRideId).on('value', snapshot => {
+            const ride = snapshot.val();
+            if(!ride) return;
+
+            if(ride.status === 'aceito' || ride.status === 'em_andamento') {
+                document.getElementById('statusCardText').innerHTML = `Motorista <b>${ride.driverName}</b> a caminho!<br>Veículo: ${ride.vehicleModel} (${ride.vehiclePlate})`;
+                document.getElementById('pinBox').style.display = 'block';
+                document.getElementById('lblPin').innerText = ride.pin;
+
+                // Rastrear motorista em tempo real no mapa
+                if(ride.driverLat && ride.driverLng) {
+                    atualizarMapaPassageiro(ride.driverLat, ride.driverLng);
+                }
             }
 
-            watchId = navigator.geolocation.watchPosition(
-                (position) => {
-                    currentUser.lat = position.coords.latitude;
-                    currentUser.lng = position.coords.longitude;
+            if(ride.status === 'aguardando_pagamento') {
+                document.getElementById('statusCardText').innerText = 'Corrida finalizada. Pague em dinheiro ao motorista.';
+                document.getElementById('pinBox').style.display = 'none';
+                document.getElementById('btnConfirmPay').style.display = 'block';
+            }
 
-                    statusText.innerText = "Conectado ao Radar";
-                    
-                    // Salva os dados no Database (Simulando login por banco de dados)
-                    const userRef = ref(db, 'usuarios/' + currentUser.id);
-                    set(userRef, {
-                        name: currentUser.name,
-                        gender: currentUser.gender,
-                        lat: currentUser.lat,
-                        lng: currentUser.lng,
-                        lastUpdate: Date.now()
-                    });
+            if(ride.status === 'concluido') {
+                alert('Corrida finalizada e paga com sucesso!');
+                window.location.reload();
+            }
+        });
+    }
 
-                    // Remove do banco se o usuário fechar a aba/desconectar
-                    onDisconnect(userRef).remove();
-
-                    // Centraliza o mapa na primeira leitura
-                    if (map && !window.mapCentered) {
-                        map.setView([currentUser.lat, currentUser.lng], 16);
-                        window.mapCentered = true;
-                    }
-
-                    listenToUsers();
-                },
-                (error) => {
-                    console.error(error);
-                    statusText.innerText = "Erro ao obter GPS. Verifique as permissões.";
-                },
-                { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
-            );
+    function initMapPass() {
+        if(!mapPass) {
+            mapPass = L.map('mapPass').setView([-23.5510, -46.6340], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.fz', { maxZoom: 19 }).addTo(mapPass);
+            markerPass = L.marker([-23.5510, -46.6340]).addTo(mapPass).bindPopup('Você');
         }
+    }
 
-        function listenToUsers() {
-            const usersRef = ref(db, 'usuarios');
-            onValue(usersRef, (snapshot) => {
-                const data = snapshot.val() || {};
-                
-                // Remove marcadores antigos que saíram ou não correspondem ao filtro
-                Object.keys(markers).forEach(id => {
-                    if (!data[id] || (currentFilter !== 'todos' && data[id].gender !== currentFilter)) {
-                        map.removeLayer(markers[id]);
-                        delete markers[id];
-                    }
-                });
-
-                // Adiciona ou atualiza marcadores
-                Object.keys(data).forEach(id => {
-                    const user = data[id];
-                    
-                    // Aplica o filtro de gênero
-                    if (currentFilter !== 'todos' && user.gender !== currentFilter) {
-                        return;
-                    }
-
-                    // Define a cor/classe com base no gênero
-                    const markerClass = user.gender === 'Homem' ? 'marker-homem' : 'marker-mulher';
-                    const initials = user.name.substring(0, 2).toUpperCase();
-
-                    const customIcon = L.divIcon({
-                        className: 'custom-div-icon',
-                        html: `<div class="user-marker ${markerClass}">${initials}</div>`,
-                        iconSize: [36, 36],
-                        iconAnchor: [18, 18]
-                    });
-
-                    if (markers[id]) {
-                        // Atualiza posição existente
-                        markers[id].setLatLng([user.lat, user.lng]);
-                    } else {
-                        // Cria novo marcador
-                        const marker = L.marker([user.lat, user.lng], { icon: customIcon }).addTo(map);
-                        marker.bindPopup(`<b>${user.name}</b><br>Gênero: ${user.gender}`);
-                        markers[id] = marker;
-                    }
-                });
-            });
+    function atualizarMapaPassageiro(lat, lng) {
+        if(mapPass) {
+            if(!markerDriver) {
+                markerDriver = L.marker([lat, lng], {icon: L.divIcon({className: 'car-icon', html: '🚗', iconSize: [24,24]})}).addTo(mapPass);
+            } else {
+                markerDriver.setLatLng([lat, lng]);
+            }
+            mapPass.setView([lat, lng]);
         }
+    }
 
-        // Função global para alternar o filtro
-        window.setFilter = function(gender, btnElement) {
-            currentFilter = gender;
-            
-            // Atualiza botões visuais
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            btnElement.classList.add('active');
+    function confirmarPagamentoPassageiro() {
+        db.ref('rides/' + currentRideId + '/passengerConfirmedPayment').set(true);
+        verificarEncerramentoCorrida();
+    }
 
-            // Limpa todos os marcadores atuais para reconstruir com o filtro
-            Object.keys(markers).forEach(id => {
-                map.removeLayer(markers[id]);
-                delete markers[id];
+    // MOTORISTA: PAINEL E MOVIMENTAÇÃO
+    function iniciarPainelMotorista() {
+        // Simular movimentação do motorista enviando coordenadas a cada 3 segundos
+        let dLat = -23.5520;
+        let dLng = -46.6350;
+
+        setInterval(() => {
+            dLat += (Math.random() - 0.5) * 0.001;
+            dLng += (Math.random() - 0.5) * 0.001;
+            db.ref('users/' + currentUser.id).update({ lat: dLat, lng: dLng });
+
+            if(currentRideId) {
+                db.ref('rides/' + currentRideId).update({ driverLat: dLat, driverLng: dLng });
+            }
+        }, 3000);
+
+        // Ouvir solicitações pendentes
+        db.ref('rides').on('value', snapshot => {
+            const rides = snapshot.val();
+            const container = document.getElementById('driverRequests');
+            if(!currentRideId && rides) {
+                let html = '';
+                for(let id in rides) {
+                    const r = rides[id];
+                    if(r.status === 'procurando' && r.rideType === currentUser.vehicleType) {
+                        html += `<div class="card">
+                            <span class="badge">${r.rideType.toUpperCase()}</span>
+                            <p><b>Passageiro:</b> ${r.passengerName}</p>
+                            <p><b>Destino:</b> ${r.destination}</p>
+                            <button onclick="aceitarCorrida('${id}')">Aceitar Corrida</button>
+                        </div>`;
+                    }
+                }
+                container.innerHTML = html || '<p>Nenhuma solicitação no momento.</p>';
+            }
+        });
+    }
+
+    function aceitarCorrida(rideId) {
+        currentRideId = rideId;
+        db.ref('rides/' + rideId).update({
+            status: 'aceito',
+            driverId: currentUser.id,
+            driverName: currentUser.name,
+            vehicleModel: currentUser.vehicleModel,
+            vehiclePlate: currentUser.vehiclePlate
+        }).then(() => {
+            document.getElementById('driverRequests').style.display = 'none';
+            document.getElementById('driverActiveRide').style.display = 'block';
+            document.getElementById('activeRideInfo').innerText = 'Corrida aceita! Siga até o passageiro.';
+            document.getElementById('lblDriverStatus').innerText = 'Em Corrida';
+            document.getElementById('lblDriverStatus').style.color = 'orange';
+
+            setTimeout(() => {
+                initMapDriver();
+            }, 300);
+
+            // Ouvir confirmação de pagamento
+            db.ref('rides/' + rideId).on('value', snapshot => {
+                const r = snapshot.val();
+                if(r && r.passengerConfirmedPayment && r.driverConfirmedPayment) {
+                    db.ref('rides/' + rideId + '/status').set('concluido');
+                    alert('Corrida concluída com sucesso!');
+                    window.location.reload();
+                }
             });
+        });
+    }
 
-            // Força a releitura do banco com o novo filtro
-            listenToUsers();
-        };
-    </script>
+    function initMapDriver() {
+        if(!mapDriver) {
+            mapDriver = L.map('mapDriver').setView([-23.5520, -46.6350], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapDriver);
+            markerDriver = L.marker([-23.5520, -46.6350]).addTo(mapDriver).bindPopup('Seu Veículo');
+        }
+    }
+
+    function verificarPinEIniciar() {
+        const inputPin = document.getElementById('inputPinCode').value.trim();
+        db.ref('rides/' + currentRideId).once('value', snapshot => {
+            const ride = snapshot.val();
+            if(ride.pin === inputPin) {
+                db.ref('rides/' + currentRideId + '/status').set('em_andamento');
+                alert('PIN confirmado! Corrida iniciada.');
+                document.getElementById('inputPinCode').style.display = 'none';
+                document.getElementById('activeRideInfo').innerText = 'Corrida em andamento até o destino.';
+                // No destino, o motorista aguarda o pagamento. Para simular a chegada:
+                setTimeout(() => {
+                    db.ref('rides/' + currentRideId + '/status').set('aguardando_pagamento');
+                    document.getElementById('btnDriverFinished').style.display = 'block';
+                    document.getElementById('activeRideInfo').innerText = 'Chegaram ao destino. Aguardando pagamento em dinheiro.';
+                }, 10000); // Exemplo de término de trajeto
+            } else {
+                alert('PIN incorreto!');
+            }
+        });
+    }
+
+    function concluirCorridaMotorista() {
+        db.ref('rides/' + currentRideId + '/driverConfirmedPayment').set(true);
+        verificarEncerramentoCorrida();
+    }
+
+    function verificarEncerramentoCorrida() {
+        db.ref('rides/' + currentRideId).once('value', snapshot => {
+            const r = snapshot.val();
+            if(r.passengerConfirmedPayment && r.driverConfirmedPayment) {
+                db.ref('rides/' + currentRideId + '/status').set('concluido');
+                db.ref('users/' + currentUser.id + '/available').set(true);
+                alert('Corrida finalizada! Você está disponível novamente.');
+                window.location.reload();
+            }
+        });
+    }
+</script>
+
 </body>
 </html>
