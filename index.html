@@ -3,431 +3,1352 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#101827">
 <title>Leitor Inteligente de Etiquetas</title>
+
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
 <style>
-*{box-sizing:border-box}
-body{
-  margin:0;background:#101827;color:#f8fafc;
-  font-family:Arial,sans-serif;
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
-header{
-  padding:18px 16px;background:#172338;
-  display:flex;align-items:center;gap:12px;
-  border-bottom:1px solid #29364b;
+:root {
+  --bg: #0d1421;
+  --panel: #172235;
+  --panel2: #202e43;
+  --border: #2b3b52;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --green: #16a34a;
+  --green2: #4ade80;
+  --red: #ef4444;
 }
-.logo{
-  width:43px;height:43px;border-radius:12px;
-  background:#16a34a;display:grid;place-items:center;
-  font-size:23px;
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100dvh;
 }
-h1{font-size:18px;margin:0}
-header small{color:#94a3b8}
-main{max-width:600px;margin:auto;padding:15px}
-.camera{
-  position:relative;width:100%;aspect-ratio:4/3;
-  background:#050a12;border-radius:18px;overflow:hidden;
+button {
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 12px;
+  padding: 13px 12px;
+  color: white;
+  background: var(--panel2);
+  transition: .15s;
 }
-video{width:100%;height:100%;object-fit:cover}
-.frame{
-  position:absolute;left:10%;top:23%;
-  width:80%;height:54%;
-  border:2px solid #4ade80;border-radius:12px;
-  box-shadow:0 0 0 1000px #0005;
-  pointer-events:none;
+button:active {
+  transform: scale(.97);
 }
-.frame:after{
-  content:"";position:absolute;left:0;right:0;top:50%;
-  height:2px;background:#4ade80;
-  box-shadow:0 0 10px #4ade80;
+button:disabled {
+  opacity: .4;
+  cursor: not-allowed;
 }
-.camera-label{
-  position:absolute;bottom:10px;left:0;right:0;
-  text-align:center;font-size:12px;
-  text-shadow:0 1px 4px #000;
+button.primary {
+  background: var(--green);
 }
-.controls{display:flex;gap:9px;margin:13px 0}
-button{
-  border:0;border-radius:12px;padding:14px 10px;
-  font-size:14px;font-weight:bold;cursor:pointer;
-  flex:1;background:#26364c;color:white;
+button.danger {
+  background: #7f252b;
 }
-button.primary{background:#16a34a;color:white}
-button:disabled{opacity:.45}
-.status{
-  background:#172338;border:1px solid #29364b;
-  border-radius:12px;padding:12px;margin:12px 0;
-  font-size:13px;color:#cbd5e1;
+button.outline {
+  background: transparent;
+  border: 1px solid var(--border);
 }
-.dot{
-  display:inline-block;width:9px;height:9px;
-  background:#f59e0b;border-radius:50%;
-  margin-right:7px;
+header {
+  padding: 15px 17px;
+  padding-top: max(15px, env(safe-area-inset-top));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #141f31;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
-.dot.ok{background:#4ade80}
-.card{
-  background:#172338;border:1px solid #29364b;
-  border-radius:16px;padding:16px;margin-top:13px;
+.logo {
+  width: 45px;
+  height: 45px;
+  border-radius: 13px;
+  background: #166534;
+  display: grid;
+  place-items: center;
+  font-size: 25px;
+  color: #bbf7d0;
 }
-.card h2{font-size:14px;color:#94a3b8;margin:0 0 12px}
-.field{margin:13px 0}
-.field label{
-  display:block;color:#94a3b8;font-size:12px;
-  margin-bottom:5px;
+.header-info {
+  flex: 1;
 }
-.value{font-size:23px;font-weight:bold;overflow-wrap:anywhere}
-.measure{color:#4ade80}
-.description{font-size:17px}
-.history-item{
-  border-top:1px solid #29364b;padding:12px 0;
-  display:flex;justify-content:space-between;gap:10px;
+header h1 {
+  font-size: 17px;
+  margin: 0 0 4px;
 }
-.history-item strong{font-size:15px}
-.history-item small{display:block;color:#94a3b8;margin-top:5px}
-.history-item button{flex:0 0 auto;padding:9px}
-input{
-  width:100%;padding:12px;border-radius:9px;
-  border:1px solid #40506a;background:#101827;
-  color:white;font-size:16px;
+header p {
+  color: var(--muted);
+  font-size: 11px;
+  margin: 0;
 }
-.muted{color:#94a3b8;font-size:12px}
-footer{text-align:center;padding:20px;color:#64748b;font-size:12px}
+.live {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #64748b;
+}
+.live-dot.active {
+  background: var(--green2);
+  box-shadow: 0 0 8px var(--green2);
+}
+main {
+  max-width: 650px;
+  margin: auto;
+  padding: 15px;
+  padding-bottom: 35px;
+}
+.tabs {
+  display: flex;
+  gap: 8px;
+  background: #141f31;
+  padding: 5px;
+  border-radius: 13px;
+  margin-bottom: 15px;
+}
+.tab {
+  flex: 1;
+  background: transparent;
+  color: var(--muted);
+  padding: 12px 5px;
+  border-radius: 9px;
+}
+.tab.active {
+  color: white;
+  background: #29394e;
+}
+.page {
+  display: none;
+}
+.page.active {
+  display: block;
+}
+.camera-box {
+  width: 100%;
+  aspect-ratio: 4/3;
+  max-height: 430px;
+  position: relative;
+  background: #050a12;
+  border: 1px solid var(--border);
+  border-radius: 17px;
+  overflow: hidden;
+}
+video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.camera-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+  padding: 20px;
+}
+.camera-placeholder .cam-icon {
+  font-size: 44px;
+  opacity: .6;
+}
+.scan-frame {
+  position: absolute;
+  left: 7%;
+  top: 23%;
+  width: 86%;
+  height: 54%;
+  border: 2px solid var(--green2);
+  border-radius: 12px;
+  box-shadow: 0 0 0 1000px rgba(0,0,0,.22);
+  pointer-events: none;
+}
+.scan-frame:after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--green2);
+  box-shadow: 0 0 10px var(--green2);
+  opacity: .8;
+}
+.camera-tip {
+  position: absolute;
+  bottom: 9px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 11px;
+  color: white;
+  text-shadow: 0 1px 4px black;
+}
+.controls {
+  display: flex;
+  gap: 9px;
+  margin: 12px 0;
+}
+.controls button {
+  flex: 1;
+  min-width: 0;
+}
+.status {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 12px;
+  border-radius: 11px;
+  color: #cbd5e1;
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 13px 0;
+}
+.status-dot {
+  flex: 0 0 9px;
+  width: 9px;
+  height: 9px;
+  background: #f59e0b;
+  border-radius: 50%;
+}
+.status-dot.ok {
+  background: var(--green2);
+}
+.status-dot.error {
+  background: var(--red);
+}
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  padding: 15px;
+  margin-top: 13px;
+}
+.card-title {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: .8px;
+  margin: 0 0 14px;
+}
+.field {
+  margin: 15px 0;
+}
+.field label {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  margin-bottom: 6px;
+}
+.field-value {
+  font-size: 22px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.field-value.green {
+  color: var(--green2);
+}
+.field-value.description {
+  font-size: 16px;
+  font-weight: 500;
+}
+.result-divider {
+  height: 1px;
+  background: var(--border);
+}
+.result-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 15px;
+}
+.result-actions button {
+  flex: 1;
+}
+.small-note {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.list-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 13px;
+}
+.list-top h2 {
+  font-size: 17px;
+  margin: 0;
+}
+.counter {
+  background: #14532d;
+  color: #bbf7d0;
+  border-radius: 30px;
+  padding: 7px 11px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.list-tools {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.list-tools button {
+  flex: 1;
+  font-size: 12px;
+}
+.search {
+  width: 100%;
+  background: #0d1727;
+  color: white;
+  border: 1px solid var(--border);
+  padding: 13px;
+  border-radius: 11px;
+  outline: none;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+.search:focus {
+  border-color: var(--green);
+}
+.product-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.product {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #1c2a3e;
+  padding: 13px;
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+}
+.product-number {
+  flex: 0 0 31px;
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  background: #293b50;
+  border-radius: 9px;
+  font-size: 12px;
+  color: #cbd5e1;
+}
+.product-info {
+  min-width: 0;
+  flex: 1;
+}
+.product-code {
+  font-size: 17px;
+  font-weight: bold;
+  overflow-wrap: anywhere;
+}
+.product-description {
+  color: #cbd5e1;
+  font-size: 12px;
+  margin-top: 5px;
+  overflow-wrap: anywhere;
+}
+.product-measure {
+  color: var(--green2);
+  font-size: 12px;
+  font-weight: bold;
+  margin-top: 7px;
+}
+.product-date {
+  color: #64748b;
+  font-size: 10px;
+  margin-top: 7px;
+}
+.product-delete {
+  flex: 0 0 35px;
+  width: 35px;
+  height: 35px;
+  padding: 0;
+  background: transparent;
+  color: #f87171;
+  font-size: 20px;
+}
+.empty {
+  padding: 35px 15px;
+  text-align: center;
+  color: var(--muted);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.empty-icon {
+  font-size: 35px;
+  display: block;
+  margin-bottom: 10px;
+}
+.raw-text {
+  color: #cbd5e1;
+  font-size: 12px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 180px;
+  overflow-y: auto;
+}
+footer {
+  text-align: center;
+  padding: 15px 10px 25px;
+  color: #64748b;
+  font-size: 10px;
+}
+@media(min-width:500px) {
+  main {padding:20px}
+}
 </style>
 </head>
+
 <body>
+
 <header>
   <div class="logo">⌗</div>
-  <div>
+  <div class="header-info">
     <h1>Leitor de Etiquetas</h1>
-    <small>Reconhecimento inteligente por câmera</small>
+    <p>Reconhecimento inteligente por câmera</p>
+  </div>
+  <div class="live">
+    <span class="live-dot" id="liveDot"></span>
+    <span id="liveText">Desligado</span>
   </div>
 </header>
 
 <main>
-  <div class="camera">
-    <video id="video" autoplay playsinline muted></video>
-    <div class="frame"></div>
-    <div class="camera-label">Posicione a etiqueta dentro da área</div>
-  </div>
 
-  <div class="controls">
-    <button class="primary" id="cameraBtn">◉ Abrir câmera</button>
-    <button id="scanBtn" disabled>⌕ Ler etiqueta</button>
-  </div>
-  <div class="controls">
-    <button id="autoBtn" disabled>▶ Leitura contínua</button>
-    <button id="stopBtn" disabled>■ Parar</button>
-  </div>
+  <nav class="tabs">
+    <button class="tab active" id="tabScanner" onclick="showPage('scanner')">
+      ▣ Scanner
+    </button>
+    <button class="tab" id="tabHistory" onclick="showPage('history')">
+      ☷ Encontrados <span id="tabCount">0</span>
+    </button>
+  </nav>
 
-  <div class="status" id="status">
-    <span class="dot"></span>
-    Aguardando inicialização da câmera.
-  </div>
+  <!-- PÁGINA DO SCANNER -->
+  <section class="page active" id="scannerPage">
 
-  <section class="card">
-    <h2>RESULTADO DO RECONHECIMENTO</h2>
-    <div class="field">
-      <label>CÓDIGO DO PRODUTO</label>
-      <div class="value" id="code">---</div>
+    <div class="camera-box">
+      <video id="video" autoplay playsinline muted></video>
+
+      <div class="camera-placeholder" id="cameraPlaceholder">
+        <span class="cam-icon">▣</span>
+        <strong>Câmera desligada</strong>
+        <span>Toque em abrir câmera para começar</span>
+      </div>
+
+      <div class="scan-frame"></div>
+      <div class="camera-tip">
+        Posicione a etiqueta dentro da área
+      </div>
     </div>
-    <div class="field">
-      <label>DESCRIÇÃO</label>
-      <div class="description" id="description">Aguardando leitura...</div>
-    </div>
-    <div class="field">
-      <label>MEDIDAS</label>
-      <div class="value measure" id="measure">---</div>
-    </div>
+
     <div class="controls">
-      <button id="copyBtn">▣ Copiar resultado</button>
-      <button class="primary" id="saveBtn" disabled>＋ Salvar</button>
+      <button class="primary" id="cameraBtn" onclick="startCamera()">
+        ◉ Abrir câmera
+      </button>
+      <button id="scanBtn" onclick="startReading()" disabled>
+        ⌕ Ler etiqueta
+      </button>
     </div>
-  </section>
 
-  <section class="card">
-    <h2>HISTÓRICO DE LEITURAS</h2>
-    <div class="muted" id="count">0 produtos encontrados</div>
-    <div id="history"></div>
     <div class="controls">
-      <button id="csvBtn">↓ Exportar CSV</button>
-      <button id="clearBtn">Limpar histórico</button>
+      <button id="stopBtn" class="danger" onclick="stopReading()" disabled>
+        ■ Parar leitura
+      </button>
+      <button id="nextBtn" onclick="startReading()" disabled>
+        ↻ Ler próxima
+      </button>
     </div>
+
+    <div class="status" id="status">
+      <span class="status-dot"></span>
+      <span id="statusText">Aguardando abertura da câmera.</span>
+    </div>
+
+    <!-- RESULTADO -->
+    <div class="card">
+      <h2 class="card-title">ÚLTIMA ETIQUETA IDENTIFICADA</h2>
+
+      <div class="field">
+        <label>CÓDIGO DO PRODUTO</label>
+        <div class="field-value" id="resultCode">---</div>
+      </div>
+
+      <div class="result-divider"></div>
+
+      <div class="field">
+        <label>DESCRIÇÃO</label>
+        <div class="field-value description" id="resultDescription">
+          Aguardando leitura...
+        </div>
+      </div>
+
+      <div class="result-divider"></div>
+
+      <div class="field">
+        <label>MEDIDAS</label>
+        <div class="field-value green" id="resultMeasure">---</div>
+      </div>
+
+      <div class="result-actions">
+        <button class="outline" onclick="copyResult()">
+          ▣ Copiar
+        </button>
+        <button class="primary" id="saveBtn" onclick="saveResult()" disabled>
+          ＋ Salvar
+        </button>
+      </div>
+
+      <p class="small-note">
+        Quando um código válido for reconhecido, ele será salvo
+        automaticamente e a leitura será pausada.
+      </p>
+    </div>
+
+    <!-- TEXTO DO OCR -->
+    <div class="card">
+      <h2 class="card-title">TEXTO RECONHECIDO PELA CÂMERA</h2>
+      <div class="raw-text" id="rawText">
+        O texto da etiqueta aparecerá aqui.
+      </div>
+    </div>
+
   </section>
 
-  <section class="card">
-    <h2>TEXTO ORIGINAL DO OCR</h2>
-    <div class="muted" id="raw">O texto reconhecido aparecerá aqui.</div>
+  <!-- PÁGINA DO HISTÓRICO -->
+  <section class="page" id="historyPage">
+
+    <div class="card">
+      <div class="list-top">
+        <h2>Códigos encontrados</h2>
+        <span class="counter" id="countBadge">0 códigos</span>
+      </div>
+
+      <p class="small-note">
+        Cada etiqueta lida é adicionada automaticamente nesta lista.
+        Os registros ficam salvos no navegador.
+      </p>
+
+      <input
+        class="search"
+        id="searchInput"
+        type="search"
+        placeholder="Pesquisar código ou produto..."
+        oninput="renderHistory()"
+      >
+
+      <div class="list-tools">
+        <button class="primary" onclick="exportCSV()">
+          ↓ Exportar CSV
+        </button>
+        <button class="outline" onclick="copyAll()">
+          ▣ Copiar lista
+        </button>
+      </div>
+
+      <div class="product-list" id="productList"></div>
+
+      <div class="controls">
+        <button class="outline" onclick="showPage('scanner')">
+          ◉ Voltar ao scanner
+        </button>
+        <button class="danger" onclick="clearHistory()">
+          Limpar lista
+        </button>
+      </div>
+    </div>
+
   </section>
+
 </main>
-<footer>Leitor de etiquetas • Processamento OCR no navegador</footer>
+
+<footer>
+  Leitor Inteligente de Etiquetas • OCR no navegador
+</footer>
 
 <script>
+"use strict";
+
+// ==========================================
+// CONFIGURAÇÕES E VARIÁVEIS
+// ==========================================
+
 const $ = id => document.getElementById(id);
+
 let stream = null;
 let worker = null;
-let busy = false;
-let continuous = false;
-let lastResult = null;
-let history = JSON.parse(localStorage.getItem("labelHistory") || "[]");
 
-function status(text,ok=false){
-  $("status").innerHTML =
-    `<span class="dot ${ok?"ok":""}"></span>${text}`;
+let cameraActive = false;
+let reading = false;
+let processing = false;
+let lastResult = null;
+let scanTimer = null;
+
+const STORAGE_KEY = "etiquetaScannerHistoryV1";
+
+let history = [];
+
+try {
+  const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  history = Array.isArray(stored) ? stored : [];
+} catch(e) {
+  history = [];
 }
 
-async function startCamera(){
-  try{
-    if(!navigator.mediaDevices?.getUserMedia){
-      throw new Error("Câmera indisponível. Abra o site em HTTPS.");
+// ==========================================
+// NAVEGAÇÃO ENTRE ABAS
+// ==========================================
+
+function showPage(page) {
+  const scanner = page === "scanner";
+
+  $("scannerPage").classList.toggle("active", scanner);
+  $("historyPage").classList.toggle("active", !scanner);
+
+  $("tabScanner").classList.toggle("active", scanner);
+  $("tabHistory").classList.toggle("active", !scanner);
+
+  if (!scanner) renderHistory();
+}
+
+// ==========================================
+// STATUS
+// ==========================================
+
+function setStatus(message, type = "normal") {
+  const dot = $("status").querySelector(".status-dot");
+
+  $("statusText").textContent = message;
+
+  dot.className = "status-dot";
+
+  if (type === "ok") dot.classList.add("ok");
+  if (type === "error") dot.classList.add("error");
+}
+
+function setCameraIndicator(active) {
+  $("liveDot").classList.toggle("active", active);
+  $("liveText").textContent = active ? "Câmera ativa" : "Desligado";
+}
+
+// ==========================================
+// CÂMERA
+// ==========================================
+
+async function startCamera() {
+  if (cameraActive) return;
+
+  try {
+    if (!navigator.mediaDevices ||
+        !navigator.mediaDevices.getUserMedia) {
+      throw new Error(
+        "A câmera exige HTTPS ou localhost em um navegador compatível."
+      );
     }
+
+    setStatus("Solicitando acesso à câmera...");
+
     stream = await navigator.mediaDevices.getUserMedia({
-      audio:false,
-      video:{
-        facingMode:{ideal:"environment"},
-        width:{ideal:1280},
-        height:{ideal:720}
+      audio: false,
+      video: {
+        facingMode: { ideal: "environment" },
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
       }
     });
-    $("video").srcObject=stream;
+
+    $("video").srcObject = stream;
     await $("video").play();
-    $("cameraBtn").textContent="✓ Câmera ativa";
-    $("scanBtn").disabled=false;
-    $("autoBtn").disabled=false;
-    status("Câmera ativa. Posicione a etiqueta.",true);
-  }catch(e){
-    status("Erro ao abrir câmera: "+e.message);
+
+    cameraActive = true;
+
+    $("cameraPlaceholder").style.display = "none";
+    $("cameraBtn").textContent = "✓ Câmera aberta";
+    $("cameraBtn").disabled = true;
+
+    $("scanBtn").disabled = false;
+    $("nextBtn").disabled = false;
+
+    setCameraIndicator(true);
+    setStatus("Câmera pronta. Posicione uma etiqueta.", "ok");
+
+  } catch (error) {
+    setStatus("Não foi possível abrir a câmera: " + error.message, "error");
   }
 }
 
-async function getWorker(){
-  if(worker) return worker;
-  status("Carregando reconhecimento de texto...");
-  worker=await Tesseract.createWorker("por",1,{
-    logger:m=>{
-      if(m.status==="recognizing text"){
-        status("Reconhecendo texto: "+Math.round(m.progress*100)+"%");
+function closeCamera() {
+  stopReading();
+
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
+    stream = null;
+  }
+
+  $("video").srcObject = null;
+
+  cameraActive = false;
+
+  $("cameraPlaceholder").style.display = "flex";
+  $("cameraBtn").textContent = "◉ Abrir câmera";
+  $("cameraBtn").disabled = false;
+  $("scanBtn").disabled = true;
+  $("nextBtn").disabled = true;
+
+  setCameraIndicator(false);
+  setStatus("Câmera desligada.");
+}
+
+// ==========================================
+// INICIALIZAÇÃO DO OCR
+// ==========================================
+
+async function getWorker() {
+  if (worker) return worker;
+
+  if (!window.Tesseract) {
+    throw new Error("Biblioteca OCR não carregada. Verifique a internet.");
+  }
+
+  setStatus("Preparando reconhecimento de texto...");
+
+  worker = await Tesseract.createWorker("por", 1, {
+    logger: message => {
+      if (message.status === "recognizing text") {
+        const percent = Math.round(message.progress * 100);
+        setStatus("Analisando etiqueta: " + percent + "%");
       }
     }
   });
+
+  await worker.setParameters({
+    preserve_interword_spaces: "1"
+  });
+
   return worker;
 }
 
-// Extrai medidas como 3000mm x 200mm x 8mm,
-// 90x90, 120 x 120 ou 1200×600×15.
-function extractMeasures(text){
-  const normalized=text
-    .replace(/[×✕*]/g,"x")
-    .replace(/[.,](?=\d)/g,",");
-  const regex=/(?<!\d)(\d{2,5}(?:[.,]\d+)?)\s*(?:mm)?\s*x\s*(\d{2,5}(?:[.,]\d+)?)\s*(?:mm)?(?:\s*x\s*(\d{1,5}(?:[.,]\d+)?)\s*(?:mm)?)?/gi;
-  const results=[];
+// ==========================================
+// EXTRAÇÃO DE MEDIDAS
+// ==========================================
+
+function extractMeasures(text) {
+  const normalized = text
+    .replace(/[×✕*]/g, "x")
+    .replace(/[Ｘ]/g, "x");
+
+  /*
+    Aceita:
+    3000mm x 200mm x 8mm
+    3000 x 200 x 8
+    90x90
+    120 x 120
+    1200mm X 600mm
+  */
+
+  const regex =
+    /(\d{1,5}(?:[.,]\d+)?)\s*(?:mm)?\s*[xX]\s*(\d{1,5}(?:[.,]\d+)?)\s*(?:mm)?(?:\s*[xX]\s*(\d{1,5}(?:[.,]\d+)?)\s*(?:mm)?)?/gi;
+
+  const found = [];
   let match;
-  while((match=regex.exec(normalized))!==null){
-    const vals=match.slice(1).filter(Boolean);
-    results.push({
-      raw:match[0].trim(),
-      values:vals.map(v=>v.replace(",","."))
+
+  while ((match = regex.exec(normalized)) !== null) {
+    const values = match.slice(1)
+      .filter(Boolean)
+      .map(value => value.replace(",", "."));
+
+    found.push({
+      raw: match[0].trim(),
+      values: values
     });
   }
-  return results;
+
+  return found;
 }
 
-// Busca o código numérico próximo do hífen.
-// Também aceita o código após o hífen, caso a
-// etiqueta tenha essa disposição.
-function extractCode(text,measures){
-  const cleaned=text.replace(/[‐‑‒–—]/g,"-");
-  const patterns=[
-    /(\d{4,10})\s*-\s*[A-ZÀ-Ú]{1,8}\b/i,
-    /\b[A-ZÀ-Ú]{1,8}\s*-\s*(\d{4,10})\b/i,
-    /(\d{4,10})\s*-/,
+// ==========================================
+// EXTRAÇÃO DO CÓDIGO
+// ==========================================
+
+function extractCode(text, measures) {
+  const normalized = text
+    .replace(/[‐‑‒–—]/g, "-")
+    .replace(/[|]/g, "I");
+
+  const patterns = [
+    // Exemplo: 063673 - TTV
+    /\b(\d{4,10})\s*-\s*[A-ZÀ-Ü]{1,10}\b/i,
+
+    // Exemplo: TTV - 063673
+    /\b[A-ZÀ-Ü]{1,10}\s*-\s*(\d{4,10})\b/i,
+
+    // Número seguido de hífen
+    /\b(\d{4,10})\s*-/,
+
+    // Número depois de hífen
     /-\s*(\d{4,10})\b/
   ];
-  for(const re of patterns){
-    const m=cleaned.match(re);
-    if(m) return m[1];
+
+  for (const pattern of patterns) {
+    const match = normalized.match(pattern);
+    if (match) return match[1];
   }
 
-  // Alternativa: número isolado de 4 a 10 dígitos,
-  // excluindo números que façam parte das medidas.
-  let remaining=cleaned;
-  for(const m of measures){
-    remaining=remaining.replace(m.raw," ");
+  // Retira as medidas antes de procurar números isolados.
+  let remaining = normalized;
+
+  for (const measure of measures) {
+    remaining = remaining.replace(measure.raw, " ");
   }
-  const candidates=remaining.match(/\b\d{4,10}\b/g);
-  return candidates ? candidates[0] : "";
+
+  const candidates = remaining.match(/\b\d{4,10}\b/g);
+
+  if (candidates && candidates.length) {
+    return candidates[0];
+  }
+
+  return "";
 }
 
-function extractDescription(text,code){
-  const lines=text.split(/\n/)
-    .map(s=>s.trim())
+// ==========================================
+// EXTRAÇÃO DA DESCRIÇÃO
+// ==========================================
+
+function extractDescription(text, code) {
+  const lines = text
+    .split(/\r?\n/)
+    .map(line => line.trim())
     .filter(Boolean);
-  const filtered=lines.filter(line=>{
-    const clean=line.replace(/[‐‑‒–—]/g,"-");
-    if(code && clean.includes(code)) return false;
-    if(extractMeasures(line).length) return false;
-    return /[A-Za-zÀ-ú]{2,}/.test(line);
-  });
-  return filtered.join(" ").replace(/\s+/g," ").trim();
+
+  const descriptions = [];
+
+  for (let line of lines) {
+    // Remove as medidas da linha, sem perder o restante.
+    line = line.replace(
+      /\d{1,5}(?:[.,]\d+)?\s*(?:mm)?\s*[xX×✕*]\s*\d{1,5}(?:[.,]\d+)?\s*(?:mm)?(?:\s*[xX×✕*]\s*\d{1,5}(?:[.,]\d+)?\s*(?:mm)?)?/gi,
+      " "
+    );
+
+    // Remove o código da descrição.
+    if (code) {
+      line = line.replace(
+        new RegExp(code.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"),
+        " "
+      );
+    }
+
+    // Limpa separadores que possam ter sobrado.
+    line = line
+      .replace(/[‐‑‒–—-]/g, " ")
+      .replace(/[|_]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    // Mantém linhas com letras.
+    if (/[A-Za-zÀ-ú]{2,}/.test(line)) {
+      descriptions.push(line);
+    }
+  }
+
+  return [...new Set(descriptions)].join(" ").trim();
 }
 
-function parseLabel(text){
-  const measures=extractMeasures(text);
-  const code=extractCode(text,measures);
-  const description=extractDescription(text,code);
+// ==========================================
+// INTERPRETAÇÃO COMPLETA DA ETIQUETA
+// ==========================================
+
+function parseLabel(text) {
+  const measures = extractMeasures(text);
+  const code = extractCode(text, measures);
+  const description = extractDescription(text, code);
+
+  const mainMeasure = measures.length ? measures[0] : null;
+
   return {
-    code,
-    description,
-    measure:measures[0]?.values.join(" x ") || "",
-    rawMeasure:measures[0]?.raw || "",
-    raw:text
+    code: code,
+    description: description,
+    measure: mainMeasure ? mainMeasure.values.join(" x ") : "",
+    rawMeasure: mainMeasure ? mainMeasure.raw : "",
+    raw: text.trim()
   };
 }
 
-async function recognize(){
-  if(busy || !$("video").videoWidth) return;
-  busy=true;
-  $("scanBtn").disabled=true;
-  try{
-    const video=$("video");
-    const canvas=document.createElement("canvas");
-    const scale=Math.min(1,1280/video.videoWidth);
-    canvas.width=Math.round(video.videoWidth*scale);
-    canvas.height=Math.round(video.videoHeight*scale);
-    const ctx=canvas.getContext("2d",{willReadFrequently:true});
-    ctx.drawImage(video,0,0,canvas.width,canvas.height);
+// ==========================================
+// INICIAR LEITURA
+// ==========================================
 
-    const ocr=await getWorker();
-    const result=await ocr.recognize(canvas);
-    const text=result.data.text || "";
-    const parsed=parseLabel(text);
+async function startReading() {
+  if (!cameraActive) {
+    setStatus("Abra a câmera primeiro.", "error");
+    return;
+  }
 
-    $("raw").textContent=text || "Nenhum texto encontrado.";
-    $("code").textContent=parsed.code || "Não identificado";
-    $("description").textContent=parsed.description || "Não identificada";
-    $("measure").textContent=parsed.measure || "Não identificada";
+  if (processing || reading) return;
 
-    if(parsed.code || parsed.measure){
-      lastResult=parsed;
-      $("saveBtn").disabled=false;
-      status("Leitura concluída. Confira os dados.",true);
-    }else{
-      lastResult=null;
-      $("saveBtn").disabled=true;
-      status("Não foi possível identificar o código ou as medidas. Tente aproximar a câmera.");
+  reading = true;
+  lastResult = null;
+
+  $("saveBtn").disabled = true;
+  $("scanBtn").disabled = true;
+  $("nextBtn").disabled = true;
+  $("stopBtn").disabled = false;
+
+  $("resultCode").textContent = "Procurando...";
+  $("resultDescription").textContent = "Analisando etiqueta...";
+  $("resultMeasure").textContent = "---";
+
+  setStatus("Leitura iniciada. Aponte para a etiqueta.", "ok");
+
+  scanFrame();
+}
+
+// ==========================================
+// CAPTURA E ANÁLISE DE IMAGEM
+// ==========================================
+
+async function scanFrame() {
+  if (!reading || processing || !cameraActive) return;
+
+  if (!$("video").videoWidth) {
+    scanTimer = setTimeout(scanFrame, 500);
+    return;
+  }
+
+  processing = true;
+
+  try {
+    const video = $("video");
+    const canvas = document.createElement("canvas");
+
+    // Reduz a imagem para equilibrar velocidade e precisão.
+    const scale = Math.min(1, 1280 / video.videoWidth);
+
+    canvas.width = Math.round(video.videoWidth * scale);
+    canvas.height = Math.round(video.videoHeight * scale);
+
+    const ctx = canvas.getContext("2d", {
+      willReadFrequently: true
+    });
+
+    ctx.drawImage(
+      video,
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+    const ocr = await getWorker();
+    const result = await ocr.recognize(canvas);
+
+    // Se a leitura foi cancelada enquanto o OCR processava,
+    // não utiliza o resultado.
+    if (!reading) return;
+
+    const text = result.data.text || "";
+    const parsed = parseLabel(text);
+
+    $("rawText").textContent = text || "Nenhum texto identificado.";
+
+    // Mostra os dados preliminares encontrados.
+    if (parsed.code) {
+      $("resultCode").textContent = parsed.code;
     }
-  }catch(e){
-    status("Erro no OCR: "+e.message);
-  }finally{
-    busy=false;
-    $("scanBtn").disabled=false;
-    if(continuous){
-      setTimeout(()=>{
-        if(continuous) recognize();
-      },1200);
+
+    if (parsed.description) {
+      $("resultDescription").textContent = parsed.description;
+    }
+
+    if (parsed.measure) {
+      $("resultMeasure").textContent = parsed.measure;
+    }
+
+    // Só considera uma leitura concluída quando há código.
+    if (parsed.code) {
+      completeReading(parsed);
+      return;
+    }
+
+    setStatus(
+      "Procurando código válido. Ajuste o foco e a posição da etiqueta..."
+    );
+
+  } catch (error) {
+    if (reading) {
+      setStatus("Erro no OCR: " + error.message, "error");
+    }
+  } finally {
+    processing = false;
+
+    // Continua tentando somente enquanto estiver em leitura.
+    if (reading) {
+      scanTimer = setTimeout(scanFrame, 700);
     }
   }
 }
 
-function renderHistory(){
-  $("count").textContent=history.length+
-    (history.length===1?" produto encontrado":" produtos encontrados");
-  $("history").innerHTML="";
-  history.forEach((item,index)=>{
-    const div=document.createElement("div");
-    div.className="history-item";
-    const info=document.createElement("div");
-    const strong=document.createElement("strong");
-    strong.textContent=item.code || "Sem código";
-    const small=document.createElement("small");
-    small.textContent=(item.description||"")+
-      (item.measure?" • "+item.measure+" mm":"");
-    info.append(strong,small);
-    const del=document.createElement("button");
-    del.textContent="×";
-    del.style.flex="0 0 42px";
-    del.onclick=()=>{
-      history.splice(index,1);
-      persist();
-    };
-    div.append(info,del);
-    $("history").append(div);
-  });
+// ==========================================
+// CONCLUIR LEITURA E PAUSAR AUTOMATICAMENTE
+// ==========================================
+
+function completeReading(parsed) {
+  // Interrompe novas capturas imediatamente.
+  reading = false;
+
+  if (scanTimer) {
+    clearTimeout(scanTimer);
+    scanTimer = null;
+  }
+
+  lastResult = parsed;
+
+  $("resultCode").textContent = parsed.code;
+  $("resultDescription").textContent =
+    parsed.description || "Descrição não identificada";
+  $("resultMeasure").textContent =
+    parsed.measure || "Medida não identificada";
+
+  // Salva automaticamente na lista.
+  addToHistory(parsed);
+
+  $("scanBtn").disabled = false;
+  $("nextBtn").disabled = false;
+  $("stopBtn").disabled = true;
+  $("saveBtn").disabled = true;
+
+  setStatus(
+    "Código " + parsed.code + " identificado e salvo. Leitura pausada.",
+    "ok"
+  );
+
+  // Pequena vibração para indicar que a etiqueta foi lida.
+  if (navigator.vibrate) {
+    navigator.vibrate(150);
+  }
 }
 
-function persist(){
-  localStorage.setItem("labelHistory",JSON.stringify(history));
+// ==========================================
+// PARAR LEITURA
+// ==========================================
+
+function stopReading() {
+  reading = false;
+
+  if (scanTimer) {
+    clearTimeout(scanTimer);
+    scanTimer = null;
+  }
+
+  $("scanBtn").disabled = !cameraActive;
+  $("nextBtn").disabled = !cameraActive;
+  $("stopBtn").disabled = true;
+
+  if (cameraActive) {
+    setStatus("Leitura pausada. A câmera continua aberta.");
+  }
+}
+
+// ==========================================
+// HISTÓRICO
+// ==========================================
+
+function addToHistory(parsed) {
+  const item = {
+    id: Date.now().toString() + Math.random().toString(16).slice(2),
+    code: parsed.code || "",
+    description: parsed.description || "",
+    measure: parsed.measure || "",
+    rawMeasure: parsed.rawMeasure || "",
+    raw: parsed.raw || "",
+    date: new Date().toLocaleString("pt-BR")
+  };
+
+  // Cada leitura confirmada é guardada,
+  // inclusive se o mesmo código aparecer novamente.
+  history.unshift(item);
+
+  persistHistory();
+}
+
+function persistHistory() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+  } catch (error) {
+    setStatus(
+      "Não foi possível salvar no navegador. O armazenamento pode estar cheio.",
+      "error"
+    );
+  }
+
+  updateCounters();
   renderHistory();
 }
 
-function saveResult(){
-  if(!lastResult) return;
-  const key=[lastResult.code,lastResult.measure].join("|");
-  if(!history.some(x=>[x.code,x.measure].join("|")===key)){
-    history.unshift({
-      ...lastResult,
-      date:new Date().toLocaleString("pt-BR")
-    });
-    persist();
-    status("Produto salvo no histórico.",true);
-  }else{
-    status("Este produto já está no histórico.");
-  }
+function updateCounters() {
+  const count = history.length;
+
+  $("tabCount").textContent = count;
+  $("countBadge").textContent =
+    count + (count === 1 ? " código" : " códigos");
 }
 
-function copyResult(){
-  if(!lastResult) return;
-  const text=[
-    "Código: "+(lastResult.code||""),
-    "Descrição: "+(lastResult.description||""),
-    "Medidas: "+(lastResult.measure||""),
-    "OCR: "+lastResult.raw
+// ==========================================
+// EXIBIR A LISTA DE CÓDIGOS
+// ==========================================
+
+function renderHistory() {
+  const list = $("productList");
+  const query = $("searchInput").value
+    .trim()
+    .toLocaleLowerCase("pt-BR");
+
+  list.replaceChildren();
+
+  const filtered = history.filter(item => {
+    const content = [
+      item.code,
+      item.description,
+      item.measure
+    ].join(" ").toLocaleLowerCase("pt-BR");
+
+    return content.includes(query);
+  });
+
+  if (filtered.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "empty";
+
+    const icon = document.createElement("span");
+    icon.className = "empty-icon";
+    icon.textContent = history.length ? "⌕" : "▤";
+
+    const message = document.createElement("div");
+    message.textContent = history.length
+      ? "Nenhum resultado encontrado."
+      : "Nenhum código encontrado ainda. Abra o scanner e faça a primeira leitura.";
+
+    empty.append(icon, message);
+    list.appendChild(empty);
+    updateCounters();
+    return;
+  }
+
+  filtered.forEach((item, index) => {
+    const card = document.createElement("div");
+    card.className = "product";
+
+    const number = document.createElement("div");
+    number.className = "product-number";
+    number.textContent = history.indexOf(item) + 1;
+
+    const info = document.createElement("div");
+    info.className = "product-info";
+
+    const code = document.createElement("div");
+    code.className = "product-code";
+    code.textContent = item.code || "Sem código";
+
+    const description = document.createElement("div");
+    description.className = "product-description";
+    description.textContent =
+      item.description || "Descrição não identificada";
+
+    const measure = document.createElement("div");
+    measure.className = "product-measure";
+    measure.textContent = item.measure
+      ? item.measure + " mm"
+      : "Medida não identificada";
+
+    const date = document.createElement("div");
+    date.className = "product-date";
+    date.textContent = item.date || "";
+
+    info.append(code, description, measure, date);
+
+    const del = document.createElement("button");
+    del.className = "product-delete";
+    del.textContent = "×";
+    del.title = "Excluir leitura";
+
+    del.onclick = () => {
+      deleteItem(item.id);
+    };
+
+    card.append(number, info, del);
+    list.appendChild(card);
+  });
+
+  updateCounters();
+}
+
+// ==========================================
+// EXCLUIR ITEM
+// ==========================================
+
+function deleteItem(id) {
+  history = history.filter(item => item.id !== id);
+  persistHistory();
+}
+
+// ==========================================
+// LIMPAR HISTÓRICO
+// ==========================================
+
+function clearHistory() {
+  if (!history.length) return;
+
+  if (!confirm("Deseja apagar todos os códigos encontrados?")) {
+    return;
+  }
+
+  history = [];
+  persistHistory();
+
+  setStatus("Histórico apagado.");
+}
+
+// ==========================================
+// COPIAR RESULTADO ATUAL
+// ==========================================
+
+async function copyResult() {
+  if (!lastResult) {
+    setStatus("Nenhum resultado disponível para copiar.");
+    return;
+  }
+
+  const text = [
+    "Código: " + lastResult.code,
+    "Descrição: " + lastResult.description,
+    "Medidas: " + lastResult.measure
   ].join("\n");
-  navigator.clipboard?.writeText(text)
-    .then(()=>status("Resultado copiado.",true))
-    .catch(()=>status("Não foi possível copiar."));
-}
 
-function exportCSV(){
-  const rows=[["Código","Descrição","Medidas","Data"]];
-  history.forEach(x=>rows.push([
-    x.code,x.description,x.measure,x.date
-  ]));
-  const csv=rows.map(row=>row.map(v=>
-    '"'+String(v||"").replace(/"/g,'""')+'"'
-  ).join(";")).join("\r\n");
-  const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;a.download="leituras_etiquetas.csv";a.click();
-  URL.revokeObjectURL(url);
-}
-
-$("cameraBtn").onclick=startCamera;
-$("scanBtn").onclick=recognize;
-$("autoBtn").onclick=()=>{
-  continuous=true;
-  $("autoBtn").disabled=true;
-  $("stopBtn").disabled=false;
-  recognize();
-};
-$("stopBtn").onclick=()=>{
-  continuous=false;
-  $("autoBtn").disabled=false;
-  $("stopBtn").disabled=true;
-};
-$("saveBtn").onclick=saveResult;
-$("copyBtn").onclick=copyResult;
-$("csvBtn").onclick=exportCSV;
-$("clearBtn").onclick=()=>{
-  if(confirm("Apagar todo o histórico?")){
-    history=[];
-    persist();
+  try {
+    await navigator.clipboard.writeText(text);
+    setStatus("Resultado copiado.", "ok");
+  } catch (error) {
+    setStatus("Não foi possível copiar. Verifique as permissões.");
   }
-};
+}
 
+// ==========================================
+// COPIAR TODA A LISTA
+// ==========================================
+
+async function copyAll() {
+  if (!history.length) {
+    alert("A lista está vazia.");
+    return;
+  }
+
+  const text = history.map(item => [
+    "Código: " + item.code,
+    "Descrição: " + item.description,
+    "Medidas: " + item.measure,
+    "Data: " + item.date
+  ].join("\n")).join("\n\n");
+
+  try {
+    await navigator.clipboard.writeText(text);
+    alert("Lista copiada com sucesso!");
+  } catch (error) {
+    alert("Não foi possível copiar a lista.");
+  }
+}
+
+// ==========================================
+// EXPORTAR PARA CSV
+// ==========================================
+
+function exportCSV() {
+  if (!history.length) {
+    alert("Não existem códigos para exportar.");
+    return;
+  }
+
+  const rows = [
+    ["Código", "Descrição", "Medidas", "Data"]
+  ];
+
+  history.forEach(item => {
+    rows.push([
+      item.code,
+      item.description,
+      item.measure,
+      item.date
+    ]);
+  });
+
+  const csv = rows.map(row =>
+    row.map(value =>
+      '"' + String(value || "").replace(/"/g, '""') + '"'
+    ).join(";")
+  ).join("\r\n");
+
+  const blob = new Blob(
+    ["\ufeff" + csv],
+    { type: "text/csv;charset=utf-8" }
+  );
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = "codigos_encontrados.csv";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// ==========================================
+// INICIALIZAÇÃO
+// ==========================================
+
+updateCounters();
 renderHistory();
+
+window.addEventListener("pagehide", () => {
+  // Desliga a câmera ao sair da página.
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
+  }
+});
 </script>
+
 </body>
 </html>
