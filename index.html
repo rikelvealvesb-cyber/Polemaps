@@ -5,429 +5,262 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#101827">
-<title>Leitor Inteligente de Etiquetas</title>
-
+<title>Fast Code Scanner</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
 <style>
-* {
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
-}
-:root {
-  --bg: #0d1421;
-  --panel: #172235;
-  --panel2: #202e43;
-  --border: #2b3b52;
-  --text: #f1f5f9;
-  --muted: #94a3b8;
-  --green: #16a34a;
-  --green2: #4ade80;
-  --red: #ef4444;
-}
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: Arial, Helvetica, sans-serif;
-  min-height: 100dvh;
-}
-button {
-  border: 0;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 700;
-  border-radius: 12px;
-  padding: 13px 12px;
-  color: white;
-  background: var(--panel2);
-  transition: .15s;
-}
-button:active {
-  transform: scale(.97);
-}
-button:disabled {
-  opacity: .4;
-  cursor: not-allowed;
-}
-button.primary {
-  background: var(--green);
-}
-button.danger {
-  background: #7f252b;
-}
-button.outline {
-  background: transparent;
-  border: 1px solid var(--border);
-}
-header {
-  padding: 15px 17px;
-  padding-top: max(15px, env(safe-area-inset-top));
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: #141f31;
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-.logo {
-  width: 45px;
-  height: 45px;
-  border-radius: 13px;
-  background: #166534;
-  display: grid;
-  place-items: center;
-  font-size: 25px;
-  color: #bbf7d0;
-}
-.header-info {
-  flex: 1;
-}
-header h1 {
-  font-size: 17px;
-  margin: 0 0 4px;
-}
-header p {
-  color: var(--muted);
-  font-size: 11px;
-  margin: 0;
-}
-.live {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  color: var(--muted);
-}
-.live-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #64748b;
-}
-.live-dot.active {
-  background: var(--green2);
-  box-shadow: 0 0 8px var(--green2);
-}
-main {
-  max-width: 650px;
-  margin: auto;
-  padding: 15px;
-  padding-bottom: 35px;
-}
-.tabs {
-  display: flex;
-  gap: 8px;
-  background: #141f31;
-  padding: 5px;
-  border-radius: 13px;
-  margin-bottom: 15px;
-}
-.tab {
-  flex: 1;
-  background: transparent;
-  color: var(--muted);
-  padding: 12px 5px;
-  border-radius: 9px;
-}
-.tab.active {
-  color: white;
-  background: #29394e;
-}
-.page {
-  display: none;
-}
-.page.active {
-  display: block;
-}
-.camera-box {
-  width: 100%;
-  aspect-ratio: 4/3;
-  max-height: 430px;
-  position: relative;
-  background: #050a12;
-  border: 1px solid var(--border);
-  border-radius: 17px;
-  overflow: hidden;
-}
-video {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.camera-placeholder {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  gap: 10px;
-  color: var(--muted);
-  font-size: 13px;
-  text-align: center;
-  padding: 20px;
-}
-.camera-placeholder .cam-icon {
-  font-size: 44px;
-  opacity: .6;
-}
-.scan-frame {
-  position: absolute;
-  left: 7%;
-  top: 23%;
-  width: 86%;
-  height: 54%;
-  border: 2px solid var(--green2);
-  border-radius: 12px;
-  box-shadow: 0 0 0 1000px rgba(0,0,0,.22);
-  pointer-events: none;
-}
-.scan-frame:after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: var(--green2);
-  box-shadow: 0 0 10px var(--green2);
-  opacity: .8;
-}
-.camera-tip {
-  position: absolute;
-  bottom: 9px;
-  left: 0;
-  right: 0;
-  text-align: center;
-  font-size: 11px;
-  color: white;
-  text-shadow: 0 1px 4px black;
-}
-.controls {
-  display: flex;
-  gap: 9px;
-  margin: 12px 0;
-}
-.controls button {
-  flex: 1;
-  min-width: 0;
-}
-.status {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  padding: 12px;
-  border-radius: 11px;
-  color: #cbd5e1;
-  font-size: 12px;
-  line-height: 1.5;
-  margin: 13px 0;
-}
-.status-dot {
-  flex: 0 0 9px;
-  width: 9px;
-  height: 9px;
-  background: #f59e0b;
-  border-radius: 50%;
-}
-.status-dot.ok {
-  background: var(--green2);
-}
-.status-dot.error {
-  background: var(--red);
-}
-.card {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 15px;
-  padding: 15px;
-  margin-top: 13px;
-}
-.card-title {
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: bold;
-  letter-spacing: .8px;
-  margin: 0 0 14px;
-}
-.field {
-  margin: 15px 0;
-}
-.field label {
-  display: block;
-  color: var(--muted);
-  font-size: 11px;
-  margin-bottom: 6px;
-}
-.field-value {
-  font-size: 22px;
-  font-weight: 700;
-  overflow-wrap: anywhere;
-}
-.field-value.green {
-  color: var(--green2);
-}
-.field-value.description {
-  font-size: 16px;
-  font-weight: 500;
-}
-.result-divider {
-  height: 1px;
-  background: var(--border);
-}
-.result-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 15px;
-}
-.result-actions button {
-  flex: 1;
-}
-.small-note {
-  font-size: 11px;
-  color: var(--muted);
-  line-height: 1.5;
-}
-.list-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 13px;
-}
-.list-top h2 {
-  font-size: 17px;
-  margin: 0;
-}
-.counter {
-  background: #14532d;
-  color: #bbf7d0;
-  border-radius: 30px;
-  padding: 7px 11px;
-  font-size: 11px;
-  white-space: nowrap;
-}
-.list-tools {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-.list-tools button {
-  flex: 1;
-  font-size: 12px;
-}
-.search {
-  width: 100%;
-  background: #0d1727;
-  color: white;
-  border: 1px solid var(--border);
-  padding: 13px;
-  border-radius: 11px;
-  outline: none;
-  font-size: 14px;
-  margin-bottom: 12px;
-}
-.search:focus {
-  border-color: var(--green);
-}
-.product-list {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-}
-.product {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: #1c2a3e;
-  padding: 13px;
-  display: flex;
-  align-items: flex-start;
-  gap: 11px;
-}
-.product-number {
-  flex: 0 0 31px;
-  width: 31px;
-  height: 31px;
-  display: grid;
-  place-items: center;
-  background: #293b50;
-  border-radius: 9px;
-  font-size: 12px;
-  color: #cbd5e1;
-}
-.product-info {
-  min-width: 0;
-  flex: 1;
-}
-.product-code {
-  font-size: 17px;
-  font-weight: bold;
-  overflow-wrap: anywhere;
-}
-.product-description {
-  color: #cbd5e1;
-  font-size: 12px;
-  margin-top: 5px;
-  overflow-wrap: anywhere;
-}
-.product-measure {
-  color: var(--green2);
-  font-size: 12px;
-  font-weight: bold;
-  margin-top: 7px;
-}
-.product-date {
-  color: #64748b;
-  font-size: 10px;
-  margin-top: 7px;
-}
-.product-delete {
-  flex: 0 0 35px;
-  width: 35px;
-  height: 35px;
-  padding: 0;
-  background: transparent;
-  color: #f87171;
-  font-size: 20px;
-}
-.empty {
-  padding: 35px 15px;
-  text-align: center;
-  color: var(--muted);
-  border: 1px dashed var(--border);
-  border-radius: 12px;
-  font-size: 13px;
-  line-height: 1.7;
-}
-.empty-icon {
-  font-size: 35px;
-  display: block;
-  margin-bottom: 10px;
-}
-.raw-text {
-  color: #cbd5e1;
-  font-size: 12px;
-  line-height: 1.7;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  max-height: 180px;
-  overflow-y: auto;
-}
-footer {
-  text-align: center;
-  padding: 15px 10px 25px;
-  color: #64748b;
-  font-size: 10px;
-}
-@media(min-width:500px) {
-  main {padding:20px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0d1421;
+  --panel:#172235;
+  --panel2:#223149;
+  --border:#2b3b52;
+  --text:#f1f5f9;
+  --muted:#94a3b8;
+  --green:#16a34a;
+  --lightgreen:#4ade80;
+  --red:#ef4444;
+}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Arial,Helvetica,sans-serif;
+  min-height:100dvh;
+}
+button{
+  border:0;
+  border-radius:12px;
+  padding:14px 12px;
+  background:var(--panel2);
+  color:white;
+  font-size:14px;
+  font-weight:bold;
+  cursor:pointer;
+}
+button:active{transform:scale(.97)}
+button:disabled{opacity:.4;cursor:not-allowed}
+.primary{background:var(--green)}
+.danger{background:#7f252b}
+.outline{background:transparent;border:1px solid var(--border)}
+header{
+  position:sticky;
+  top:0;
+  z-index:5;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:15px;
+  padding-top:max(15px,env(safe-area-inset-top));
+  background:#141f31;
+  border-bottom:1px solid var(--border);
+}
+.logo{
+  width:44px;
+  height:44px;
+  display:grid;
+  place-items:center;
+  border-radius:13px;
+  background:#166534;
+  color:#bbf7d0;
+  font-size:25px;
+}
+.head-info{flex:1}
+h1{font-size:17px;margin:0 0 4px}
+header small{color:var(--muted);font-size:11px}
+.live{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
+.dot{
+  width:8px;height:8px;border-radius:50%;
+  background:#64748b;
+}
+.dot.on{background:var(--lightgreen);box-shadow:0 0 8px var(--lightgreen)}
+main{max-width:600px;margin:auto;padding:15px}
+.tabs{
+  display:flex;
+  padding:5px;
+  gap:6px;
+  border-radius:13px;
+  background:#141f31;
+  margin-bottom:15px;
+}
+.tab{
+  flex:1;
+  background:transparent;
+  color:var(--muted);
+}
+.tab.active{background:#29394e;color:white}
+.page{display:none}
+.page.active{display:block}
+.camera{
+  position:relative;
+  width:100%;
+  aspect-ratio:4/3;
+  background:#050a12;
+  border:1px solid var(--border);
+  border-radius:17px;
+  overflow:hidden;
+}
+video{width:100%;height:100%;object-fit:cover}
+.placeholder{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+  color:var(--muted);
+  font-size:13px;
+  text-align:center;
+  padding:15px;
+}
+.placeholder span{font-size:43px}
+.frame{
+  position:absolute;
+  left:7%;
+  top:22%;
+  width:86%;
+  height:56%;
+  border:2px solid var(--lightgreen);
+  border-radius:12px;
+  box-shadow:0 0 0 1000px #0004;
+  pointer-events:none;
+}
+.frame:after{
+  content:"";
+  position:absolute;
+  left:0;right:0;top:50%;
+  height:2px;
+  background:var(--lightgreen);
+  box-shadow:0 0 10px var(--lightgreen);
+}
+.tip{
+  position:absolute;
+  bottom:10px;
+  left:0;right:0;
+  text-align:center;
+  font-size:11px;
+  color:white;
+  text-shadow:0 1px 4px black;
+}
+.controls{display:flex;gap:9px;margin:12px 0}
+.controls button{flex:1;min-width:0}
+.status{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding:12px;
+  border-radius:11px;
+  border:1px solid var(--border);
+  background:var(--panel);
+  color:#cbd5e1;
+  font-size:12px;
+  line-height:1.5;
+  margin:13px 0;
+}
+.status .dot{flex-shrink:0;background:#f59e0b}
+.status.ok .dot{background:var(--lightgreen)}
+.status.error .dot{background:var(--red)}
+.card{
+  padding:16px;
+  margin-top:13px;
+  border-radius:15px;
+  background:var(--panel);
+  border:1px solid var(--border);
+}
+.card-title{
+  font-size:11px;
+  letter-spacing:.8px;
+  color:var(--muted);
+  font-weight:bold;
+  margin:0 0 15px;
+}
+.code-display{
+  font-size:35px;
+  font-weight:bold;
+  letter-spacing:2px;
+  overflow-wrap:anywhere;
+}
+.code-empty{color:#64748b}
+.divider{height:1px;background:var(--border);margin:14px 0}
+.small{font-size:11px;color:var(--muted);line-height:1.5}
+.list-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:14px;
+}
+.list-head h2{font-size:17px;margin:0}
+.counter{
+  padding:7px 11px;
+  border-radius:30px;
+  background:#14532d;
+  color:#bbf7d0;
+  font-size:11px;
+}
+.search{
+  width:100%;
+  padding:13px;
+  background:#0d1727;
+  color:white;
+  border:1px solid var(--border);
+  border-radius:11px;
+  outline:none;
+  font-size:14px;
+  margin-bottom:12px;
+}
+.search:focus{border-color:var(--green)}
+.tools{display:flex;gap:8px;margin-bottom:13px}
+.tools button{flex:1;font-size:12px}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  padding:12px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:#1c2a3e;
+}
+.number{
+  width:32px;height:32px;flex-shrink:0;
+  display:grid;place-items:center;
+  background:#293b50;
+  border-radius:9px;
+  color:#cbd5e1;
+  font-size:12px;
+}
+.item-info{flex:1;min-width:0}
+.item-code{
+  font-size:18px;
+  font-weight:bold;
+  letter-spacing:1px;
+  overflow-wrap:anywhere;
+}
+.item-date{font-size:10px;color:#64748b;margin-top:5px}
+.delete{
+  width:34px;height:34px;
+  padding:0;
+  background:transparent;
+  color:#f87171;
+  font-size:21px;
+}
+.empty{
+  text-align:center;
+  padding:35px 15px;
+  border:1px dashed var(--border);
+  border-radius:12px;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.7;
+}
+.empty-icon{font-size:35px;display:block;margin-bottom:10px}
+footer{
+  text-align:center;
+  padding:20px;
+  color:#64748b;
+  font-size:10px;
 }
 </style>
 </head>
@@ -436,12 +269,12 @@ footer {
 
 <header>
   <div class="logo">⌗</div>
-  <div class="header-info">
-    <h1>Leitor de Etiquetas</h1>
-    <p>Reconhecimento inteligente por câmera</p>
+  <div class="head-info">
+    <h1>Fast Code Scanner</h1>
+    <small>Leitura rápida de códigos por câmera</small>
   </div>
   <div class="live">
-    <span class="live-dot" id="liveDot"></span>
+    <span class="dot" id="liveDot"></span>
     <span id="liveText">Desligado</span>
   </div>
 </header>
@@ -449,30 +282,28 @@ footer {
 <main>
 
   <nav class="tabs">
-    <button class="tab active" id="tabScanner" onclick="showPage('scanner')">
+    <button class="tab active" id="scannerTab" onclick="showPage('scanner')">
       ▣ Scanner
     </button>
-    <button class="tab" id="tabHistory" onclick="showPage('history')">
-      ☷ Encontrados <span id="tabCount">0</span>
+    <button class="tab" id="historyTab" onclick="showPage('history')">
+      ☷ Códigos <span id="tabCount">0</span>
     </button>
   </nav>
 
-  <!-- PÁGINA DO SCANNER -->
+  <!-- SCANNER -->
   <section class="page active" id="scannerPage">
 
-    <div class="camera-box">
+    <div class="camera">
       <video id="video" autoplay playsinline muted></video>
 
-      <div class="camera-placeholder" id="cameraPlaceholder">
-        <span class="cam-icon">▣</span>
+      <div class="placeholder" id="placeholder">
+        <span>▣</span>
         <strong>Câmera desligada</strong>
-        <span>Toque em abrir câmera para começar</span>
+        <small>Abra a câmera para iniciar</small>
       </div>
 
-      <div class="scan-frame"></div>
-      <div class="camera-tip">
-        Posicione a etiqueta dentro da área
-      </div>
+      <div class="frame"></div>
+      <div class="tip">Centralize o código dentro da área</div>
     </div>
 
     <div class="controls">
@@ -480,110 +311,73 @@ footer {
         ◉ Abrir câmera
       </button>
       <button id="scanBtn" onclick="startReading()" disabled>
-        ⌕ Ler etiqueta
+        ⌕ Ler código
       </button>
     </div>
 
     <div class="controls">
-      <button id="stopBtn" class="danger" onclick="stopReading()" disabled>
-        ■ Parar leitura
+      <button class="danger" id="stopBtn" onclick="stopReading()" disabled>
+        ■ Parar
       </button>
-      <button id="nextBtn" onclick="startReading()" disabled>
-        ↻ Ler próxima
+      <button id="nextBtn" class="primary" onclick="startReading()" disabled>
+        ↻ Próxima leitura
       </button>
     </div>
 
     <div class="status" id="status">
-      <span class="status-dot"></span>
-      <span id="statusText">Aguardando abertura da câmera.</span>
+      <span class="dot"></span>
+      <span id="statusText">Aguardando câmera.</span>
     </div>
 
-    <!-- RESULTADO -->
     <div class="card">
-      <h2 class="card-title">ÚLTIMA ETIQUETA IDENTIFICADA</h2>
-
-      <div class="field">
-        <label>CÓDIGO DO PRODUTO</label>
-        <div class="field-value" id="resultCode">---</div>
+      <h2 class="card-title">ÚLTIMO CÓDIGO ENCONTRADO</h2>
+      <div class="code-display code-empty" id="resultCode">------</div>
+      <div class="divider"></div>
+      <div class="small" id="resultInfo">
+        O código identificado aparecerá aqui.
       </div>
-
-      <div class="result-divider"></div>
-
-      <div class="field">
-        <label>DESCRIÇÃO</label>
-        <div class="field-value description" id="resultDescription">
-          Aguardando leitura...
-        </div>
-      </div>
-
-      <div class="result-divider"></div>
-
-      <div class="field">
-        <label>MEDIDAS</label>
-        <div class="field-value green" id="resultMeasure">---</div>
-      </div>
-
-      <div class="result-actions">
-        <button class="outline" onclick="copyResult()">
-          ▣ Copiar
-        </button>
-        <button class="primary" id="saveBtn" onclick="saveResult()" disabled>
-          ＋ Salvar
-        </button>
-      </div>
-
-      <p class="small-note">
-        Quando um código válido for reconhecido, ele será salvo
-        automaticamente e a leitura será pausada.
-      </p>
     </div>
 
-    <!-- TEXTO DO OCR -->
     <div class="card">
-      <h2 class="card-title">TEXTO RECONHECIDO PELA CÂMERA</h2>
-      <div class="raw-text" id="rawText">
-        O texto da etiqueta aparecerá aqui.
+      <h2 class="card-title">RECONHECIMENTO</h2>
+      <div class="small" id="ocrStatus">
+        O leitor está aguardando para iniciar.
       </div>
     </div>
 
   </section>
 
-  <!-- PÁGINA DO HISTÓRICO -->
+  <!-- LISTA DE CÓDIGOS -->
   <section class="page" id="historyPage">
 
     <div class="card">
-      <div class="list-top">
+      <div class="list-head">
         <h2>Códigos encontrados</h2>
         <span class="counter" id="countBadge">0 códigos</span>
       </div>
 
-      <p class="small-note">
-        Cada etiqueta lida é adicionada automaticamente nesta lista.
-        Os registros ficam salvos no navegador.
+      <p class="small">
+        Cada código reconhecido é salvo automaticamente nesta lista.
       </p>
 
       <input
         class="search"
         id="searchInput"
         type="search"
-        placeholder="Pesquisar código ou produto..."
+        placeholder="Pesquisar código..."
         oninput="renderHistory()"
       >
 
-      <div class="list-tools">
-        <button class="primary" onclick="exportCSV()">
-          ↓ Exportar CSV
-        </button>
-        <button class="outline" onclick="copyAll()">
-          ▣ Copiar lista
-        </button>
+      <div class="tools">
+        <button class="primary" onclick="exportCSV()">↓ Exportar CSV</button>
+        <button class="outline" onclick="copyAll()">▣ Copiar lista</button>
       </div>
 
-      <div class="product-list" id="productList"></div>
+      <div class="list" id="productList"></div>
 
       <div class="controls">
         <button class="outline" onclick="showPage('scanner')">
-          ◉ Voltar ao scanner
+          ◉ Scanner
         </button>
         <button class="danger" onclick="clearHistory()">
           Limpar lista
@@ -595,91 +389,74 @@ footer {
 
 </main>
 
-<footer>
-  Leitor Inteligente de Etiquetas • OCR no navegador
-</footer>
+<footer>Fast Code Scanner • OCR otimizado</footer>
 
 <script>
 "use strict";
-
-// ==========================================
-// CONFIGURAÇÕES E VARIÁVEIS
-// ==========================================
 
 const $ = id => document.getElementById(id);
 
 let stream = null;
 let worker = null;
-
 let cameraActive = false;
 let reading = false;
 let processing = false;
-let lastResult = null;
 let scanTimer = null;
+let lastResult = "";
 
-const STORAGE_KEY = "etiquetaScannerHistoryV1";
+const STORAGE_KEY = "fastCodeScannerV1";
 
 let history = [];
 
 try {
-  const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-  history = Array.isArray(stored) ? stored : [];
+  const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  if (Array.isArray(saved)) history = saved;
 } catch(e) {
   history = [];
 }
 
-// ==========================================
-// NAVEGAÇÃO ENTRE ABAS
-// ==========================================
+// ------------------------------------------
+// ABAS
+// ------------------------------------------
 
 function showPage(page) {
   const scanner = page === "scanner";
 
   $("scannerPage").classList.toggle("active", scanner);
   $("historyPage").classList.toggle("active", !scanner);
-
-  $("tabScanner").classList.toggle("active", scanner);
-  $("tabHistory").classList.toggle("active", !scanner);
+  $("scannerTab").classList.toggle("active", scanner);
+  $("historyTab").classList.toggle("active", !scanner);
 
   if (!scanner) renderHistory();
 }
 
-// ==========================================
+// ------------------------------------------
 // STATUS
-// ==========================================
+// ------------------------------------------
 
-function setStatus(message, type = "normal") {
-  const dot = $("status").querySelector(".status-dot");
-
+function setStatus(message, type = "") {
   $("statusText").textContent = message;
-
-  dot.className = "status-dot";
-
-  if (type === "ok") dot.classList.add("ok");
-  if (type === "error") dot.classList.add("error");
+  $("status").className = "status" + (type ? " " + type : "");
 }
 
-function setCameraIndicator(active) {
-  $("liveDot").classList.toggle("active", active);
-  $("liveText").textContent = active ? "Câmera ativa" : "Desligado";
+function setCameraStatus(active) {
+  $("liveDot").classList.toggle("on", active);
+  $("liveText").textContent = active ? "Ativa" : "Desligado";
 }
 
-// ==========================================
+// ------------------------------------------
 // CÂMERA
-// ==========================================
+// ------------------------------------------
 
 async function startCamera() {
   if (cameraActive) return;
 
   try {
-    if (!navigator.mediaDevices ||
-        !navigator.mediaDevices.getUserMedia) {
-      throw new Error(
-        "A câmera exige HTTPS ou localhost em um navegador compatível."
-      );
+    if (!navigator.mediaDevices?.getUserMedia) {
+      throw new Error("Abra o sistema em HTTPS para usar a câmera.");
     }
 
-    setStatus("Solicitando acesso à câmera...");
+    setStatus("Abrindo câmera...");
 
     stream = await navigator.mediaDevices.getUserMedia({
       audio: false,
@@ -695,18 +472,18 @@ async function startCamera() {
 
     cameraActive = true;
 
-    $("cameraPlaceholder").style.display = "none";
-    $("cameraBtn").textContent = "✓ Câmera aberta";
+    $("placeholder").style.display = "none";
     $("cameraBtn").disabled = true;
+    $("cameraBtn").textContent = "✓ Câmera aberta";
 
     $("scanBtn").disabled = false;
     $("nextBtn").disabled = false;
 
-    setCameraIndicator(true);
-    setStatus("Câmera pronta. Posicione uma etiqueta.", "ok");
+    setCameraStatus(true);
+    setStatus("Câmera pronta. Toque em Ler código.", "ok");
 
-  } catch (error) {
-    setStatus("Não foi possível abrir a câmera: " + error.message, "error");
+  } catch(error) {
+    setStatus(error.message, "error");
   }
 }
 
@@ -719,313 +496,227 @@ function closeCamera() {
   }
 
   $("video").srcObject = null;
-
   cameraActive = false;
 
-  $("cameraPlaceholder").style.display = "flex";
-  $("cameraBtn").textContent = "◉ Abrir câmera";
+  $("placeholder").style.display = "flex";
   $("cameraBtn").disabled = false;
+  $("cameraBtn").textContent = "◉ Abrir câmera";
   $("scanBtn").disabled = true;
   $("nextBtn").disabled = true;
 
-  setCameraIndicator(false);
+  setCameraStatus(false);
   setStatus("Câmera desligada.");
 }
 
-// ==========================================
-// INICIALIZAÇÃO DO OCR
-// ==========================================
+// ------------------------------------------
+// OCR RÁPIDO
+// ------------------------------------------
 
 async function getWorker() {
   if (worker) return worker;
 
   if (!window.Tesseract) {
-    throw new Error("Biblioteca OCR não carregada. Verifique a internet.");
+    throw new Error("OCR não carregado. Verifique a conexão.");
   }
 
-  setStatus("Preparando reconhecimento de texto...");
+  setStatus("Preparando leitor pela primeira vez...");
 
   worker = await Tesseract.createWorker("por", 1, {
     logger: message => {
       if (message.status === "recognizing text") {
-        const percent = Math.round(message.progress * 100);
-        setStatus("Analisando etiqueta: " + percent + "%");
+        $("ocrStatus").textContent =
+          "Analisando imagem: " +
+          Math.round(message.progress * 100) + "%";
       }
     }
   });
 
+  // Limita o reconhecimento aos caracteres úteis.
+  // Ignora palavras e descrições da etiqueta.
   await worker.setParameters({
+    tessedit_char_whitelist: "0123456789-",
+    tessedit_pageseg_mode: "6",
     preserve_interword_spaces: "1"
   });
 
   return worker;
 }
 
-// ==========================================
-// EXTRAÇÃO DE MEDIDAS
-// ==========================================
+// ------------------------------------------
+// LOCALIZAR O CÓDIGO
+// ------------------------------------------
 
-function extractMeasures(text) {
-  const normalized = text
-    .replace(/[×✕*]/g, "x")
-    .replace(/[Ｘ]/g, "x");
+function extractCode(text) {
+  // Normaliza diferentes tipos de hífen.
+  const clean = text
+    .replace(/[‐‑‒–—−]/g, "-")
+    .replace(/[|]/g, " ");
 
-  /*
-    Aceita:
-    3000mm x 200mm x 8mm
-    3000 x 200 x 8
-    90x90
-    120 x 120
-    1200mm X 600mm
-  */
+  // Exemplo principal: 063673 - TTV
+  // OCR restrito pode retornar apenas 063673 -
+  const beforeDash = clean.match(/\b(\d{4,10})\s*-/);
 
-  const regex =
-    /(\d{1,5}(?:[.,]\d+)?)\s*(?:mm)?\s*[xX]\s*(\d{1,5}(?:[.,]\d+)?)\s*(?:mm)?(?:\s*[xX]\s*(\d{1,5}(?:[.,]\d+)?)\s*(?:mm)?)?/gi;
-
-  const found = [];
-  let match;
-
-  while ((match = regex.exec(normalized)) !== null) {
-    const values = match.slice(1)
-      .filter(Boolean)
-      .map(value => value.replace(",", "."));
-
-    found.push({
-      raw: match[0].trim(),
-      values: values
-    });
+  if (beforeDash) {
+    return beforeDash[1];
   }
 
-  return found;
-}
+  // Também aceita código após o hífen.
+  const afterDash = clean.match(/-\s*(\d{4,10})\b/);
 
-// ==========================================
-// EXTRAÇÃO DO CÓDIGO
-// ==========================================
-
-function extractCode(text, measures) {
-  const normalized = text
-    .replace(/[‐‑‒–—]/g, "-")
-    .replace(/[|]/g, "I");
-
-  const patterns = [
-    // Exemplo: 063673 - TTV
-    /\b(\d{4,10})\s*-\s*[A-ZÀ-Ü]{1,10}\b/i,
-
-    // Exemplo: TTV - 063673
-    /\b[A-ZÀ-Ü]{1,10}\s*-\s*(\d{4,10})\b/i,
-
-    // Número seguido de hífen
-    /\b(\d{4,10})\s*-/,
-
-    // Número depois de hífen
-    /-\s*(\d{4,10})\b/
-  ];
-
-  for (const pattern of patterns) {
-    const match = normalized.match(pattern);
-    if (match) return match[1];
+  if (afterDash) {
+    return afterDash[1];
   }
 
-  // Retira as medidas antes de procurar números isolados.
-  let remaining = normalized;
-
-  for (const measure of measures) {
-    remaining = remaining.replace(measure.raw, " ");
-  }
-
-  const candidates = remaining.match(/\b\d{4,10}\b/g);
-
-  if (candidates && candidates.length) {
-    return candidates[0];
-  }
-
+  // Não usa números isolados sem hífen,
+  // para evitar confundir o código com as medidas.
   return "";
 }
 
-// ==========================================
-// EXTRAÇÃO DA DESCRIÇÃO
-// ==========================================
+// ------------------------------------------
+// PREPARAR IMAGEM PARA OCR
+// ------------------------------------------
 
-function extractDescription(text, code) {
-  const lines = text
-    .split(/\r?\n/)
-    .map(line => line.trim())
-    .filter(Boolean);
+function captureImage() {
+  const video = $("video");
 
-  const descriptions = [];
+  // Recorta uma área central, correspondente
+  // à região de leitura da tela.
+  const vw = video.videoWidth;
+  const vh = video.videoHeight;
 
-  for (let line of lines) {
-    // Remove as medidas da linha, sem perder o restante.
-    line = line.replace(
-      /\d{1,5}(?:[.,]\d+)?\s*(?:mm)?\s*[xX×✕*]\s*\d{1,5}(?:[.,]\d+)?\s*(?:mm)?(?:\s*[xX×✕*]\s*\d{1,5}(?:[.,]\d+)?\s*(?:mm)?)?/gi,
-      " "
+  const cropW = Math.round(vw * 0.86);
+  const cropH = Math.round(vh * 0.60);
+
+  const sx = Math.round((vw - cropW) / 2);
+  const sy = Math.round((vh - cropH) / 2);
+
+  // Resolução moderada para agilizar o OCR.
+  const scale = Math.min(1, 1000 / cropW);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(cropW * scale);
+  canvas.height = Math.round(cropH * scale);
+
+  const ctx = canvas.getContext("2d", {
+    willReadFrequently: true
+  });
+
+  ctx.drawImage(
+    video,
+    sx, sy, cropW, cropH,
+    0, 0, canvas.width, canvas.height
+  );
+
+  // Melhora o contraste para texto impresso.
+  const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const pixels = image.data;
+
+  for (let i = 0; i < pixels.length; i += 4) {
+    const gray =
+      0.299 * pixels[i] +
+      0.587 * pixels[i + 1] +
+      0.114 * pixels[i + 2];
+
+    // Aumenta contraste sem binarizar
+    // completamente a imagem.
+    const adjusted = Math.max(
+      0,
+      Math.min(255, (gray - 110) * 1.55 + 110)
     );
 
-    // Remove o código da descrição.
-    if (code) {
-      line = line.replace(
-        new RegExp(code.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"),
-        " "
-      );
-    }
-
-    // Limpa separadores que possam ter sobrado.
-    line = line
-      .replace(/[‐‑‒–—-]/g, " ")
-      .replace(/[|_]/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-
-    // Mantém linhas com letras.
-    if (/[A-Za-zÀ-ú]{2,}/.test(line)) {
-      descriptions.push(line);
-    }
+    pixels[i] = adjusted;
+    pixels[i + 1] = adjusted;
+    pixels[i + 2] = adjusted;
   }
 
-  return [...new Set(descriptions)].join(" ").trim();
+  ctx.putImageData(image, 0, 0);
+
+  return canvas;
 }
 
-// ==========================================
-// INTERPRETAÇÃO COMPLETA DA ETIQUETA
-// ==========================================
-
-function parseLabel(text) {
-  const measures = extractMeasures(text);
-  const code = extractCode(text, measures);
-  const description = extractDescription(text, code);
-
-  const mainMeasure = measures.length ? measures[0] : null;
-
-  return {
-    code: code,
-    description: description,
-    measure: mainMeasure ? mainMeasure.values.join(" x ") : "",
-    rawMeasure: mainMeasure ? mainMeasure.raw : "",
-    raw: text.trim()
-  };
-}
-
-// ==========================================
+// ------------------------------------------
 // INICIAR LEITURA
-// ==========================================
+// ------------------------------------------
 
 async function startReading() {
-  if (!cameraActive) {
-    setStatus("Abra a câmera primeiro.", "error");
-    return;
-  }
-
-  if (processing || reading) return;
+  if (!cameraActive || reading || processing) return;
 
   reading = true;
-  lastResult = null;
+  lastResult = "";
 
-  $("saveBtn").disabled = true;
+  $("resultCode").textContent = "Procurando...";
+  $("resultCode").classList.remove("code-empty");
+  $("resultInfo").textContent = "Aguardando identificação do código.";
+
   $("scanBtn").disabled = true;
   $("nextBtn").disabled = true;
   $("stopBtn").disabled = false;
 
-  $("resultCode").textContent = "Procurando...";
-  $("resultDescription").textContent = "Analisando etiqueta...";
-  $("resultMeasure").textContent = "---";
+  $("ocrStatus").textContent = "Leitura em andamento...";
 
-  setStatus("Leitura iniciada. Aponte para a etiqueta.", "ok");
+  setStatus("Procurando código na etiqueta...", "ok");
 
   scanFrame();
 }
 
-// ==========================================
-// CAPTURA E ANÁLISE DE IMAGEM
-// ==========================================
+// ------------------------------------------
+// ANALISAR IMAGEM
+// ------------------------------------------
 
 async function scanFrame() {
   if (!reading || processing || !cameraActive) return;
 
   if (!$("video").videoWidth) {
-    scanTimer = setTimeout(scanFrame, 500);
+    scanTimer = setTimeout(scanFrame, 300);
     return;
   }
 
   processing = true;
 
   try {
-    const video = $("video");
-    const canvas = document.createElement("canvas");
-
-    // Reduz a imagem para equilibrar velocidade e precisão.
-    const scale = Math.min(1, 1280 / video.videoWidth);
-
-    canvas.width = Math.round(video.videoWidth * scale);
-    canvas.height = Math.round(video.videoHeight * scale);
-
-    const ctx = canvas.getContext("2d", {
-      willReadFrequently: true
-    });
-
-    ctx.drawImage(
-      video,
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    );
-
+    const canvas = captureImage();
     const ocr = await getWorker();
-    const result = await ocr.recognize(canvas);
 
-    // Se a leitura foi cancelada enquanto o OCR processava,
-    // não utiliza o resultado.
     if (!reading) return;
 
-    const text = result.data.text || "";
-    const parsed = parseLabel(text);
+    const result = await ocr.recognize(canvas);
+    if (!reading) return;
 
-    $("rawText").textContent = text || "Nenhum texto identificado.";
+    const recognizedText = result.data.text || "";
+    const code = extractCode(recognizedText);
 
-    // Mostra os dados preliminares encontrados.
-    if (parsed.code) {
-      $("resultCode").textContent = parsed.code;
-    }
-
-    if (parsed.description) {
-      $("resultDescription").textContent = parsed.description;
-    }
-
-    if (parsed.measure) {
-      $("resultMeasure").textContent = parsed.measure;
-    }
-
-    // Só considera uma leitura concluída quando há código.
-    if (parsed.code) {
-      completeReading(parsed);
+    if (code) {
+      finishReading(code);
       return;
     }
 
-    setStatus(
-      "Procurando código válido. Ajuste o foco e a posição da etiqueta..."
-    );
+    $("ocrStatus").textContent =
+      "Código não encontrado. Ajuste a etiqueta e tente novamente.";
 
-  } catch (error) {
+    setStatus("Procurando código...", "");
+
+  } catch(error) {
     if (reading) {
-      setStatus("Erro no OCR: " + error.message, "error");
+      setStatus("Erro: " + error.message, "error");
     }
   } finally {
     processing = false;
 
-    // Continua tentando somente enquanto estiver em leitura.
-    if (reading) {
-      scanTimer = setTimeout(scanFrame, 700);
+    // Faz outra tentativa apenas se ainda estiver ativo.
+    if (reading && cameraActive) {
+      scanTimer = setTimeout(scanFrame, 250);
     }
   }
 }
 
-// ==========================================
-// CONCLUIR LEITURA E PAUSAR AUTOMATICAMENTE
-// ==========================================
+// ------------------------------------------
+// CÓDIGO ENCONTRADO
+// ------------------------------------------
 
-function completeReading(parsed) {
-  // Interrompe novas capturas imediatamente.
+function finishReading(code) {
+  if (!reading) return;
+
+  // Para imediatamente a busca.
   reading = false;
 
   if (scanTimer) {
@@ -1033,36 +724,33 @@ function completeReading(parsed) {
     scanTimer = null;
   }
 
-  lastResult = parsed;
+  lastResult = code;
 
-  $("resultCode").textContent = parsed.code;
-  $("resultDescription").textContent =
-    parsed.description || "Descrição não identificada";
-  $("resultMeasure").textContent =
-    parsed.measure || "Medida não identificada";
+  $("resultCode").textContent = code;
+  $("resultInfo").textContent = "Código identificado e salvo automaticamente.";
 
-  // Salva automaticamente na lista.
-  addToHistory(parsed);
+  // Adiciona à lista.
+  addCode(code);
 
+  // Prepara os controles para a próxima etiqueta.
   $("scanBtn").disabled = false;
   $("nextBtn").disabled = false;
   $("stopBtn").disabled = true;
-  $("saveBtn").disabled = true;
+
+  $("ocrStatus").textContent = "Leitura concluída. Pronto para a próxima.";
 
   setStatus(
-    "Código " + parsed.code + " identificado e salvo. Leitura pausada.",
+    "Código " + code + " encontrado. Leitura pausada.",
     "ok"
   );
 
-  // Pequena vibração para indicar que a etiqueta foi lida.
-  if (navigator.vibrate) {
-    navigator.vibrate(150);
-  }
+  // Feedback tátil.
+  if (navigator.vibrate) navigator.vibrate(100);
 }
 
-// ==========================================
-// PARAR LEITURA
-// ==========================================
+// ------------------------------------------
+// PARAR MANUALMENTE
+// ------------------------------------------
 
 function stopReading() {
   reading = false;
@@ -1077,47 +765,41 @@ function stopReading() {
   $("stopBtn").disabled = true;
 
   if (cameraActive) {
-    setStatus("Leitura pausada. A câmera continua aberta.");
+    setStatus("Leitura pausada.");
+    $("ocrStatus").textContent = "Aguardando próxima leitura.";
   }
 }
 
-// ==========================================
-// HISTÓRICO
-// ==========================================
+// ------------------------------------------
+// SALVAR CÓDIGO
+// ------------------------------------------
 
-function addToHistory(parsed) {
+function addCode(code) {
   const item = {
     id: Date.now().toString() + Math.random().toString(16).slice(2),
-    code: parsed.code || "",
-    description: parsed.description || "",
-    measure: parsed.measure || "",
-    rawMeasure: parsed.rawMeasure || "",
-    raw: parsed.raw || "",
+    code: code,
     date: new Date().toLocaleString("pt-BR")
   };
 
-  // Cada leitura confirmada é guardada,
-  // inclusive se o mesmo código aparecer novamente.
+  // Guarda cada leitura, mesmo que o código
+  // já tenha aparecido anteriormente.
   history.unshift(item);
 
-  persistHistory();
+  saveHistory();
 }
 
-function persistHistory() {
+function saveHistory() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
-  } catch (error) {
-    setStatus(
-      "Não foi possível salvar no navegador. O armazenamento pode estar cheio.",
-      "error"
-    );
+  } catch(error) {
+    setStatus("Armazenamento cheio ou indisponível.", "error");
   }
 
-  updateCounters();
+  updateCount();
   renderHistory();
 }
 
-function updateCounters() {
+function updateCount() {
   const count = history.length;
 
   $("tabCount").textContent = count;
@@ -1125,29 +807,21 @@ function updateCounters() {
     count + (count === 1 ? " código" : " códigos");
 }
 
-// ==========================================
-// EXIBIR A LISTA DE CÓDIGOS
-// ==========================================
+// ------------------------------------------
+// EXIBIR CÓDIGOS
+// ------------------------------------------
 
 function renderHistory() {
   const list = $("productList");
-  const query = $("searchInput").value
-    .trim()
-    .toLocaleLowerCase("pt-BR");
+  const query = $("searchInput").value.trim();
 
   list.replaceChildren();
 
-  const filtered = history.filter(item => {
-    const content = [
-      item.code,
-      item.description,
-      item.measure
-    ].join(" ").toLocaleLowerCase("pt-BR");
+  const filtered = history.filter(item =>
+    item.code.toLowerCase().includes(query.toLowerCase())
+  );
 
-    return content.includes(query);
-  });
-
-  if (filtered.length === 0) {
+  if (!filtered.length) {
     const empty = document.createElement("div");
     empty.className = "empty";
 
@@ -1157,75 +831,56 @@ function renderHistory() {
 
     const message = document.createElement("div");
     message.textContent = history.length
-      ? "Nenhum resultado encontrado."
-      : "Nenhum código encontrado ainda. Abra o scanner e faça a primeira leitura.";
+      ? "Nenhum código encontrado na pesquisa."
+      : "Nenhum código lido. Os códigos aparecerão aqui automaticamente.";
 
     empty.append(icon, message);
     list.appendChild(empty);
-    updateCounters();
+    updateCount();
     return;
   }
 
-  filtered.forEach((item, index) => {
-    const card = document.createElement("div");
-    card.className = "product";
+  filtered.forEach(item => {
+    const row = document.createElement("div");
+    row.className = "item";
 
-    const number = document.createElement("div");
-    number.className = "product-number";
-    number.textContent = history.indexOf(item) + 1;
+    const index = document.createElement("div");
+    index.className = "number";
+    index.textContent = history.indexOf(item) + 1;
 
     const info = document.createElement("div");
-    info.className = "product-info";
+    info.className = "item-info";
 
     const code = document.createElement("div");
-    code.className = "product-code";
-    code.textContent = item.code || "Sem código";
-
-    const description = document.createElement("div");
-    description.className = "product-description";
-    description.textContent =
-      item.description || "Descrição não identificada";
-
-    const measure = document.createElement("div");
-    measure.className = "product-measure";
-    measure.textContent = item.measure
-      ? item.measure + " mm"
-      : "Medida não identificada";
+    code.className = "item-code";
+    code.textContent = item.code;
 
     const date = document.createElement("div");
-    date.className = "product-date";
-    date.textContent = item.date || "";
+    date.className = "item-date";
+    date.textContent = item.date;
 
-    info.append(code, description, measure, date);
+    info.append(code, date);
 
-    const del = document.createElement("button");
-    del.className = "product-delete";
-    del.textContent = "×";
-    del.title = "Excluir leitura";
+    const remove = document.createElement("button");
+    remove.className = "delete";
+    remove.textContent = "×";
+    remove.title = "Excluir código";
 
-    del.onclick = () => {
-      deleteItem(item.id);
+    remove.onclick = () => {
+      history = history.filter(x => x.id !== item.id);
+      saveHistory();
     };
 
-    card.append(number, info, del);
-    list.appendChild(card);
+    row.append(index, info, remove);
+    list.appendChild(row);
   });
 
-  updateCounters();
+  updateCount();
 }
 
-// ==========================================
-// EXCLUIR ITEM
-// ==========================================
-
-function deleteItem(id) {
-  history = history.filter(item => item.id !== id);
-  persistHistory();
-}
-
-// ==========================================
-// LIMPAR HISTÓRICO
-// ==========================================
+// ------------------------------------------
+// LIMPAR LISTA
+// ------------------------------------------
 
 function clearHistory() {
   if (!history.length) return;
@@ -1235,81 +890,44 @@ function clearHistory() {
   }
 
   history = [];
-  persistHistory();
-
-  setStatus("Histórico apagado.");
+  saveHistory();
+  setStatus("Lista de códigos apagada.");
 }
 
-// ==========================================
-// COPIAR RESULTADO ATUAL
-// ==========================================
-
-async function copyResult() {
-  if (!lastResult) {
-    setStatus("Nenhum resultado disponível para copiar.");
-    return;
-  }
-
-  const text = [
-    "Código: " + lastResult.code,
-    "Descrição: " + lastResult.description,
-    "Medidas: " + lastResult.measure
-  ].join("\n");
-
-  try {
-    await navigator.clipboard.writeText(text);
-    setStatus("Resultado copiado.", "ok");
-  } catch (error) {
-    setStatus("Não foi possível copiar. Verifique as permissões.");
-  }
-}
-
-// ==========================================
-// COPIAR TODA A LISTA
-// ==========================================
+// ------------------------------------------
+// COPIAR LISTA
+// ------------------------------------------
 
 async function copyAll() {
   if (!history.length) {
-    alert("A lista está vazia.");
+    alert("Nenhum código para copiar.");
     return;
   }
 
-  const text = history.map(item => [
-    "Código: " + item.code,
-    "Descrição: " + item.description,
-    "Medidas: " + item.measure,
-    "Data: " + item.date
-  ].join("\n")).join("\n\n");
+  const text = history.map(item => item.code).join("\n");
 
   try {
     await navigator.clipboard.writeText(text);
-    alert("Lista copiada com sucesso!");
-  } catch (error) {
-    alert("Não foi possível copiar a lista.");
+    alert("Códigos copiados!");
+  } catch(error) {
+    alert("Não foi possível copiar. Verifique as permissões.");
   }
 }
 
-// ==========================================
-// EXPORTAR PARA CSV
-// ==========================================
+// ------------------------------------------
+// EXPORTAR CSV
+// ------------------------------------------
 
 function exportCSV() {
   if (!history.length) {
-    alert("Não existem códigos para exportar.");
+    alert("Nenhum código para exportar.");
     return;
   }
 
-  const rows = [
-    ["Código", "Descrição", "Medidas", "Data"]
-  ];
+  const rows = [["Código", "Data"]];
 
   history.forEach(item => {
-    rows.push([
-      item.code,
-      item.description,
-      item.measure,
-      item.date
-    ]);
+    rows.push([item.code, item.date]);
   });
 
   const csv = rows.map(row =>
@@ -1328,6 +946,7 @@ function exportCSV() {
 
   link.href = url;
   link.download = "codigos_encontrados.csv";
+
   document.body.appendChild(link);
   link.click();
   link.remove();
@@ -1335,20 +954,27 @@ function exportCSV() {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-// ==========================================
-// INICIALIZAÇÃO
-// ==========================================
-
-updateCounters();
-renderHistory();
+// ------------------------------------------
+// LIMPEZA AO SAIR
+// ------------------------------------------
 
 window.addEventListener("pagehide", () => {
-  // Desliga a câmera ao sair da página.
+  reading = false;
+
+  if (scanTimer) clearTimeout(scanTimer);
+
   if (stream) {
     stream.getTracks().forEach(track => track.stop());
   }
 });
-</script>
 
+// ------------------------------------------
+// CARREGAR HISTÓRICO
+// ------------------------------------------
+
+updateCount();
+renderHistory();
+
+</script>
 </body>
 </html>
