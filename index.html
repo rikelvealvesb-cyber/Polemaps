@@ -1,392 +1,433 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App de Mobilidade - Firebase</title>
-    <!-- Leaflet CSS para o Mapa -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        * { box-sizing: border-box; font-family: Arial, sans-serif; }
-        body { margin: 0; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .app-container { width: 100%; max-width: 480px; height: 100%; max-height: 850px; background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden; position: relative; }
-        .screen { flex: 1; display: none; flex-direction: column; padding: 20px; overflow-y: auto; }
-        .screen.active { display: flex; }
-        h2 { color: #333; margin-top: 0; }
-        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
-        button { width: 100%; padding: 12px; background: #000; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; margin-top: 10px; }
-        button:hover { background: #333; }
-        .toggle-link { text-align: center; margin-top: 15px; color: #007bff; cursor: pointer; font-size: 14px; }
-        #map { width: 100%; height: 300px; border-radius: 8px; margin: 10px 0; }
-        .card { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #000; }
-        .badge { display: inline-block; padding: 4px 8px; background: #e2e8f0; border-radius: 4px; font-size: 12px; font-weight: bold; margin-bottom: 5px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#101827">
+<title>Leitor Inteligente de Etiquetas</title>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;background:#101827;color:#f8fafc;
+  font-family:Arial,sans-serif;
+}
+header{
+  padding:18px 16px;background:#172338;
+  display:flex;align-items:center;gap:12px;
+  border-bottom:1px solid #29364b;
+}
+.logo{
+  width:43px;height:43px;border-radius:12px;
+  background:#16a34a;display:grid;place-items:center;
+  font-size:23px;
+}
+h1{font-size:18px;margin:0}
+header small{color:#94a3b8}
+main{max-width:600px;margin:auto;padding:15px}
+.camera{
+  position:relative;width:100%;aspect-ratio:4/3;
+  background:#050a12;border-radius:18px;overflow:hidden;
+}
+video{width:100%;height:100%;object-fit:cover}
+.frame{
+  position:absolute;left:10%;top:23%;
+  width:80%;height:54%;
+  border:2px solid #4ade80;border-radius:12px;
+  box-shadow:0 0 0 1000px #0005;
+  pointer-events:none;
+}
+.frame:after{
+  content:"";position:absolute;left:0;right:0;top:50%;
+  height:2px;background:#4ade80;
+  box-shadow:0 0 10px #4ade80;
+}
+.camera-label{
+  position:absolute;bottom:10px;left:0;right:0;
+  text-align:center;font-size:12px;
+  text-shadow:0 1px 4px #000;
+}
+.controls{display:flex;gap:9px;margin:13px 0}
+button{
+  border:0;border-radius:12px;padding:14px 10px;
+  font-size:14px;font-weight:bold;cursor:pointer;
+  flex:1;background:#26364c;color:white;
+}
+button.primary{background:#16a34a;color:white}
+button:disabled{opacity:.45}
+.status{
+  background:#172338;border:1px solid #29364b;
+  border-radius:12px;padding:12px;margin:12px 0;
+  font-size:13px;color:#cbd5e1;
+}
+.dot{
+  display:inline-block;width:9px;height:9px;
+  background:#f59e0b;border-radius:50%;
+  margin-right:7px;
+}
+.dot.ok{background:#4ade80}
+.card{
+  background:#172338;border:1px solid #29364b;
+  border-radius:16px;padding:16px;margin-top:13px;
+}
+.card h2{font-size:14px;color:#94a3b8;margin:0 0 12px}
+.field{margin:13px 0}
+.field label{
+  display:block;color:#94a3b8;font-size:12px;
+  margin-bottom:5px;
+}
+.value{font-size:23px;font-weight:bold;overflow-wrap:anywhere}
+.measure{color:#4ade80}
+.description{font-size:17px}
+.history-item{
+  border-top:1px solid #29364b;padding:12px 0;
+  display:flex;justify-content:space-between;gap:10px;
+}
+.history-item strong{font-size:15px}
+.history-item small{display:block;color:#94a3b8;margin-top:5px}
+.history-item button{flex:0 0 auto;padding:9px}
+input{
+  width:100%;padding:12px;border-radius:9px;
+  border:1px solid #40506a;background:#101827;
+  color:white;font-size:16px;
+}
+.muted{color:#94a3b8;font-size:12px}
+footer{text-align:center;padding:20px;color:#64748b;font-size:12px}
+</style>
 </head>
 <body>
+<header>
+  <div class="logo">⌗</div>
+  <div>
+    <h1>Leitor de Etiquetas</h1>
+    <small>Reconhecimento inteligente por câmera</small>
+  </div>
+</header>
 
-<div class="app-container">
+<main>
+  <div class="camera">
+    <video id="video" autoplay playsinline muted></video>
+    <div class="frame"></div>
+    <div class="camera-label">Posicione a etiqueta dentro da área</div>
+  </div>
 
-    <!-- TELA 1: LOGIN -->
-    <div id="loginScreen" class="screen active">
-        <h2>Entrar</h2>
-        <input type="text" id="loginUser" placeholder="Usuário / Nome">
-        <input type="password" id="loginPass" placeholder="Senha">
-        <button onclick="fazerLogin()">Entrar</button>
-        <div class="toggle-link" onclick="mudarTela('registerScreen')">Não tem conta? Cadastre-se</div>
+  <div class="controls">
+    <button class="primary" id="cameraBtn">◉ Abrir câmera</button>
+    <button id="scanBtn" disabled>⌕ Ler etiqueta</button>
+  </div>
+  <div class="controls">
+    <button id="autoBtn" disabled>▶ Leitura contínua</button>
+    <button id="stopBtn" disabled>■ Parar</button>
+  </div>
+
+  <div class="status" id="status">
+    <span class="dot"></span>
+    Aguardando inicialização da câmera.
+  </div>
+
+  <section class="card">
+    <h2>RESULTADO DO RECONHECIMENTO</h2>
+    <div class="field">
+      <label>CÓDIGO DO PRODUTO</label>
+      <div class="value" id="code">---</div>
     </div>
-
-    <!-- TELA 2: CADASTRO -->
-    <div id="registerScreen" class="screen">
-        <h2>Criar Conta</h2>
-        <select id="regType" onchange="alternarCamposCadastro()">
-            <option value="passageiro">Passageiro</option>
-            <option value="motorista">Motorista</option>
-        </select>
-        <input type="text" id="regName" placeholder="Nome Completo">
-        <input type="password" id="regPass" placeholder="Senha">
-        <input type="text" id="regPhone" placeholder="Telefone">
-        
-        <!-- Campos exclusivos para motorista -->
-        <div id="driverFields" style="display: none;">
-            <input type="text" id="regVehicleModel" placeholder="Modelo do Veículo (ex: Onix, CG 160)">
-            <input type="text" id="regVehiclePlate" placeholder="Placa do Veículo">
-            <select id="regVehicleType">
-                <option value="moto">Moto</option>
-                <option value="carro">Carro</option>
-            </select>
-        </div>
-
-        <button onclick="fazerCadastro()">Cadastrar</button>
-        <div class="toggle-link" onclick="mudarTela('loginScreen')">Já tem conta? Faça login</div>
+    <div class="field">
+      <label>DESCRIÇÃO</label>
+      <div class="description" id="description">Aguardando leitura...</div>
     </div>
-
-    <!-- TELA 3: PAINEL DO PASSAGEIRO -->
-    <div id="passengerScreen" class="screen">
-        <h2>Olá, <span id="lblPassName"></span></h2>
-        <div id="passengerContent">
-            <label>Para onde vamos?</label>
-            <input type="text" id="destAddress" placeholder="Endereço de destino">
-            <label>Escolha o tipo de veículo:</label>
-            <select id="rideType">
-                <option value="moto">Moto (R$ 10,00)</option>
-                <option value="carro">Carro (R$ 20,00)</option>
-            </select>
-            <button onclick="solicitarCorrida()">Chamar Veículo</button>
-        </div>
-        <div id="passengerStatus" style="display:none;">
-            <div class="card" id="statusCardText">Aguardando motorista aceitar...</div>
-            <div id="mapPass" style="width:100%; height:250px; border-radius:8px;"></div>
-            <div id="pinBox" style="display:none; text-align:center; font-size: 18px; font-weight: bold; margin: 10px 0; background: #e0f2fe; padding: 10px; border-radius: 6px;">
-                Código de verificação: <span id="lblPin" style="color: #0284c7;"></span>
-            </div>
-            <button id="btnConfirmPay" style="display:none; background: #16a34a;" onclick="confirmarPagamentoPassageiro()">Confirmar Pagamento em Dinheiro</button>
-        </div>
+    <div class="field">
+      <label>MEDIDAS</label>
+      <div class="value measure" id="measure">---</div>
     </div>
-
-    <!-- TELA 4: PAINEL DO MOTORISTA -->
-    <div id="driverScreen" class="screen">
-        <h2>Painel Motorista (<span id="lblDriverStatus" style="color: green;">Disponível</span>)</h2>
-        <div id="driverRequests">
-            <p>Procurando solicitações próximas...</p>
-        </div>
-        <div id="driverActiveRide" style="display:none;">
-            <div class="card" id="activeRideInfo"></div>
-            <div id="mapDriver" style="width:100%; height:250px; border-radius:8px;"></div>
-            <input type="text" id="inputPinCode" placeholder="Digite o PIN informado pelo passageiro">
-            <button onclick="verificarPinEIniciar()">Validar Código da Corrida</button>
-            <button id="btnDriverFinished" style="display:none; background: #16a34a;" onclick="concluirCorridaMotorista()">Confirmar Recebimento do Pagamento</button>
-        </div>
+    <div class="controls">
+      <button id="copyBtn">▣ Copiar resultado</button>
+      <button class="primary" id="saveBtn" disabled>＋ Salvar</button>
     </div>
+  </section>
 
-</div>
+  <section class="card">
+    <h2>HISTÓRICO DE LEITURAS</h2>
+    <div class="muted" id="count">0 produtos encontrados</div>
+    <div id="history"></div>
+    <div class="controls">
+      <button id="csvBtn">↓ Exportar CSV</button>
+      <button id="clearBtn">Limpar histórico</button>
+    </div>
+  </section>
 
-<!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-<!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <section class="card">
+    <h2>TEXTO ORIGINAL DO OCR</h2>
+    <div class="muted" id="raw">O texto reconhecido aparecerá aqui.</div>
+  </section>
+</main>
+<footer>Leitor de etiquetas • Processamento OCR no navegador</footer>
 
 <script>
-    // Configuração do Firebase fornecida
-    const firebaseConfig = {
-        apiKey: "AlzaSyCTkq0uXy5kHg9N8rj9--Dooh8cuguYxPE",
-        databaseURL: "https://subjectrobot-49600-default-rtdb.firebaseio.com/",
-        projectId: "subjectrobot-49600",
-        storageBucket: "subjectrobot-49600.appspot.com",
-        appId: "1:731604558049:android:7f47b30b289445814017a0"
+const $ = id => document.getElementById(id);
+let stream = null;
+let worker = null;
+let busy = false;
+let continuous = false;
+let lastResult = null;
+let history = JSON.parse(localStorage.getItem("labelHistory") || "[]");
+
+function status(text,ok=false){
+  $("status").innerHTML =
+    `<span class="dot ${ok?"ok":""}"></span>${text}`;
+}
+
+async function startCamera(){
+  try{
+    if(!navigator.mediaDevices?.getUserMedia){
+      throw new Error("Câmera indisponível. Abra o site em HTTPS.");
+    }
+    stream = await navigator.mediaDevices.getUserMedia({
+      audio:false,
+      video:{
+        facingMode:{ideal:"environment"},
+        width:{ideal:1280},
+        height:{ideal:720}
+      }
+    });
+    $("video").srcObject=stream;
+    await $("video").play();
+    $("cameraBtn").textContent="✓ Câmera ativa";
+    $("scanBtn").disabled=false;
+    $("autoBtn").disabled=false;
+    status("Câmera ativa. Posicione a etiqueta.",true);
+  }catch(e){
+    status("Erro ao abrir câmera: "+e.message);
+  }
+}
+
+async function getWorker(){
+  if(worker) return worker;
+  status("Carregando reconhecimento de texto...");
+  worker=await Tesseract.createWorker("por",1,{
+    logger:m=>{
+      if(m.status==="recognizing text"){
+        status("Reconhecendo texto: "+Math.round(m.progress*100)+"%");
+      }
+    }
+  });
+  return worker;
+}
+
+// Extrai medidas como 3000mm x 200mm x 8mm,
+// 90x90, 120 x 120 ou 1200×600×15.
+function extractMeasures(text){
+  const normalized=text
+    .replace(/[×✕*]/g,"x")
+    .replace(/[.,](?=\d)/g,",");
+  const regex=/(?<!\d)(\d{2,5}(?:[.,]\d+)?)\s*(?:mm)?\s*x\s*(\d{2,5}(?:[.,]\d+)?)\s*(?:mm)?(?:\s*x\s*(\d{1,5}(?:[.,]\d+)?)\s*(?:mm)?)?/gi;
+  const results=[];
+  let match;
+  while((match=regex.exec(normalized))!==null){
+    const vals=match.slice(1).filter(Boolean);
+    results.push({
+      raw:match[0].trim(),
+      values:vals.map(v=>v.replace(",","."))
+    });
+  }
+  return results;
+}
+
+// Busca o código numérico próximo do hífen.
+// Também aceita o código após o hífen, caso a
+// etiqueta tenha essa disposição.
+function extractCode(text,measures){
+  const cleaned=text.replace(/[‐‑‒–—]/g,"-");
+  const patterns=[
+    /(\d{4,10})\s*-\s*[A-ZÀ-Ú]{1,8}\b/i,
+    /\b[A-ZÀ-Ú]{1,8}\s*-\s*(\d{4,10})\b/i,
+    /(\d{4,10})\s*-/,
+    /-\s*(\d{4,10})\b/
+  ];
+  for(const re of patterns){
+    const m=cleaned.match(re);
+    if(m) return m[1];
+  }
+
+  // Alternativa: número isolado de 4 a 10 dígitos,
+  // excluindo números que façam parte das medidas.
+  let remaining=cleaned;
+  for(const m of measures){
+    remaining=remaining.replace(m.raw," ");
+  }
+  const candidates=remaining.match(/\b\d{4,10}\b/g);
+  return candidates ? candidates[0] : "";
+}
+
+function extractDescription(text,code){
+  const lines=text.split(/\n/)
+    .map(s=>s.trim())
+    .filter(Boolean);
+  const filtered=lines.filter(line=>{
+    const clean=line.replace(/[‐‑‒–—]/g,"-");
+    if(code && clean.includes(code)) return false;
+    if(extractMeasures(line).length) return false;
+    return /[A-Za-zÀ-ú]{2,}/.test(line);
+  });
+  return filtered.join(" ").replace(/\s+/g," ").trim();
+}
+
+function parseLabel(text){
+  const measures=extractMeasures(text);
+  const code=extractCode(text,measures);
+  const description=extractDescription(text,code);
+  return {
+    code,
+    description,
+    measure:measures[0]?.values.join(" x ") || "",
+    rawMeasure:measures[0]?.raw || "",
+    raw:text
+  };
+}
+
+async function recognize(){
+  if(busy || !$("video").videoWidth) return;
+  busy=true;
+  $("scanBtn").disabled=true;
+  try{
+    const video=$("video");
+    const canvas=document.createElement("canvas");
+    const scale=Math.min(1,1280/video.videoWidth);
+    canvas.width=Math.round(video.videoWidth*scale);
+    canvas.height=Math.round(video.videoHeight*scale);
+    const ctx=canvas.getContext("2d",{willReadFrequently:true});
+    ctx.drawImage(video,0,0,canvas.width,canvas.height);
+
+    const ocr=await getWorker();
+    const result=await ocr.recognize(canvas);
+    const text=result.data.text || "";
+    const parsed=parseLabel(text);
+
+    $("raw").textContent=text || "Nenhum texto encontrado.";
+    $("code").textContent=parsed.code || "Não identificado";
+    $("description").textContent=parsed.description || "Não identificada";
+    $("measure").textContent=parsed.measure || "Não identificada";
+
+    if(parsed.code || parsed.measure){
+      lastResult=parsed;
+      $("saveBtn").disabled=false;
+      status("Leitura concluída. Confira os dados.",true);
+    }else{
+      lastResult=null;
+      $("saveBtn").disabled=true;
+      status("Não foi possível identificar o código ou as medidas. Tente aproximar a câmera.");
+    }
+  }catch(e){
+    status("Erro no OCR: "+e.message);
+  }finally{
+    busy=false;
+    $("scanBtn").disabled=false;
+    if(continuous){
+      setTimeout(()=>{
+        if(continuous) recognize();
+      },1200);
+    }
+  }
+}
+
+function renderHistory(){
+  $("count").textContent=history.length+
+    (history.length===1?" produto encontrado":" produtos encontrados");
+  $("history").innerHTML="";
+  history.forEach((item,index)=>{
+    const div=document.createElement("div");
+    div.className="history-item";
+    const info=document.createElement("div");
+    const strong=document.createElement("strong");
+    strong.textContent=item.code || "Sem código";
+    const small=document.createElement("small");
+    small.textContent=(item.description||"")+
+      (item.measure?" • "+item.measure+" mm":"");
+    info.append(strong,small);
+    const del=document.createElement("button");
+    del.textContent="×";
+    del.style.flex="0 0 42px";
+    del.onclick=()=>{
+      history.splice(index,1);
+      persist();
     };
+    div.append(info,del);
+    $("history").append(div);
+  });
+}
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+function persist(){
+  localStorage.setItem("labelHistory",JSON.stringify(history));
+  renderHistory();
+}
 
-    let currentUser = null;
-    let currentRideId = null;
-    let mapPass, mapDriver, markerPass, markerDriver;
+function saveResult(){
+  if(!lastResult) return;
+  const key=[lastResult.code,lastResult.measure].join("|");
+  if(!history.some(x=>[x.code,x.measure].join("|")===key)){
+    history.unshift({
+      ...lastResult,
+      date:new Date().toLocaleString("pt-BR")
+    });
+    persist();
+    status("Produto salvo no histórico.",true);
+  }else{
+    status("Este produto já está no histórico.");
+  }
+}
 
-    function mudarTela(screenId) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(screenId).classList.add('active');
-    }
+function copyResult(){
+  if(!lastResult) return;
+  const text=[
+    "Código: "+(lastResult.code||""),
+    "Descrição: "+(lastResult.description||""),
+    "Medidas: "+(lastResult.measure||""),
+    "OCR: "+lastResult.raw
+  ].join("\n");
+  navigator.clipboard?.writeText(text)
+    .then(()=>status("Resultado copiado.",true))
+    .catch(()=>status("Não foi possível copiar."));
+}
 
-    function alternarCamposCadastro() {
-        const type = document.getElementById('regType').value;
-        document.getElementById('driverFields').style.display = (type === 'motorista') ? 'block' : 'none';
-    }
+function exportCSV(){
+  const rows=[["Código","Descrição","Medidas","Data"]];
+  history.forEach(x=>rows.push([
+    x.code,x.description,x.measure,x.date
+  ]));
+  const csv=rows.map(row=>row.map(v=>
+    '"'+String(v||"").replace(/"/g,'""')+'"'
+  ).join(";")).join("\r\n");
+  const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;a.download="leituras_etiquetas.csv";a.click();
+  URL.revokeObjectURL(url);
+}
 
-    // CADASTRO NO DATABASE
-    function fazerCadastro() {
-        const type = document.getElementById('regType').value;
-        const name = document.getElementById('regName').value.trim();
-        const pass = document.getElementById('regPass').value;
-        const phone = document.getElementById('regPhone').value.trim();
+$("cameraBtn").onclick=startCamera;
+$("scanBtn").onclick=recognize;
+$("autoBtn").onclick=()=>{
+  continuous=true;
+  $("autoBtn").disabled=true;
+  $("stopBtn").disabled=false;
+  recognize();
+};
+$("stopBtn").onclick=()=>{
+  continuous=false;
+  $("autoBtn").disabled=false;
+  $("stopBtn").disabled=true;
+};
+$("saveBtn").onclick=saveResult;
+$("copyBtn").onclick=copyResult;
+$("csvBtn").onclick=exportCSV;
+$("clearBtn").onclick=()=>{
+  if(confirm("Apagar todo o histórico?")){
+    history=[];
+    persist();
+  }
+};
 
-        if(!name || !pass) {
-            alert('Preencha nome e senha!');
-            return;
-        }
-
-        const userData = { type, name, pass, phone, available: true };
-
-        if(type === 'motorista') {
-            userData.vehicleModel = document.getElementById('regVehicleModel').value;
-            userData.vehiclePlate = document.getElementById('regVehiclePlate').value;
-            userData.vehicleType = document.getElementById('regVehicleType').value;
-            userData.lat = -23.5505; // Coordenada padrão (São Paulo)
-            userData.lng = -46.6333;
-        }
-
-        db.ref('users/' + name.replace(/[.#$\/\[\]]/g, '_')).set(userData)
-        .then(() => {
-            alert('Cadastro realizado com sucesso!');
-            mudarTela('loginScreen');
-        })
-        .catch(err => alert('Erro: ' + err.message));
-    }
-
-    // LOGIN NO DATABASE
-    function fazerLogin() {
-        const name = document.getElementById('loginUser').value.trim();
-        const pass = document.getElementById('loginPass').value;
-
-        db.ref('users/' + name.replace(/[.#$\/\[\]]/g, '_')).once('value', snapshot => {
-            const user = snapshot.val();
-            if(user && user.pass === pass) {
-                currentUser = { id: name.replace(/[.#$\/\[\]]/g, '_'), ...user };
-                if(user.type === 'passageiro') {
-                    document.getElementById('lblPassName').innerText = user.name;
-                    mudarTela('passengerScreen');
-                } else {
-                    mudarTela('driverScreen');
-                    iniciarPainelMotorista();
-                }
-            } else {
-                alert('Usuário ou senha incorretos!');
-            }
-        });
-    }
-
-    // PASSAGEIRO: SOLICITAR CORRIDA
-    function solicitarCorrida() {
-        const destination = document.getElementById('destAddress').value;
-        const rideType = document.getElementById('rideType').value;
-        const pinCode = Math.floor(1000 + Math.random() * 9000).toString();
-
-        if(!destination) {
-            alert('Informe o endereço de destino!');
-            return;
-        }
-
-        const rideData = {
-            passengerId: currentUser.id,
-            passengerName: currentUser.name,
-            destination: destination,
-            rideType: rideType,
-            status: 'procurando', // procurando, aceito, em_andamento, pago, concluido
-            pin: pinCode,
-            lat: -23.5510,
-            lng: -46.6340
-        };
-
-        const newRideRef = db.ref('rides').push();
-        currentRideId = newRideRef.key;
-        newRideRef.set(rideData);
-
-        document.getElementById('passengerContent').style.display = 'none';
-        document.getElementById('passengerStatus').style.display = 'block';
-        document.getElementById('statusCardText').innerText = 'Procurando motorista disponível...';
-
-        setTimeout(() => {
-            initMapPass();
-        }, 300);
-
-        // Ouvir atualizações da corrida
-        db.ref('rides/' + currentRideId).on('value', snapshot => {
-            const ride = snapshot.val();
-            if(!ride) return;
-
-            if(ride.status === 'aceito' || ride.status === 'em_andamento') {
-                document.getElementById('statusCardText').innerHTML = `Motorista <b>${ride.driverName}</b> a caminho!<br>Veículo: ${ride.vehicleModel} (${ride.vehiclePlate})`;
-                document.getElementById('pinBox').style.display = 'block';
-                document.getElementById('lblPin').innerText = ride.pin;
-
-                // Rastrear motorista em tempo real no mapa
-                if(ride.driverLat && ride.driverLng) {
-                    atualizarMapaPassageiro(ride.driverLat, ride.driverLng);
-                }
-            }
-
-            if(ride.status === 'aguardando_pagamento') {
-                document.getElementById('statusCardText').innerText = 'Corrida finalizada. Pague em dinheiro ao motorista.';
-                document.getElementById('pinBox').style.display = 'none';
-                document.getElementById('btnConfirmPay').style.display = 'block';
-            }
-
-            if(ride.status === 'concluido') {
-                alert('Corrida finalizada e paga com sucesso!');
-                window.location.reload();
-            }
-        });
-    }
-
-    function initMapPass() {
-        if(!mapPass) {
-            mapPass = L.map('mapPass').setView([-23.5510, -46.6340], 15);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.fz', { maxZoom: 19 }).addTo(mapPass);
-            markerPass = L.marker([-23.5510, -46.6340]).addTo(mapPass).bindPopup('Você');
-        }
-    }
-
-    function atualizarMapaPassageiro(lat, lng) {
-        if(mapPass) {
-            if(!markerDriver) {
-                markerDriver = L.marker([lat, lng], {icon: L.divIcon({className: 'car-icon', html: '🚗', iconSize: [24,24]})}).addTo(mapPass);
-            } else {
-                markerDriver.setLatLng([lat, lng]);
-            }
-            mapPass.setView([lat, lng]);
-        }
-    }
-
-    function confirmarPagamentoPassageiro() {
-        db.ref('rides/' + currentRideId + '/passengerConfirmedPayment').set(true);
-        verificarEncerramentoCorrida();
-    }
-
-    // MOTORISTA: PAINEL E MOVIMENTAÇÃO
-    function iniciarPainelMotorista() {
-        // Simular movimentação do motorista enviando coordenadas a cada 3 segundos
-        let dLat = -23.5520;
-        let dLng = -46.6350;
-
-        setInterval(() => {
-            dLat += (Math.random() - 0.5) * 0.001;
-            dLng += (Math.random() - 0.5) * 0.001;
-            db.ref('users/' + currentUser.id).update({ lat: dLat, lng: dLng });
-
-            if(currentRideId) {
-                db.ref('rides/' + currentRideId).update({ driverLat: dLat, driverLng: dLng });
-            }
-        }, 3000);
-
-        // Ouvir solicitações pendentes
-        db.ref('rides').on('value', snapshot => {
-            const rides = snapshot.val();
-            const container = document.getElementById('driverRequests');
-            if(!currentRideId && rides) {
-                let html = '';
-                for(let id in rides) {
-                    const r = rides[id];
-                    if(r.status === 'procurando' && r.rideType === currentUser.vehicleType) {
-                        html += `<div class="card">
-                            <span class="badge">${r.rideType.toUpperCase()}</span>
-                            <p><b>Passageiro:</b> ${r.passengerName}</p>
-                            <p><b>Destino:</b> ${r.destination}</p>
-                            <button onclick="aceitarCorrida('${id}')">Aceitar Corrida</button>
-                        </div>`;
-                    }
-                }
-                container.innerHTML = html || '<p>Nenhuma solicitação no momento.</p>';
-            }
-        });
-    }
-
-    function aceitarCorrida(rideId) {
-        currentRideId = rideId;
-        db.ref('rides/' + rideId).update({
-            status: 'aceito',
-            driverId: currentUser.id,
-            driverName: currentUser.name,
-            vehicleModel: currentUser.vehicleModel,
-            vehiclePlate: currentUser.vehiclePlate
-        }).then(() => {
-            document.getElementById('driverRequests').style.display = 'none';
-            document.getElementById('driverActiveRide').style.display = 'block';
-            document.getElementById('activeRideInfo').innerText = 'Corrida aceita! Siga até o passageiro.';
-            document.getElementById('lblDriverStatus').innerText = 'Em Corrida';
-            document.getElementById('lblDriverStatus').style.color = 'orange';
-
-            setTimeout(() => {
-                initMapDriver();
-            }, 300);
-
-            // Ouvir confirmação de pagamento
-            db.ref('rides/' + rideId).on('value', snapshot => {
-                const r = snapshot.val();
-                if(r && r.passengerConfirmedPayment && r.driverConfirmedPayment) {
-                    db.ref('rides/' + rideId + '/status').set('concluido');
-                    alert('Corrida concluída com sucesso!');
-                    window.location.reload();
-                }
-            });
-        });
-    }
-
-    function initMapDriver() {
-        if(!mapDriver) {
-            mapDriver = L.map('mapDriver').setView([-23.5520, -46.6350], 15);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapDriver);
-            markerDriver = L.marker([-23.5520, -46.6350]).addTo(mapDriver).bindPopup('Seu Veículo');
-        }
-    }
-
-    function verificarPinEIniciar() {
-        const inputPin = document.getElementById('inputPinCode').value.trim();
-        db.ref('rides/' + currentRideId).once('value', snapshot => {
-            const ride = snapshot.val();
-            if(ride.pin === inputPin) {
-                db.ref('rides/' + currentRideId + '/status').set('em_andamento');
-                alert('PIN confirmado! Corrida iniciada.');
-                document.getElementById('inputPinCode').style.display = 'none';
-                document.getElementById('activeRideInfo').innerText = 'Corrida em andamento até o destino.';
-                // No destino, o motorista aguarda o pagamento. Para simular a chegada:
-                setTimeout(() => {
-                    db.ref('rides/' + currentRideId + '/status').set('aguardando_pagamento');
-                    document.getElementById('btnDriverFinished').style.display = 'block';
-                    document.getElementById('activeRideInfo').innerText = 'Chegaram ao destino. Aguardando pagamento em dinheiro.';
-                }, 10000); // Exemplo de término de trajeto
-            } else {
-                alert('PIN incorreto!');
-            }
-        });
-    }
-
-    function concluirCorridaMotorista() {
-        db.ref('rides/' + currentRideId + '/driverConfirmedPayment').set(true);
-        verificarEncerramentoCorrida();
-    }
-
-    function verificarEncerramentoCorrida() {
-        db.ref('rides/' + currentRideId).once('value', snapshot => {
-            const r = snapshot.val();
-            if(r.passengerConfirmedPayment && r.driverConfirmedPayment) {
-                db.ref('rides/' + currentRideId + '/status').set('concluido');
-                db.ref('users/' + currentUser.id + '/available').set(true);
-                alert('Corrida finalizada! Você está disponível novamente.');
-                window.location.reload();
-            }
-        });
-    }
+renderHistory();
 </script>
-
 </body>
 </html>
