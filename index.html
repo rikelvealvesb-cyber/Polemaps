@@ -3,1308 +3,1092 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VERO CLOUD — Plataforma de Mini Servidores Firebase</title>
+<title>VERO CLOUD — Plataforma de Mini Servidores Firebase RTDB</title>
 <!-- Tailwind CSS CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
 tailwind.config = {
-darkMode: 'class',
-theme: {
-extend: {
-colors: {
-darkBg: '#090d16',
-darkCard: '#111827',
-darkBorder: '#1f293d',
-brandBlue: '#3b82f6',
-brandHover: '#2563eb'
-}
-}
-}
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        darkBg: '#090d16',
+        darkCard: '#111827',
+        darkBorder: '#1f293d',
+        brandBlue: '#3b82f6',
+        brandHover: '#2563eb'
+      }
+    }
+  }
 }
 </script>
 <!-- FontAwesome Icons -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<!-- Google Fonts Inter -->
+<!-- Google Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-body { font-family: 'Inter', sans-serif; }
-.mono { font-family: 'JetBrains Mono', monospace; }
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #090d16; }
-::-webkit-scrollbar-thumb { background: #1f293d; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
+  body { font-family: 'Inter', sans-serif; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #090d16; }
+  ::-webkit-scrollbar-thumb { background: #1f293d; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
 </style>
 </head>
 <body class="bg-darkBg text-gray-100 min-h-screen flex flex-col selection:bg-brandBlue selection:text-white">
-​<!-- Toast Notification Container -->
+
+<!-- Toast Notification Container -->
 <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
-​<!-- AUTHENTICATION VIEW -->
-<div id="auth-view" class="flex-1 flex items-center justify-center p-4">
-<div class="max-w-md w-full bg-darkCard border border-darkBorder rounded-2xl p-8 shadow-2xl relative overflow-hidden">
-<div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
-​<div class="text-center mb-8">
-<div class="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-blue-600/10 text-brandBlue mb-4 text-2xl font-bold border border-blue-500/20 shadow-inner">
-<i class="fa-solid fa-cloud-bolt"></i>
-</div>
-<h1 class="text-2xl font-bold tracking-tight text-white">VERO CLOUD</h1>
-<p class="text-sm text-gray-400 mt-1">Plataforma Profissional de Mini Servidores Firebase</p>
-</div>
-​<!-- Tab Switcher -->
-<div class="flex bg-gray-900/60 p-1 rounded-xl mb-6 border border-darkBorder">
-<button onclick="switchAuthTab('login')" id="tab-login" class="flex-1 py-2 text-xs font-semibold rounded-lg bg-brandBlue text-white shadow transition">Entrar</button>
-<button onclick="switchAuthTab('register')" id="tab-register" class="flex-1 py-2 text-xs font-semibold rounded-lg text-gray-400 hover:text-white transition">Criar Conta</button>
-</div>
-​<!-- Login Form -->
-<form id="form-login" onsubmit="handleLogin(event)" class="space-y-4">
-<div>
-<label class="block text-xs font-medium text-gray-300 mb-1">E-mail ou Nome de Usuário</label>
-<div class="relative">
-<span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500"><i class="fa-solid fa-user"></i></span>
-<input type="text" id="login-identifier" required class="w-full bg-gray-900/80 border border-darkBorder rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-brandBlue transition" placeholder="dev@verocloud.io">
-</div>
-</div>
-<div>
-<div class="flex justify-between items-center mb-1">
-<label class="block text-xs font-medium text-gray-300">Senha</label>
-<a href="#" onclick="showForgotPassword(event)" class="text-xs text-brandBlue hover:underline">Esqueceu a senha?</a>
-</div>
-<div class="relative">
-<span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500"><i class="fa-solid fa-lock"></i></span>
-<input type="password" id="login-password" required class="w-full bg-gray-900/80 border border-darkBorder rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-brandBlue transition" placeholder="••••••••">
-</div>
-</div>
-<div class="flex items-center justify-between text-xs text-gray-400">
-<label class="flex items-center gap-2 cursor-pointer">
-<input type="checkbox" id="remember-me" class="rounded bg-gray-900 border-darkBorder text-brandBlue focus:ring-0"> Manter sessão iniciada
-</label>
-</div>
-<button type="submit" class="w-full py-3 bg-brandBlue hover:bg-brandHover text-white rounded-xl font-semibold text-sm shadow-lg shadow-blue-500/20 transition flex items-center justify-center gap-2">
-<i class="fa-solid fa-right-to-bracket"></i> Acessar Painel
-</button>
-</form>
-​<!-- Register Form -->
-<form id="form-register" onsubmit="handleRegister(event)" class="space-y-4 hidden">
-<div>
-<label class="block text-xs font-medium text-gray-300 mb-1">Nome de Usuário Exclusivo</label>
-<div class="relative">
-<span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500"><i class="fa-solid fa-at"></i></span>
-<input type="text" id="reg-username" required class="w-full bg-gray-900/80 border border-darkBorder rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-brandBlue transition" placeholder="dev_master">
-</div>
-</div>
-<div>
-<label class="block text-xs font-medium text-gray-300 mb-1">E-mail</label>
-<div class="relative">
-<span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500"><i class="fa-solid fa-envelope"></i></span>
-<input type="email" id="reg-email" required class="w-full bg-gray-900/80 border border-darkBorder rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-brandBlue transition" placeholder="dev@verocloud.io">
-</div>
-</div>
-<div>
-<label class="block text-xs font-medium text-gray-300 mb-1">Senha</label>
-<div class="relative">
-<span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500"><i class="fa-solid fa-lock"></i></span>
-<input type="password" id="reg-password" required class="w-full bg-gray-900/80 border border-darkBorder rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-brandBlue transition" placeholder="••••••••">
-</div>
-</div>
-<div>
-<label class="block text-xs font-medium text-gray-300 mb-1">Confirmar Senha</label>
-<div class="relative">
-<span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500"><i class="fa-solid fa-lock"></i></span>
-<input type="password" id="reg-password-confirm" required class="w-full bg-gray-900/80 border border-darkBorder rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-brandBlue transition" placeholder="••••••••">
-</div>
-</div>
-<div class="flex items-start gap-2 text-xs text-gray-400">
-<input type="checkbox" id="terms-agree" required class="mt-0.5 rounded bg-gray-900 border-darkBorder text-brandBlue focus:ring-0">
-<label for="terms-agree">Concordo com os <a href="#" class="text-brandBlue hover:underline">Termos de Uso</a> e Políticas de Infraestrutura.</label>
-</div>
-<button type="submit" class="w-full py-3 bg-brandBlue hover:bg-brandHover text-white rounded-xl font-semibold text-sm shadow-lg shadow-blue-500/20 transition flex items-center justify-center gap-2">
-<i class="fa-solid fa-user-plus"></i> Criar Conta Gratuita
-</button>
-</form>
-​<div class="mt-6 pt-6 border-t border-darkBorder text-center text-xs text-gray-500">
-Infraestrutura centralizada Firebase • SDK Modular v10+
-</div>
-</div>
-</div>
-​<!-- MAIN APP WRAPPER (Hidden by default) -->
-<div id="app-wrapper" class="flex-1 flex flex-col hidden">
-​<!-- Top Navbar -->
+
+<!-- MAIN APP WRAPPER -->
+<div id="app-wrapper" class="flex-1 flex flex-col">
+
+<!-- Top Navbar -->
 <header class="h-16 bg-darkCard border-b border-darkBorder flex items-center justify-between px-4 lg:px-8 sticky top-0 z-40">
-<div class="flex items-center gap-4">
-<button onclick="toggleSidebar()" class="lg:hidden text-gray-400 hover:text-white text-xl p-2"><i class="fa-solid fa-bars"></i></button>
-<div class="flex items-center gap-2 font-bold text-lg text-white">
-<span class="w-8 h-8 rounded-lg bg-blue-600/20 text-brandBlue flex items-center justify-center border border-blue-500/30"><i class="fa-solid fa-cloud-bolt"></i></span>
-<span>VERO CLOUD</span>
-<span class="text-xs bg-brandBlue/10 text-brandBlue px-2 py-0.5 rounded-full border border-brandBlue/30 hidden sm:inline">v2.4 PRO</span>
-</div>
-</div>
-​<div class="flex items-center gap-4">
-<!-- Theme Toggle -->
-<button onclick="toggleTheme()" class="w-10 h-10 rounded-xl bg-gray-900 border border-darkBorder text-gray-400 hover:text-white flex items-center justify-center transition" title="Alternar Tema">
-<i id="theme-icon" class="fa-solid fa-moon"></i>
-</button>
-​<!-- Quick Server Creator Button -->
-<button onclick="openServerModal()" class="hidden sm:flex items-center gap-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-lg shadow-blue-500/25 transition">
-<i class="fa-solid fa-plus"></i> Criar Novo Servidor
-</button>
-​<!-- User Profile Dropdown -->
-<div class="relative">
-<button onclick="toggleUserDropdown()" class="flex items-center gap-3 bg-gray-900/80 border border-darkBorder px-3 py-1.5 rounded-xl hover:border-gray-700 transition">
-<div id="user-avatar-initials" class="w-8 h-8 rounded-lg bg-brandBlue text-white font-bold flex items-center justify-center text-xs">VC</div>
-<div class="text-left hidden md:block">
-<div id="nav-username" class="text-xs font-bold text-white">Desenvolvedor</div>
-<div id="nav-plan" class="text-[10px] text-gray-400">Plano Gratuito</div>
-</div>
-<i class="fa-solid fa-chevron-down text-xs text-gray-500"></i>
-</button>
-​<!-- Dropdown Menu -->
-<div id="user-dropdown" class="absolute right-0 mt-2 w-56 bg-darkCard border border-darkBorder rounded-xl shadow-2xl py-2 hidden z-50">
-<div class="px-4 py-2 border-b border-darkBorder">
-<p class="text-xs text-gray-400">Conectado como</p>
-<p id="dropdown-email" class="text-xs font-medium text-white truncate">dev@verocloud.io</p>
-</div>
-<a href="#" onclick="switchView('profile'); closeUserDropdown();" class="flex items-center gap-2 px-4 py-2 text-xs text-gray-300 hover:bg-gray-800 transition"><i class="fa-solid fa-user-gear w-4"></i> Meu Perfil</a>
-<a href="#" onclick="switchView('limits'); closeUserDropdown();" class="flex items-center gap-2 px-4 py-2 text-xs text-gray-300 hover:bg-gray-800 transition"><i class="fa-solid fa-chart-pie w-4"></i> Planos & Limites</a>
-<div class="my-1 border-t border-darkBorder"></div>
-<a href="#" onclick="handleLogout()" class="flex items-center gap-2 px-4 py-2 text-xs text-red-400 hover:bg-red-500/10 transition"><i class="fa-solid fa-arrow-right-from-bracket w-4"></i> Sair da Conta</a>
-</div>
-</div>
-</div>
+  <div class="flex items-center gap-4">
+    <button onclick="toggleSidebar()" class="lg:hidden text-gray-400 hover:text-white text-xl p-2"><i class="fa-solid fa-bars"></i></button>
+    <div class="flex items-center gap-2 font-bold text-lg text-white">
+      <span class="w-8 h-8 rounded-lg bg-blue-600/20 text-brandBlue flex items-center justify-center border border-blue-500/30"><i class="fa-solid fa-cloud-bolt"></i></span>
+      <span>VERO CLOUD</span>
+      <span class="text-xs bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/30 hidden sm:inline flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> 100% Firebase Realtime DB
+      </span>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <button onclick="toggleTheme()" class="w-10 h-10 rounded-xl bg-gray-900 border border-darkBorder text-gray-400 hover:text-white flex items-center justify-center transition" title="Alternar Tema">
+      <i id="theme-icon" class="fa-solid fa-moon"></i>
+    </button>
+
+    <button onclick="openServerModal()" class="hidden sm:flex items-center gap-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-lg shadow-blue-500/25 transition">
+      <i class="fa-solid fa-plus"></i> Criar Novo Servidor
+    </button>
+
+    <div class="relative">
+      <button onclick="toggleUserDropdown()" class="flex items-center gap-3 bg-gray-900/80 border border-darkBorder px-3 py-1.5 rounded-xl hover:border-gray-700 transition">
+        <div id="user-avatar-initials" class="w-8 h-8 rounded-lg bg-brandBlue text-white font-bold flex items-center justify-center text-xs">DV</div>
+        <div class="text-left hidden md:block">
+          <div id="nav-username" class="text-xs font-bold text-white">Desenvolvedor</div>
+          <div class="text-[10px] text-emerald-400 font-mono">RTDB Sincronizado</div>
+        </div>
+        <i class="fa-solid fa-chevron-down text-xs text-gray-500"></i>
+      </button>
+
+      <div id="user-dropdown" class="absolute right-0 mt-2 w-56 bg-darkCard border border-darkBorder rounded-xl shadow-2xl py-2 hidden z-50">
+        <div class="px-4 py-2 border-b border-darkBorder">
+          <p class="text-xs text-gray-400">Database URL</p>
+          <p class="text-[10px] font-mono text-brandBlue truncate">subjectrobot-49600-default-rtdb</p>
+        </div>
+        <a href="#" onclick="switchView('profile'); closeUserDropdown();" class="flex items-center gap-2 px-4 py-2 text-xs text-gray-300 hover:bg-gray-800 transition"><i class="fa-solid fa-user-gear w-4"></i> Meu Perfil</a>
+        <a href="#" onclick="switchView('limits'); closeUserDropdown();" class="flex items-center gap-2 px-4 py-2 text-xs text-gray-300 hover:bg-gray-800 transition"><i class="fa-solid fa-chart-pie w-4"></i> Planos & Limites</a>
+      </div>
+    </div>
+  </div>
 </header>
-​<!-- Main Layout Body -->
+
+<!-- Main Layout Body -->
 <div class="flex-1 flex relative">
-​<!-- Sidebar Navigation -->
+
+<!-- Sidebar Navigation -->
 <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-30 w-64 bg-darkCard border-r border-darkBorder transform -translate-x-full lg:translate-x-0 transition-transform duration-300 flex flex-col">
-<div class="p-4 border-b border-darkBorder flex items-center justify-between lg:hidden">
-<span class="font-bold text-white">Navegação</span>
-<button onclick="toggleSidebar()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-</div>
-<div class="flex-1 overflow-y-auto p-4 space-y-6">
-<div>
-<p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">Geral</p>
-<nav class="space-y-1">
-<button onclick="switchView('dashboard')" id="nav-btn-dashboard" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-white bg-brandBlue shadow-lg shadow-blue-500/20 transition">
-<i class="fa-solid fa-chart-line w-5 text-center"></i> Dashboard
-</button>
-<button onclick="switchView('servers')" id="nav-btn-servers" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition">
-<i class="fa-solid fa-server w-5 text-center"></i> Meus Servidores
-</button>
-<button onclick="switchView('keys')" id="nav-btn-keys" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition">
-<i class="fa-solid fa-key w-5 text-center"></i> Chaves de Acesso
-</button>
-</nav>
-</div>
-​<div>
-<p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">Ferramentas</p>
-<nav class="space-y-1">
-<button onclick="switchView('database')" id="nav-btn-database" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition">
-<i class="fa-solid fa-database w-5 text-center"></i> Banco de Dados
-</button>
-<button onclick="switchView('files')" id="nav-btn-files" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition">
-<i class="fa-solid fa-folder-open w-5 text-center"></i> Gerenciador de Arquivos
-</button>
-<button onclick="switchView('monitor')" id="nav-btn-monitor" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition">
-<i class="fa-solid fa-heart-pulse w-5 text-center"></i> Monitoramento
-</button>
-<button onclick="switchView('logs')" id="nav-btn-logs" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition">
-<i class="fa-solid fa-clock-rotate-left w-5 text-center"></i> Logs & Histórico
-</button>
-</nav>
-</div>
-​<div>
-<p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">Plataforma</p>
-<nav class="space-y-1">
-<button onclick="switchView('docs')" id="nav-btn-docs" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition">
-<i class="fa-solid fa-book w-5 text-center"></i> Documentação & API
-</button>
-<button onclick="switchView('limits')" id="nav-btn-limits" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition">
-<i class="fa-solid fa-gauge-high w-5 text-center"></i> Limites & Planos
-</button>
-<button id="admin-nav-btn" onclick="switchView('admin')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-amber-400 hover:bg-amber-500/10 transition hidden">
-<i class="fa-solid fa-shield-halved w-5 text-center"></i> Painel Admin
-</button>
-</nav>
-</div>
-</div>
-​<div class="p-4 border-t border-darkBorder">
-<div class="bg-gray-900/80 p-3 rounded-xl border border-darkBorder">
-<div class="flex justify-between items-center mb-1 text-[11px]">
-<span class="text-gray-400">Armazenamento</span>
-<span id="sidebar-storage-text" class="text-white font-medium">12.4 MB / 500 MB</span>
-</div>
-<div class="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
-<div id="sidebar-storage-bar" class="h-full bg-brandBlue rounded-full" style="width: 2.5%"></div>
-</div>
-</div>
-</div>
+  <div class="p-4 border-b border-darkBorder flex items-center justify-between lg:hidden">
+    <span class="font-bold text-white">Navegação</span>
+    <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="flex-1 overflow-y-auto p-4 space-y-6">
+    <div>
+      <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">Geral</p>
+      <nav class="space-y-1">
+        <button onclick="switchView('dashboard')" id="nav-btn-dashboard" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-white bg-brandBlue shadow-lg shadow-blue-500/20 transition">
+          <i class="fa-solid fa-chart-line w-5 text-center"></i> Dashboard
+        </button>
+        <button onclick="switchView('servers')" id="nav-btn-servers" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition">
+          <i class="fa-solid fa-server w-5 text-center"></i> Meus Servidores
+        </button>
+        <button onclick="switchView('keys')" id="nav-btn-keys" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition">
+          <i class="fa-solid fa-key w-5 text-center"></i> Chaves de Acesso
+        </button>
+      </nav>
+    </div>
+
+    <div>
+      <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">Ferramentas DB</p>
+      <nav class="space-y-1">
+        <button onclick="switchView('database')" id="nav-btn-database" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition">
+          <i class="fa-solid fa-database w-5 text-center"></i> Banco de Dados RTDB
+        </button>
+        <button onclick="switchView('files')" id="nav-btn-files" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition">
+          <i class="fa-solid fa-folder-open w-5 text-center"></i> Arquivos no RTDB
+        </button>
+        <button onclick="switchView('monitor')" id="nav-btn-monitor" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition">
+          <i class="fa-solid fa-heart-pulse w-5 text-center"></i> Monitoramento
+        </button>
+        <button onclick="switchView('logs')" id="nav-btn-logs" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition">
+          <i class="fa-solid fa-clock-rotate-left w-5 text-center"></i> Logs & Auditoria
+        </button>
+      </nav>
+    </div>
+
+    <div>
+      <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">Plataforma</p>
+      <nav class="space-y-1">
+        <button onclick="switchView('docs')" id="nav-btn-docs" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition">
+          <i class="fa-solid fa-book w-5 text-center"></i> Documentação & API
+        </button>
+        <button onclick="switchView('limits')" id="nav-btn-limits" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition">
+          <i class="fa-solid fa-gauge-high w-5 text-center"></i> Limites & Planos
+        </button>
+        <button id="admin-nav-btn" onclick="switchView('admin')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-amber-400 hover:bg-amber-500/10 transition">
+          <i class="fa-solid fa-shield-halved w-5 text-center"></i> Painel Admin
+        </button>
+      </nav>
+    </div>
+  </div>
+
+  <div class="p-4 border-t border-darkBorder">
+    <div class="bg-gray-900/80 p-3 rounded-xl border border-darkBorder">
+      <div class="flex justify-between items-center mb-1 text-[11px]">
+        <span class="text-gray-400">Banco de Dados RTDB</span>
+        <span id="sidebar-storage-text" class="text-white font-medium">Sincronizado</span>
+      </div>
+      <div class="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
+        <div class="h-full bg-brandBlue rounded-full" style="width: 15%"></div>
+      </div>
+    </div>
+  </div>
 </aside>
-​<!-- Main Content Area -->
+
+<!-- Main Content Area -->
 <main class="flex-1 p-4 lg:p-8 overflow-y-auto bg-darkBg">
-​<!-- VIEW 1: DASHBOARD -->
-<section id="view-dashboard" class="space-y-6">
-<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-<div>
-<h2 class="text-xl font-bold text-white">Dashboard do Desenvolvedor</h2>
-<p class="text-xs text-gray-400">Visão geral da sua infraestrutura de mini servidores no Firebase.</p>
-</div>
-<button onclick="openServerModal()" class="sm:hidden flex items-center gap-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow">
-<i class="fa-solid fa-plus"></i> Criar Novo Servidor
-</button>
-</div>
-​<!-- Metrics Cards Grid -->
-<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-<div class="bg-darkCard border border-darkBorder p-4 rounded-2xl shadow-sm">
-<div class="text-gray-400 text-xs mb-1">Total Servidores</div>
-<div id="stat-total-servers" class="text-2xl font-bold text-white">0</div>
-</div>
-<div class="bg-darkCard border border-darkBorder p-4 rounded-2xl shadow-sm">
-<div class="text-gray-400 text-xs mb-1">Servidores Ativos</div>
-<div id="stat-active-servers" class="text-2xl font-bold text-emerald-400">0</div>
-</div>
-<div class="bg-darkCard border border-darkBorder p-4 rounded-2xl shadow-sm">
-<div class="text-gray-400 text-xs mb-1">Servidores Pausados</div>
-<div id="stat-paused-servers" class="text-2xl font-bold text-amber-400">0</div>
-</div>
-<div class="bg-darkCard border border-darkBorder p-4 rounded-2xl shadow-sm">
-<div class="text-gray-400 text-xs mb-1">Total Requisições</div>
-<div id="stat-total-reqs" class="text-2xl font-bold text-brandBlue">0</div>
-</div>
-<div class="bg-darkCard border border-darkBorder p-4 rounded-2xl shadow-sm">
-<div class="text-gray-400 text-xs mb-1">Armazenamento</div>
-<div id="stat-storage" class="text-2xl font-bold text-purple-400">0 MB</div>
-</div>
-<div class="bg-darkCard border border-darkBorder p-4 rounded-2xl shadow-sm">
-<div class="text-gray-400 text-xs mb-1">Chaves Ativas</div>
-<div id="stat-keys" class="text-2xl font-bold text-indigo-400">0</div>
-</div>
-</div>
-​<!-- Quick Alerts Banner -->
-<div id="dashboard-alert" class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl flex items-center gap-3 text-xs text-blue-200">
-<i class="fa-solid fa-circle-info text-brandBlue text-lg"></i>
-<div>
-<span class="font-bold">Dica de Arquitetura:</span> Seus mini servidores usam isolamento lógico via Realtime Database e regras estritas do Firebase. Lembre-se de gerar uma chave privada para operações server-to-server.
-</div>
-</div>
-​<!-- Recent Servers Table / Grid & Activity -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-<div class="lg:col-span-2 bg-darkCard border border-darkBorder rounded-2xl p-6 shadow-sm">
-<div class="flex justify-between items-center mb-4">
-<h3 class="font-bold text-white text-sm">Seus Mini Servidores Recentes</h3>
-<button onclick="switchView('servers')" class="text-xs text-brandBlue hover:underline">Ver todos</button>
-</div>
-<div id="dashboard-servers-list" class="space-y-3">
-<!-- Dynamically filled -->
-<div class="text-center py-8 text-xs text-gray-500">Nenhum servidor criado ainda. Clique em "Criar Novo Servidor" para começar.</div>
-</div>
-</div>
-​<!-- System Status & Quick Logs -->
-<div class="bg-darkCard border border-darkBorder rounded-2xl p-6 shadow-sm flex flex-col">
-<h3 class="font-bold text-white text-sm mb-4">Atividade Recente</h3>
-<div id="dashboard-logs-list" class="space-y-3 flex-1 overflow-y-auto max-h-[300px]">
-<div class="text-center py-8 text-xs text-gray-500">Nenhum evento registrado.</div>
-</div>
-</div>
-</div>
-</section>
-​<!-- VIEW 2: SERVERS LIST -->
-<section id="view-servers" class="space-y-6 hidden">
-<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-<div>
-<h2 class="text-xl font-bold text-white">Gerenciamento de Servidores</h2>
-<p class="text-xs text-gray-400">Crie e configure instâncias lógicas isoladas para seus aplicativos e jogos.</p>
-</div>
-<button onclick="openServerModal()" class="flex items-center gap-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow">
-<i class="fa-solid fa-plus"></i> Novo Servidor
-</button>
-</div>
-​<div id="servers-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-<!-- Filled by JS -->
-</div>
-</section>
-​<!-- VIEW 3: SERVER DETAIL & MANAGEMENT -->
-<section id="view-server-detail" class="space-y-6 hidden">
-<div class="flex items-center justify-between">
-<div class="flex items-center gap-3">
-<button onclick="switchView('servers')" class="w-9 h-9 rounded-xl bg-gray-900 border border-darkBorder flex items-center justify-center text-gray-400 hover:text-white transition">
-<i class="fa-solid fa-arrow-left"></i>
-</button>
-<div>
-<div class="flex items-center gap-2">
-<h2 id="detail-server-name" class="text-xl font-bold text-white">Nome do Servidor</h2>
-<span id="detail-server-status" class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Ativo</span>
-</div>
-<p id="detail-server-id" class="text-xs font-mono text-gray-400">ID: server_id_123</p>
-</div>
-</div>
-<div class="flex items-center gap-2">
-<button onclick="toggleServerStatus()" id="btn-toggle-status" class="px-3 py-2 bg-gray-900 border border-darkBorder hover:bg-gray-800 text-xs font-semibold rounded-xl text-amber-400 transition">Pausar</button>
-<button onclick="openDeleteServerModal()" class="px-3 py-2 bg-red-600/10 border border-red-500/20 hover:bg-red-600/20 text-xs font-semibold rounded-xl text-red-400 transition"><i class="fa-solid fa-trash"></i></button>
-</div>
-</div>
-​<!-- Server Sub-navigation Tabs -->
-<div class="flex overflow-x-auto gap-2 bg-darkCard p-1.5 rounded-2xl border border-darkBorder">
-<button onclick="switchServerTab('overview')" id="st-btn-overview" class="px-4 py-2 text-xs font-semibold rounded-xl bg-brandBlue text-white whitespace-nowrap transition">Visão Geral</button>
-<button onclick="switchServerTab('database')" id="st-btn-database" class="px-4 py-2 text-xs font-semibold rounded-xl text-gray-400 hover:text-white whitespace-nowrap transition">Banco de Dados</button>
-<button onclick="switchServerTab('keys')" id="st-btn-keys" class="px-4 py-2 text-xs font-semibold rounded-xl text-gray-400 hover:text-white whitespace-nowrap transition">Chaves de Acesso</button>
-<button onclick="switchServerTab('connection')" id="st-btn-connection" class="px-4 py-2 text-xs font-semibold rounded-xl text-gray-400 hover:text-white whitespace-nowrap transition">Conectar Projeto</button>
-<button onclick="switchServerTab('permissions')" id="st-btn-permissions" class="px-4 py-2 text-xs font-semibold rounded-xl text-gray-400 hover:text-white whitespace-nowrap transition">Permissões</button>
-<button onclick="switchServerTab('monitor')" id="st-btn-monitor" class="px-4 py-2 text-xs font-semibold rounded-xl text-gray-400 hover:text-white whitespace-nowrap transition">Monitoramento</button>
-<button onclick="switchServerTab('logs')" id="st-btn-logs" class="px-4 py-2 text-xs font-semibold rounded-xl text-gray-400 hover:text-white whitespace-nowrap transition">Logs</button>
-</div>
-​<!-- Server Tab: Overview -->
-<div id="st-tab-overview" class="space-y-6">
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-<div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
-<h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Tipo de Projeto</h3>
-<p id="detail-project-type" class="text-sm font-bold text-white">Jogos HTML</p>
-</div>
-<div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
-<h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Região Lógica</h3>
-<p id="detail-region" class="text-sm font-bold text-white">South America (São Paulo)</p>
-</div>
-<div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
-<h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Requisições Totais</h3>
-<p id="detail-req-count" class="text-sm font-bold text-brandBlue">0</p>
-</div>
-</div>
-​<div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
-<h3 class="font-bold text-white text-sm mb-4">Snippet Rápido de Conexão</h3>
-<pre class="bg-gray-900 border border-darkBorder p-4 rounded-xl text-xs mono text-blue-300 overflow-x-auto"><code id="detail-code-snippet">const VERO_CONFIG = {
-serverId: "...",
-publicKey: "...",
-endpoint: "https://api.verocloud.io/v1"
+
+  <!-- VIEW 1: DASHBOARD -->
+  <section id="view-dashboard" class="space-y-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div>
+        <h2 class="text-xl font-bold text-white">Dashboard do Desenvolvedor (Firebase RTDB)</h2>
+        <p class="text-xs text-gray-400">Gerenciamento completo 100% baseado no Realtime Database.</p>
+      </div>
+      <button onclick="openServerModal()" class="sm:hidden flex items-center gap-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow">
+        <i class="fa-solid fa-plus"></i> Criar Novo Servidor
+      </button>
+    </div>
+
+    <!-- Metrics Cards Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div class="bg-darkCard border border-darkBorder p-4 rounded-2xl shadow-sm">
+        <div class="text-gray-400 text-xs mb-1">Total Servidores</div>
+        <div id="stat-total-servers" class="text-2xl font-bold text-white">0</div>
+      </div>
+      <div class="bg-darkCard border border-darkBorder p-4 rounded-2xl shadow-sm">
+        <div class="text-gray-400 text-xs mb-1">Servidores Ativos</div>
+        <div id="stat-active-servers" class="text-2xl font-bold text-emerald-400">0</div>
+      </div>
+      <div class="bg-darkCard border border-darkBorder p-4 rounded-2xl shadow-sm">
+        <div class="text-gray-400 text-xs mb-1">Servidores Pausados</div>
+        <div id="stat-paused-servers" class="text-2xl font-bold text-amber-400">0</div>
+      </div>
+      <div class="bg-darkCard border border-darkBorder p-4 rounded-2xl shadow-sm">
+        <div class="text-gray-400 text-xs mb-1">Total Requisições</div>
+        <div id="stat-total-reqs" class="text-2xl font-bold text-brandBlue">0</div>
+      </div>
+      <div class="bg-darkCard border border-darkBorder p-4 rounded-2xl shadow-sm">
+        <div class="text-gray-400 text-xs mb-1">Armazenamento DB</div>
+        <div id="stat-storage" class="text-2xl font-bold text-purple-400">RTDB</div>
+      </div>
+      <div class="bg-darkCard border border-darkBorder p-4 rounded-2xl shadow-sm">
+        <div class="text-gray-400 text-xs mb-1">Chaves Ativas</div>
+        <div id="stat-keys" class="text-2xl font-bold text-indigo-400">0</div>
+      </div>
+    </div>
+
+    <!-- Quick Alerts Banner -->
+    <div class="bg-emerald-600/10 border border-emerald-500/20 p-4 rounded-2xl flex items-center gap-3 text-xs text-emerald-200">
+      <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+      <div>
+        <span class="font-bold">Modo 100% Realtime Database:</span> Todos os dados, servidores, chaves e arquivos salvos são persistidos diretamente no nó do seu banco de dados Firebase (`subjectrobot-49600-default-rtdb`).
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-2 bg-darkCard border border-darkBorder rounded-2xl p-6 shadow-sm">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="font-bold text-white text-sm">Seus Mini Servidores no Firebase</h3>
+          <button onclick="switchView('servers')" class="text-xs text-brandBlue hover:underline">Ver todos</button>
+        </div>
+        <div id="dashboard-servers-list" class="space-y-3">
+          <div class="text-center py-8 text-xs text-gray-500">Carregando servidores do Firebase RTDB...</div>
+        </div>
+      </div>
+
+      <div class="bg-darkCard border border-darkBorder rounded-2xl p-6 shadow-sm flex flex-col">
+        <h3 class="font-bold text-white text-sm mb-4">Logs em Tempo Real</h3>
+        <div id="dashboard-logs-list" class="space-y-3 flex-1 overflow-y-auto max-h-[300px]">
+          <div class="text-center py-8 text-xs text-gray-500">Nenhum evento recente.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VIEW 2: SERVERS LIST -->
+  <section id="view-servers" class="space-y-6 hidden">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div>
+        <h2 class="text-xl font-bold text-white">Gerenciamento de Servidores (Firebase RTDB)</h2>
+        <p class="text-xs text-gray-400">Instâncias criadas e persistidas no banco de dados em nuvem.</p>
+      </div>
+      <button onclick="openServerModal()" class="flex items-center gap-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow">
+        <i class="fa-solid fa-plus"></i> Novo Servidor
+      </button>
+    </div>
+
+    <div id="servers-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+  </section>
+
+  <!-- VIEW 3: SERVER DETAIL & MANAGEMENT -->
+  <section id="view-server-detail" class="space-y-6 hidden">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <button onclick="switchView('servers')" class="w-9 h-9 rounded-xl bg-gray-900 border border-darkBorder flex items-center justify-center text-gray-400 hover:text-white transition">
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 id="detail-server-name" class="text-xl font-bold text-white">Nome do Servidor</h2>
+            <span id="detail-server-status" class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Ativo</span>
+          </div>
+          <p id="detail-server-id" class="text-xs font-mono text-gray-400">ID: server_id_123</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="toggleServerStatus()" id="btn-toggle-status" class="px-3 py-2 bg-gray-900 border border-darkBorder hover:bg-gray-800 text-xs font-semibold rounded-xl text-amber-400 transition">Pausar</button>
+        <button onclick="deleteServer(selectedServerId)" class="px-3 py-2 bg-red-600/10 border border-red-500/20 hover:bg-red-600/20 text-xs font-semibold rounded-xl text-red-400 transition"><i class="fa-solid fa-trash"></i></button>
+      </div>
+    </div>
+
+    <!-- Server Sub-navigation Tabs -->
+    <div class="flex overflow-x-auto gap-2 bg-darkCard p-1.5 rounded-2xl border border-darkBorder">
+      <button onclick="switchServerTab('overview')" id="st-btn-overview" class="px-4 py-2 text-xs font-semibold rounded-xl bg-brandBlue text-white whitespace-nowrap transition">Visão Geral</button>
+      <button onclick="switchServerTab('database')" id="st-btn-database" class="px-4 py-2 text-xs font-semibold rounded-xl text-gray-400 hover:text-white whitespace-nowrap transition">Banco de Dados</button>
+      <button onclick="switchServerTab('keys')" id="st-btn-keys" class="px-4 py-2 text-xs font-semibold rounded-xl text-gray-400 hover:text-white whitespace-nowrap transition">Chaves de Acesso</button>
+      <button onclick="switchServerTab('connection')" id="st-btn-connection" class="px-4 py-2 text-xs font-semibold rounded-xl text-gray-400 hover:text-white whitespace-nowrap transition">Conectar Projeto</button>
+      <button onclick="switchServerTab('logs')" id="st-btn-logs" class="px-4 py-2 text-xs font-semibold rounded-xl text-gray-400 hover:text-white whitespace-nowrap transition">Logs</button>
+    </div>
+
+    <!-- Server Tab: Overview -->
+    <div id="st-tab-overview" class="space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Tipo de Projeto</h3>
+          <p id="detail-project-type" class="text-sm font-bold text-white">Jogos HTML</p>
+        </div>
+        <div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Backend Firebase</h3>
+          <p class="text-sm font-bold text-emerald-400">Realtime Database Ativo</p>
+        </div>
+        <div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Requisições</h3>
+          <p id="detail-req-count" class="text-sm font-bold text-brandBlue">0</p>
+        </div>
+      </div>
+
+      <div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
+        <h3 class="font-bold text-white text-sm mb-4">Snippet Rápido de Conexão RTDB</h3>
+        <pre class="bg-gray-900 border border-darkBorder p-4 rounded-xl text-xs mono text-blue-300 overflow-x-auto"><code id="detail-code-snippet">const VERO_CONFIG = {
+  serverId: "...",
+  databaseURL: "https://subjectrobot-49600-default-rtdb.firebaseio.com"
 };</code></pre>
-<div class="mt-4 flex gap-3">
-<button onclick="copySnippet()" class="px-4 py-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold rounded-xl transition"><i class="fa-solid fa-copy mr-2"></i> Copiar Configuração</button>
-<button onclick="switchServerTab('connection')" class="px-4 py-2 bg-gray-900 border border-darkBorder hover:bg-gray-800 text-xs font-semibold rounded-xl text-gray-300 transition">Ver Guia Completo</button>
-</div>
-</div>
-</div>
-​<!-- Server Tab: Database Manager -->
-<div id="st-tab-database" class="space-y-6 hidden">
-<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-darkCard border border-darkBorder p-6 rounded-2xl">
-<div>
-<h3 class="font-bold text-white text-sm">Gerenciador de Banco de Dados JSON</h3>
-<p class="text-xs text-gray-400">Consulte, crie e edite registros no espaço isolado deste servidor.</p>
-</div>
-<div class="flex items-center gap-2">
-<button onclick="openAddRecordModal()" class="px-3 py-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold rounded-xl transition"><i class="fa-solid fa-plus mr-1"></i> Novo Registro</button>
-<button onclick="exportServerJson()" class="px-3 py-2 bg-gray-900 border border-darkBorder hover:bg-gray-800 text-xs font-semibold rounded-xl text-gray-300 transition"><i class="fa-solid fa-download mr-1"></i> Exportar</button>
-</div>
-</div>
-​<div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
-<div class="flex gap-4 mb-4">
-<input type="text" id="db-search" oninput="filterDatabaseRecords()" placeholder="Pesquisar por chave ou valor..." class="flex-1 bg-gray-900 border border-darkBorder rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-brandBlue">
-</div>
-<div id="db-records-container" class="space-y-3">
-<!-- Records list -->
-<div class="text-center py-8 text-xs text-gray-500">Nenhum registro encontrado neste servidor.</div>
-</div>
-</div>
-</div>
-​<!-- Server Tab: Access Keys -->
-<div id="st-tab-keys" class="space-y-6 hidden">
-<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-darkCard border border-darkBorder p-6 rounded-2xl">
-<div>
-<h3 class="font-bold text-white text-sm">Chaves de Acesso Únicas</h3>
-<p class="text-xs text-gray-400">Gere chaves públicas, privadas e temporárias para autenticar requisições.</p>
-</div>
-<button onclick="openKeyModal()" class="px-4 py-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold rounded-xl transition"><i class="fa-solid fa-key mr-2"></i> Gerar Nova Chave</button>
-</div>
-​<div id="server-keys-list" class="space-y-3">
-<!-- Keys list -->
-</div>
-</div>
-​<!-- Server Tab: Connection Hub -->
-<div id="st-tab-connection" class="space-y-6 hidden">
-<div class="bg-darkCard border border-darkBorder rounded-2xl p-6 space-y-4">
-<h3 class="font-bold text-white text-base">Conectar Projeto Externo</h3>
-<p class="text-xs text-gray-400">Utilize o trecho abaixo em seu site, jogo HTML ou aplicativo para conectar diretamente ao mini servidor.</p>
-​<div class="space-y-2">
-<label class="block text-xs font-semibold text-gray-300">Configuração do Cliente (JavaScript)</label>
-<pre class="bg-gray-900 border border-darkBorder p-4 rounded-xl text-xs mono text-blue-300 overflow-x-auto"><code id="conn-js-code">const VERO_CONFIG = {
-serverId: "server_123",
-publicKey: "VERO_LIVE_PUB_XYZ",
-endpoint: "https://api.verocloud.io/v1"
+        <div class="mt-4 flex gap-3">
+          <button onclick="copySnippet()" class="px-4 py-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold rounded-xl transition"><i class="fa-solid fa-copy mr-2"></i> Copiar Configuração</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Server Tab: Database Manager -->
+    <div id="st-tab-database" class="space-y-6 hidden">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-darkCard border border-darkBorder p-6 rounded-2xl">
+        <div>
+          <h3 class="font-bold text-white text-sm">Gerenciador de Banco de Dados JSON (Firebase RTDB)</h3>
+          <p class="text-xs text-gray-400">Modifique e salve dados diretamente no nó do servidor no RTDB.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="openAddRecordModal()" class="px-3 py-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold rounded-xl transition"><i class="fa-solid fa-plus mr-1"></i> Novo Registro</button>
+          <button onclick="exportServerJson()" class="px-3 py-2 bg-gray-900 border border-darkBorder hover:bg-gray-800 text-xs font-semibold rounded-xl text-gray-300 transition"><i class="fa-solid fa-download mr-1"></i> Exportar</button>
+        </div>
+      </div>
+
+      <div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
+        <div id="db-records-container" class="space-y-3">
+          <div class="text-center py-8 text-xs text-gray-500">Nenhum registro encontrado neste servidor.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Server Tab: Access Keys -->
+    <div id="st-tab-keys" class="space-y-6 hidden">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-darkCard border border-darkBorder p-6 rounded-2xl">
+        <div>
+          <h3 class="font-bold text-white text-sm">Chaves de Acesso Únicas</h3>
+          <p class="text-xs text-gray-400">Gere chaves públicas e privadas para autenticar requisições.</p>
+        </div>
+        <button onclick="openKeyModal()" class="px-4 py-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold rounded-xl transition"><i class="fa-solid fa-key mr-2"></i> Gerar Nova Chave</button>
+      </div>
+      <div id="server-keys-list" class="space-y-3"></div>
+    </div>
+
+    <!-- Server Tab: Connection Hub -->
+    <div id="st-tab-connection" class="space-y-6 hidden">
+      <div class="bg-darkCard border border-darkBorder rounded-2xl p-6 space-y-4">
+        <h3 class="font-bold text-white text-base">Conectar Projeto Externo</h3>
+        <p class="text-xs text-gray-400">Utilize o trecho abaixo em seu site ou aplicativo.</p>
+        <pre class="bg-gray-900 border border-darkBorder p-4 rounded-xl text-xs mono text-blue-300 overflow-x-auto"><code id="conn-js-code">const VERO_CONFIG = {
+  serverId: "server_123",
+  databaseURL: "https://subjectrobot-49600-default-rtdb.firebaseio.com"
 };</code></pre>
-</div>
-​<div class="space-y-2 pt-4">
-<label class="block text-xs font-semibold text-gray-300">Exemplo de Requisição (Salvar Dados)</label>
-<pre class="bg-gray-900 border border-darkBorder p-4 rounded-xl text-xs mono text-purple-300 overflow-x-auto"><code>async function savePlayerScore(score) {
-const res = await fetch(${VERO_CONFIG.endpoint}/data, {
-method: 'POST',
-headers: {
-'Content-Type': 'application/json',
-'X-Server-Id': VERO_CONFIG.serverId,
-'X-Public-Key': VERO_CONFIG.publicKey
-},
-body: JSON.stringify({ collection: 'scores', data: { score, timestamp: Date.now() } })
-});
-return await res.json();
-}</code></pre>
-</div>
-</div>
-</div>
-​<!-- Server Tab: Permissions -->
-<div id="st-tab-permissions" class="space-y-6 hidden">
-<div class="bg-darkCard border border-darkBorder rounded-2xl p-6 space-y-4">
-<h3 class="font-bold text-white text-base">Controle de Permissões e Perfis</h3>
-<p class="text-xs text-gray-400">Defina o nível de acesso permitido para as chaves e usuários associados.</p>
-​<div class="space-y-3">
-<label class="flex items-center gap-3 bg-gray-900/60 p-3 rounded-xl border border-darkBorder cursor-pointer">
-<input type="checkbox" checked class="rounded bg-gray-900 border-darkBorder text-brandBlue">
-<div>
-<div class="text-xs font-bold text-white">Leitura Pública de Dados Autorizados</div>
-<div class="text-[11px] text-gray-400">Permite consulta via chave pública.</div>
-</div>
-</label>
-<label class="flex items-center gap-3 bg-gray-900/60 p-3 rounded-xl border border-darkBorder cursor-pointer">
-<input type="checkbox" checked class="rounded bg-gray-900 border-darkBorder text-brandBlue">
-<div>
-<div class="text-xs font-bold text-white">Escrita com Chave Privada Validada</div>
-<div class="text-[11px] text-gray-400">Exige validação no backend via Cloud Function.</div>
-</div>
-</label>
-<label class="flex items-center gap-3 bg-gray-900/60 p-3 rounded-xl border border-darkBorder cursor-pointer">
-<input type="checkbox" class="rounded bg-gray-900 border-darkBorder text-brandBlue">
-<div>
-<div class="text-xs font-bold text-white">Modo Estrito de Exclusão</div>
-<div class="text-[11px] text-gray-400">Bloqueia operações de exclusão em massa.</div>
-</div>
-</label>
-</div>
-</div>
-</div>
-​<!-- Server Tab: Monitor -->
-<div id="st-tab-monitor" class="space-y-6 hidden">
-<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-<div class="bg-darkCard border border-darkBorder p-4 rounded-2xl">
-<div class="text-gray-400 text-xs mb-1">Requisições OK</div>
-<div class="text-2xl font-bold text-emerald-400">99.8%</div>
-</div>
-<div class="bg-darkCard border border-darkBorder p-4 rounded-2xl">
-<div class="text-gray-400 text-xs mb-1">Erros de Conexão</div>
-<div class="text-2xl font-bold text-red-400">0</div>
-</div>
-<div class="bg-darkCard border border-darkBorder p-4 rounded-2xl">
-<div class="text-gray-400 text-xs mb-1">Operações de Leitura</div>
-<div class="text-2xl font-bold text-brandBlue">1,240</div>
-</div>
-<div class="bg-darkCard border border-darkBorder p-4 rounded-2xl">
-<div class="text-gray-400 text-xs mb-1">Operações de Escrita</div>
-<div class="text-2xl font-bold text-purple-400">312</div>
-</div>
-</div>
-</div>
-​<!-- Server Tab: Logs -->
-<div id="st-tab-logs" class="space-y-6 hidden">
-<div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
-<h3 class="font-bold text-white text-sm mb-4">Histórico de Eventos do Servidor</h3>
-<div id="server-logs-container" class="space-y-2">
-<div class="text-center py-6 text-xs text-gray-500">Nenhum evento registrado.</div>
-</div>
-</div>
-</div>
-</section>
-​<!-- VIEW 4: KEYS MANAGEMENT -->
-<section id="view-keys" class="space-y-6 hidden">
-<div class="flex justify-between items-center">
-<div>
-<h2 class="text-xl font-bold text-white">Chaves de Acesso Globais</h2>
-<p class="text-xs text-gray-400">Gerencie todas as credenciais e chaves vinculadas aos seus servidores.</p>
-</div>
-<button onclick="openKeyModal()" class="px-4 py-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold rounded-xl transition"><i class="fa-solid fa-key mr-2"></i> Nova Chave</button>
-</div>
-<div id="global-keys-list" class="space-y-3">
-<!-- Filled by JS -->
-</div>
-</section>
-​<!-- VIEW 5: DATABASE MANAGER -->
-<section id="view-database" class="space-y-6 hidden">
-<div>
-<h2 class="text-xl font-bold text-white">Gerenciador Geral de Banco de Dados</h2>
-<p class="text-xs text-gray-400">Selecione um servidor ativo para gerenciar suas coleções e documentos JSON.</p>
-</div>
-<div class="bg-darkCard border border-darkBorder rounded-2xl p-6 text-center py-12">
-<i class="fa-solid fa-database text-4xl text-gray-600 mb-4"></i>
-<h3 class="text-sm font-bold text-white mb-2">Nenhum Servidor Selecionado</h3>
-<p class="text-xs text-gray-400 mb-4">Acesse "Meus Servidores" e escolha um servidor para abrir o gerenciador de dados.</p>
-<button onclick="switchView('servers')" class="px-4 py-2 bg-brandBlue text-white text-xs font-semibold rounded-xl">Selecionar Servidor</button>
-</div>
-</section>
-​<!-- VIEW 6: FILES MANAGER -->
-<section id="view-files" class="space-y-6 hidden">
-<div class="flex justify-between items-center">
-<div>
-<h2 class="text-xl font-bold text-white">Gerenciador de Arquivos (Storage)</h2>
-<p class="text-xs text-gray-400">Envie imagens, arquivos JSON e recursos para seus jogos e aplicativos.</p>
-</div>
-<label class="px-4 py-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold rounded-xl cursor-pointer transition">
-<i class="fa-solid fa-upload mr-2"></i> Enviar Arquivo
-<input type="file" onchange="handleFileUpload(event)" class="hidden">
-</label>
-</div>
-<div id="files-list-container" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-<div class="bg-darkCard border border-darkBorder p-6 rounded-2xl text-center col-span-full py-12 text-gray-500 text-xs">
-Nenhum arquivo enviado no Firebase Storage.
-</div>
-</div>
-</section>
-​<!-- VIEW 7: MONITOR -->
-<section id="view-monitor" class="space-y-6 hidden">
-<div>
-<h2 class="text-xl font-bold text-white">Monitoramento Global de Infraestrutura</h2>
-<p class="text-xs text-gray-400">Métricas em tempo real coletadas via SDK e relatórios de requisições.</p>
-</div>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-<div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
-<h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Uso Total de Requisições</h3>
-<div id="monitor-total-reqs" class="text-3xl font-bold text-brandBlue">0</div>
-<p class="text-[11px] text-gray-500 mt-1">Atualizado em tempo real</p>
-</div>
-<div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
-<h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Largura de Banda Estimada</h3>
-<div class="text-3xl font-bold text-purple-400">1.4 MB</div>
-<p class="text-[11px] text-gray-500 mt-1">Baseado em payload transferido</p>
-</div>
-<div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
-<h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Saúde do Sistema Firebase</h3>
-<div class="text-3xl font-bold text-emerald-400">100%</div>
-<p class="text-[11px] text-gray-500 mt-1">Conexão RTDB Estável</p>
-</div>
-</div>
-</section>
-​<!-- VIEW 8: LOGS -->
-<section id="view-logs" class="space-y-6 hidden">
-<div>
-<h2 class="text-xl font-bold text-white">Logs & Histórico do Sistema</h2>
-<p class="text-xs text-gray-400">Registro completo de auditoria e eventos ocorridos na sua conta.</p>
-</div>
-<div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
-<div id="global-logs-container" class="space-y-2">
-<div class="text-center py-8 text-xs text-gray-500">Nenhum log gravado.</div>
-</div>
-</div>
-</section>
-​<!-- VIEW 9: DOCUMENTATION -->
-<section id="view-docs" class="space-y-6 hidden">
-<div class="bg-darkCard border border-darkBorder rounded-2xl p-8 space-y-6">
-<div>
-<h2 class="text-2xl font-bold text-white mb-2">Documentação Oficial da Vero Cloud API</h2>
-<p class="text-sm text-gray-400">Guia definitivo para integração de mini servidores em sites, jogos e aplicativos.</p>
-</div>
-​<div class="space-y-4 pt-4 border-t border-darkBorder">
-<h3 class="text-lg font-bold text-white">1. Introdução</h3>
-<p class="text-xs text-gray-300 leading-relaxed">
-A Vero Cloud fornece uma camada lógica isolada sobre a infraestrutura do Firebase (Realtime Database e Authentication). Cada usuário possui total autonomia para criar instâncias de mini servidores e gerar chaves de acesso públicas ou privadas.
-</p>
-</div>
-​<div class="space-y-4 pt-4 border-t border-darkBorder">
-<h3 class="text-lg font-bold text-white">2. Códigos de Erro da API</h3>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-<div class="bg-gray-900 border border-darkBorder p-3 rounded-xl"><span class="font-mono text-red-400 font-bold">UNAUTHORIZED</span>: Credenciais ausentes ou inválidas.</div>
-<div class="bg-gray-900 border border-darkBorder p-3 rounded-xl"><span class="font-mono text-red-400 font-bold">INVALID_KEY</span>: Chave de acesso incorreta.</div>
-<div class="bg-gray-900 border border-darkBorder p-3 rounded-xl"><span class="font-mono text-red-400 font-bold">KEY_EXPIRED</span>: A chave utilizada expirou.</div>
-<div class="bg-gray-900 border border-darkBorder p-3 rounded-xl"><span class="font-mono text-red-400 font-bold">PERMISSION_DENIED</span>: Sem permissão para a operação.</div>
-<div class="bg-gray-900 border border-darkBorder p-3 rounded-xl"><span class="font-mono text-red-400 font-bold">SERVER_NOT_FOUND</span>: ID de servidor inexistente.</div>
-<div class="bg-gray-900 border border-darkBorder p-3 rounded-xl"><span class="font-mono text-red-400 font-bold">RATE_LIMIT_EXCEEDED</span>: Limite de requisições excedido.</div>
-</div>
-</div>
-​<div class="space-y-4 pt-4 border-t border-darkBorder">
-<h3 class="text-lg font-bold text-white">3. Regras de Segurança do Firebase (database.rules.json)</h3>
-<pre class="bg-gray-900 border border-darkBorder p-4 rounded-xl text-xs mono text-emerald-300 overflow-x-auto"><code>{
-"rules": {
-"servers": {
-"$serverId": {
-".read": "auth != null",
-".write": "auth != null && data.child('ownerUid').val() === auth.uid"
-}
-}
-}
-}</code></pre>
-</div>
-</div>
-</section>
-​<!-- VIEW 10: LIMITS & PLANS -->
-<section id="view-limits" class="space-y-6 hidden">
-<div>
-<h2 class="text-xl font-bold text-white">Planos & Limites de Utilização</h2>
-<p class="text-xs text-gray-400">Escolha o plano ideal para expandir seus mini servidores.</p>
-</div>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-<div class="bg-darkCard border border-darkBorder rounded-2xl p-6 flex flex-col justify-between">
-<div>
-<span class="text-xs font-semibold bg-gray-800 text-gray-300 px-3 py-1 rounded-full">Gratuito</span>
-<div class="text-3xl font-bold text-white mt-4 mb-2">R$ 0 <span class="text-xs text-gray-500 font-normal">/ mês</span></div>
-<ul class="space-y-2 text-xs text-gray-300 mt-4">
-<li><i class="fa-solid fa-check text-emerald-400 mr-2"></i> Até 2 Servidores</li>
-<li><i class="fa-solid fa-check text-emerald-400 mr-2"></i> 500 MB Armazenamento</li>
-<li><i class="fa-solid fa-check text-emerald-400 mr-2"></i> 10.000 Requisições/mês</li>
-</ul>
-</div>
-<button class="mt-6 w-full py-2.5 bg-gray-800 text-white rounded-xl text-xs font-semibold cursor-default">Plano Atual</button>
-</div>
-<div class="bg-darkCard border-2 border-brandBlue rounded-2xl p-6 flex flex-col justify-between shadow-xl shadow-blue-500/10">
-<div>
-<span class="text-xs font-semibold bg-blue-600/20 text-brandBlue px-3 py-1 rounded-full border border-blue-500/30">Desenvolvedor</span>
-<div class="text-3xl font-bold text-white mt-4 mb-2">R$ 49 <span class="text-xs text-gray-500 font-normal">/ mês</span></div>
-<ul class="space-y-2 text-xs text-gray-300 mt-4">
-<li><i class="fa-solid fa-check text-emerald-400 mr-2"></i> Até 15 Servidores</li>
-<li><i class="fa-solid fa-check text-emerald-400 mr-2"></i> 5 GB Armazenamento</li>
-<li><i class="fa-solid fa-check text-emerald-400 mr-2"></i> 250.000 Requisições/mês</li>
-</ul>
-</div>
-<button onclick="showToast('Plano atualizado com sucesso!', 'success')" class="mt-6 w-full py-2.5 bg-brandBlue hover:bg-brandHover text-white rounded-xl text-xs font-semibold transition">Fazer Upgrade</button>
-</div>
-<div class="bg-darkCard border border-darkBorder rounded-2xl p-6 flex flex-col justify-between">
-<div>
-<span class="text-xs font-semibold bg-purple-600/20 text-purple-400 px-3 py-1 rounded-full border border-purple-500/30">Profissional</span>
-<div class="text-3xl font-bold text-white mt-4 mb-2">R$ 149 <span class="text-xs text-gray-500 font-normal">/ mês</span></div>
-<ul class="space-y-2 text-xs text-gray-300 mt-4">
-<li><i class="fa-solid fa-check text-emerald-400 mr-2"></i> Servidores Ilimitados</li>
-<li><i class="fa-solid fa-check text-emerald-400 mr-2"></i> 50 GB Armazenamento</li>
-<li><i class="fa-solid fa-check text-emerald-400 mr-2"></i> Requisições Ilimitadas</li>
-</ul>
-</div>
-<button onclick="showToast('Plano atualizado com sucesso!', 'success')" class="mt-6 w-full py-2.5 bg-gray-800 hover:bg-gray-700 text-white rounded-xl text-xs font-semibold transition">Fazer Upgrade</button>
-</div>
-</div>
-</section>
-​<!-- VIEW 11: ADMIN PANEL -->
-<section id="view-admin" class="space-y-6 hidden">
-<div class="bg-amber-500/10 border border-amber-500/20 p-4 rounded-2xl flex items-center gap-3 text-xs text-amber-200">
-<i class="fa-solid fa-shield-halved text-amber-400 text-lg"></i>
-<div>
-<span class="font-bold">Painel de Administração Global:</span> Área restrita ao proprietário da plataforma para gerenciamento de contas, infraestrutura e auditoria.
-</div>
-</div>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-<div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
-<h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Total de Contas</h3>
-<div id="admin-total-users" class="text-3xl font-bold text-white">1</div>
-</div>
-<div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
-<h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Servidores Globais</h3>
-<div id="admin-total-servers" class="text-3xl font-bold text-brandBlue">0</div>
-</div>
-<div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
-<h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Status do Firebase</h3>
-<div class="text-3xl font-bold text-emerald-400">Online</div>
-</div>
-</div>
-</section>
-​<!-- VIEW 12: PROFILE -->
-<section id="view-profile" class="space-y-6 hidden">
-<div class="max-w-xl mx-auto bg-darkCard border border-darkBorder rounded-2xl p-8 space-y-6">
-<h2 class="text-xl font-bold text-white">Configurações de Perfil</h2>
-<div class="flex items-center gap-4">
-<div id="profile-avatar-box" class="w-16 h-16 rounded-2xl bg-brandBlue text-white font-bold flex items-center justify-center text-xl">VC</div>
-<div>
-<h3 id="profile-name" class="font-bold text-white text-base">Desenvolvedor</h3>
-<p id="profile-email" class="text-xs text-gray-400">dev@verocloud.io</p>
-</div>
-</div>
-<div class="space-y-4 pt-4 border-t border-darkBorder">
-<div>
-<label class="block text-xs font-medium text-gray-300 mb-1">Nome de Exibição</label>
-<input type="text" id="input-profile-name" class="w-full bg-gray-900 border border-darkBorder rounded-xl px-4 py-2.5 text-xs text-white" value="Desenvolvedor">
-</div>
-<div>
-<label class="block text-xs font-medium text-gray-300 mb-1">Nova Senha</label>
-<input type="password" placeholder="••••••••" class="w-full bg-gray-900 border border-darkBorder rounded-xl px-4 py-2.5 text-xs text-white">
-</div>
-<button onclick="showToast('Perfil atualizado com sucesso!', 'success')" class="px-4 py-2.5 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold rounded-xl transition">Salvar Alterações</button>
-</div>
-</div>
-</section>
-​</main>
-</div>
-</div>
-​<!-- MODAL: CREATE SERVER -->
+      </div>
+    </div>
+
+    <!-- Server Tab: Logs -->
+    <div id="st-tab-logs" class="space-y-6 hidden">
+      <div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
+        <h3 class="font-bold text-white text-sm mb-4">Histórico de Eventos do Servidor</h3>
+        <div id="server-logs-container" class="space-y-2">
+          <div class="text-center py-6 text-xs text-gray-500">Nenhum evento registrado.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VIEW 4: KEYS MANAGEMENT -->
+  <section id="view-keys" class="space-y-6 hidden">
+    <div class="flex justify-between items-center">
+      <div>
+        <h2 class="text-xl font-bold text-white">Chaves de Acesso Globais</h2>
+        <p class="text-xs text-gray-400">Gerencie todas as credenciais vinculadas aos seus servidores.</p>
+      </div>
+      <button onclick="openKeyModal()" class="px-4 py-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold rounded-xl transition"><i class="fa-solid fa-key mr-2"></i> Nova Chave</button>
+    </div>
+    <div id="global-keys-list" class="space-y-3"></div>
+  </section>
+
+  <!-- VIEW 5: DATABASE MANAGER -->
+  <section id="view-database" class="space-y-6 hidden">
+    <div>
+      <h2 class="text-xl font-bold text-white">Gerenciador Geral de Banco de Dados</h2>
+      <p class="text-xs text-gray-400">Selecione um servidor para gerenciar dados no RTDB.</p>
+    </div>
+    <div class="bg-darkCard border border-darkBorder rounded-2xl p-6 text-center py-12">
+      <i class="fa-solid fa-database text-4xl text-gray-600 mb-4"></i>
+      <h3 class="text-sm font-bold text-white mb-2">Nenhum Servidor Selecionado</h3>
+      <p class="text-xs text-gray-400 mb-4">Acesse "Meus Servidores" e escolha um servidor.</p>
+      <button onclick="switchView('servers')" class="px-4 py-2 bg-brandBlue text-white text-xs font-semibold rounded-xl">Selecionar Servidor</button>
+    </div>
+  </section>
+
+  <!-- VIEW 6: FILES MANAGER (RTDB BASED) -->
+  <section id="view-files" class="space-y-6 hidden">
+    <div class="flex justify-between items-center">
+      <div>
+        <h2 class="text-xl font-bold text-white">Gerenciador de Arquivos (Salvo no RTDB)</h2>
+        <p class="text-xs text-gray-400">Arquivos e recursos salvos diretamente no Realtime Database.</p>
+      </div>
+      <label class="px-4 py-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold rounded-xl cursor-pointer transition">
+        <i class="fa-solid fa-upload mr-2"></i> Enviar Arquivo no DB
+        <input type="file" onchange="handleFileUpload(event)" class="hidden">
+      </label>
+    </div>
+    <div id="files-list-container" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-darkCard border border-darkBorder p-6 rounded-2xl text-center col-span-full py-12 text-gray-500 text-xs">
+        Nenhum arquivo enviado.
+      </div>
+    </div>
+  </section>
+
+  <!-- VIEW 7: MONITOR -->
+  <section id="view-monitor" class="space-y-6 hidden">
+    <div>
+      <h2 class="text-xl font-bold text-white">Monitoramento Firebase RTDB</h2>
+      <p class="text-xs text-gray-400">Status em tempo real da infraestrutura em banco de dados.</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
+        <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Conexão RTDB</h3>
+        <div class="text-3xl font-bold text-emerald-400">Ativa</div>
+        <p class="text-[11px] text-gray-500 mt-1">subjectrobot-49600-default-rtdb</p>
+      </div>
+      <div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
+        <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Autenticação</h3>
+        <div class="text-3xl font-bold text-brandBlue">UID Ativo</div>
+        <p class="text-[11px] text-gray-500 mt-1" id="monitor-uid">---</p>
+      </div>
+      <div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
+        <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Modo de Armazenamento</h3>
+        <div class="text-3xl font-bold text-purple-400">100% DB</div>
+        <p class="text-[11px] text-gray-500 mt-1">Nenhum Storage externo utilizado</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- VIEW 8: LOGS -->
+  <section id="view-logs" class="space-y-6 hidden">
+    <div>
+      <h2 class="text-xl font-bold text-white">Logs & Histórico do Realtime Database</h2>
+    </div>
+    <div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
+      <div id="global-logs-container" class="space-y-2">
+        <div class="text-center py-8 text-xs text-gray-500">Nenhum log gravado.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VIEW 9: DOCUMENTATION -->
+  <section id="view-docs" class="space-y-6 hidden">
+    <div class="bg-darkCard border border-darkBorder rounded-2xl p-8 space-y-6">
+      <h2 class="text-2xl font-bold text-white mb-2">Documentação Oficial Firebase RTDB — Vero Cloud</h2>
+      <p class="text-sm text-gray-400">Esta plataforma opera integralmente via Realtime Database para máxima portabilidade e controle de dados.</p>
+    </div>
+  </section>
+
+  <!-- VIEW 10: LIMITS -->
+  <section id="view-limits" class="space-y-6 hidden">
+    <div><h2 class="text-xl font-bold text-white">Planos & Limites</h2></div>
+  </section>
+
+  <!-- VIEW 11: ADMIN PANEL -->
+  <section id="view-admin" class="space-y-6 hidden">
+    <div class="bg-amber-500/10 border border-amber-500/20 p-4 rounded-2xl flex items-center gap-3 text-xs text-amber-200">
+      <i class="fa-solid fa-shield-halved text-amber-400 text-lg"></i>
+      <div><span class="font-bold">Painel Admin Firebase:</span> Gerenciamento global via Realtime Database.</div>
+    </div>
+  </section>
+
+  <!-- VIEW 12: PROFILE -->
+  <section id="view-profile" class="space-y-6 hidden">
+    <div class="max-w-xl mx-auto bg-darkCard border border-darkBorder rounded-2xl p-8 space-y-6">
+      <h2 class="text-xl font-bold text-white">Configurações de Perfil Firebase</h2>
+    </div>
+  </section>
+
+</main>
+</div>
+</div>
+
+<!-- MODALS -->
 <div id="modal-server" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-<div class="max-w-lg w-full bg-darkCard border border-darkBorder rounded-2xl p-6 shadow-2xl relative space-y-4">
-<div class="flex justify-between items-center">
-<h3 class="font-bold text-white text-lg">Criar Novo Mini Servidor</h3>
-<button onclick="closeServerModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+  <div class="max-w-lg w-full bg-darkCard border border-darkBorder rounded-2xl p-6 shadow-2xl relative space-y-4">
+    <div class="flex justify-between items-center">
+      <h3 class="font-bold text-white text-lg">Criar Novo Mini Servidor (RTDB)</h3>
+      <button onclick="closeServerModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    <form onsubmit="handleCreateServer(event)" class="space-y-4">
+      <div>
+        <label class="block text-xs font-medium text-gray-300 mb-1">Nome do Servidor</label>
+        <input type="text" id="srv-name" required placeholder="Ex: Meu Jogo RPG Online" class="w-full bg-gray-900 border border-darkBorder rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brandBlue">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-300 mb-1">Descrição</label>
+        <textarea id="srv-desc" rows="2" placeholder="Breve descrição..." class="w-full bg-gray-900 border border-darkBorder rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brandBlue"></textarea>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-300 mb-1">Tipo de Projeto</label>
+        <select id="srv-type" class="w-full bg-gray-900 border border-darkBorder rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brandBlue">
+          <option value="Jogos HTML">Jogos HTML</option>
+          <option value="Aplicativos web">Aplicativos Web</option>
+          <option value="Sites">Sites</option>
+          <option value="Sistemas de chat">Sistemas de Chat</option>
+          <option value="APIs">APIs</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-300 mb-1">Identificador Exclusivo (ID)</label>
+        <input type="text" id="srv-identifier" required placeholder="Ex: rgp-game-srv-01" class="w-full bg-gray-900 border border-darkBorder rounded-xl px-4 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-brandBlue">
+      </div>
+      <div class="flex justify-end gap-3 pt-2">
+        <button type="button" onclick="closeServerModal()" class="px-4 py-2 bg-gray-800 text-gray-300 text-xs font-semibold rounded-xl">Cancelar</button>
+        <button type="submit" class="px-4 py-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold rounded-xl">Criar no RTDB</button>
+      </div>
+    </form>
+  </div>
 </div>
-<form onsubmit="handleCreateServer(event)" class="space-y-4">
-<div>
-<label class="block text-xs font-medium text-gray-300 mb-1">Nome do Servidor</label>
-<input type="text" id="srv-name" required placeholder="Ex: Meu Jogo RPG Online" class="w-full bg-gray-900 border border-darkBorder rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brandBlue">
-</div>
-<div>
-<label class="block text-xs font-medium text-gray-300 mb-1">Descrição</label>
-<textarea id="srv-desc" rows="2" placeholder="Breve descrição do projeto..." class="w-full bg-gray-900 border border-darkBorder rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brandBlue"></textarea>
-</div>
-<div>
-<label class="block text-xs font-medium text-gray-300 mb-1">Tipo de Projeto</label>
-<select id="srv-type" class="w-full bg-gray-900 border border-darkBorder rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brandBlue">
-<option value="Jogos HTML">Jogos HTML</option>
-<option value="Aplicativos web">Aplicativos Web</option>
-<option value="Sites">Sites</option>
-<option value="Sistemas de chat">Sistemas de Chat</option>
-<option value="APIs">APIs</option>
-<option value="Projetos personalizados">Projetos Personalizados</option>
-</select>
-</div>
-<div>
-<label class="block text-xs font-medium text-gray-300 mb-1">Identificador Exclusivo (ID)</label>
-<input type="text" id="srv-identifier" required placeholder="Ex: rgp-game-srv-01" class="w-full bg-gray-900 border border-darkBorder rounded-xl px-4 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-brandBlue">
-</div>
-<div class="flex justify-end gap-3 pt-2">
-<button type="button" onclick="closeServerModal()" class="px-4 py-2 bg-gray-800 text-gray-300 text-xs font-semibold rounded-xl hover:bg-gray-700">Cancelar</button>
-<button type="submit" class="px-4 py-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold rounded-xl">Criar Servidor</button>
-</div>
-</form>
-</div>
-</div>
-​<!-- MODAL: GENERATE ACCESS KEY -->
+
 <div id="modal-key" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-<div class="max-w-md w-full bg-darkCard border border-darkBorder rounded-2xl p-6 shadow-2xl relative space-y-4">
-<div class="flex justify-between items-center">
-<h3 class="font-bold text-white text-lg">Gerar Chave de Acesso</h3>
-<button onclick="closeKeyModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+  <div class="max-w-md w-full bg-darkCard border border-darkBorder rounded-2xl p-6 shadow-2xl relative space-y-4">
+    <div class="flex justify-between items-center">
+      <h3 class="font-bold text-white text-lg">Gerar Chave de Acesso</h3>
+      <button onclick="closeKeyModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    <form onsubmit="handleCreateKey(event)" class="space-y-4">
+      <div>
+        <label class="block text-xs font-medium text-gray-300 mb-1">Servidor Vinculado</label>
+        <select id="key-server-id" class="w-full bg-gray-900 border border-darkBorder rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brandBlue"></select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-300 mb-1">Tipo de Chave</label>
+        <select id="key-type" class="w-full bg-gray-900 border border-darkBorder rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brandBlue">
+          <option value="PUBLIC">Chave Pública (Frontend)</option>
+          <option value="PRIVATE">Chave Privada (Backend)</option>
+        </select>
+      </div>
+      <div class="flex justify-end gap-3 pt-2">
+        <button type="button" onclick="closeKeyModal()" class="px-4 py-2 bg-gray-800 text-gray-300 text-xs font-semibold rounded-xl">Cancelar</button>
+        <button type="submit" class="px-4 py-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold rounded-xl">Gerar Chave</button>
+      </div>
+    </form>
+  </div>
 </div>
-<form onsubmit="handleCreateKey(event)" class="space-y-4">
-<div>
-<label class="block text-xs font-medium text-gray-300 mb-1">Servidor Vinculado</label>
-<select id="key-server-id" class="w-full bg-gray-900 border border-darkBorder rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brandBlue">
-<!-- Filled dynamically -->
-</select>
-</div>
-<div>
-<label class="block text-xs font-medium text-gray-300 mb-1">Tipo de Chave</label>
-<select id="key-type" class="w-full bg-gray-900 border border-darkBorder rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brandBlue">
-<option value="PUBLIC">Chave Pública (Cliente / Frontend)</option>
-<option value="PRIVATE">Chave Privada (Servidor / Backend)</option>
-<option value="TEMPORARY">Chave Temporária (Expiração curta)</option>
-</select>
-</div>
-<div class="flex justify-end gap-3 pt-2">
-<button type="button" onclick="closeKeyModal()" class="px-4 py-2 bg-gray-800 text-gray-300 text-xs font-semibold rounded-xl hover:bg-gray-700">Cancelar</button>
-<button type="submit" class="px-4 py-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold rounded-xl">Gerar Chave</button>
-</div>
-</form>
-</div>
-</div>
-​<!-- MODAL: ADD DATABASE RECORD -->
+
 <div id="modal-record" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-<div class="max-w-lg w-full bg-darkCard border border-darkBorder rounded-2xl p-6 shadow-2xl relative space-y-4">
-<div class="flex justify-between items-center">
-<h3 class="font-bold text-white text-lg">Novo Registro JSON</h3>
-<button onclick="closeAddRecordModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+  <div class="max-w-lg w-full bg-darkCard border border-darkBorder rounded-2xl p-6 shadow-2xl relative space-y-4">
+    <div class="flex justify-between items-center">
+      <h3 class="font-bold text-white text-lg">Novo Registro JSON (Firebase RTDB)</h3>
+      <button onclick="closeAddRecordModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+    </div>
+    <form onsubmit="handleAddRecord(event)" class="space-y-4">
+      <div>
+        <label class="block text-xs font-medium text-gray-300 mb-1">Chave / Registro</label>
+        <input type="text" id="rec-key" required placeholder="Ex: player_001" class="w-full bg-gray-900 border border-darkBorder rounded-xl px-4 py-2.5 text-xs text-white font-mono">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-300 mb-1">Valor JSON</label>
+        <textarea id="rec-value" rows="5" required placeholder='{"score": 1500}' class="w-full bg-gray-900 border border-darkBorder rounded-xl px-4 py-2.5 text-xs text-white font-mono"></textarea>
+      </div>
+      <div class="flex justify-end gap-3 pt-2">
+        <button type="button" onclick="closeAddRecordModal()" class="px-4 py-2 bg-gray-800 text-gray-300 text-xs font-semibold rounded-xl">Cancelar</button>
+        <button type="submit" class="px-4 py-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold rounded-xl">Salvar no RTDB</button>
+      </div>
+    </form>
+  </div>
 </div>
-<form onsubmit="handleAddRecord(event)" class="space-y-4">
-<div>
-<label class="block text-xs font-medium text-gray-300 mb-1">Chave / Identificador do Registro</label>
-<input type="text" id="rec-key" required placeholder="Ex: player_001" class="w-full bg-gray-900 border border-darkBorder rounded-xl px-4 py-2.5 text-xs text-white font-mono">
-</div>
-<div>
-<label class="block text-xs font-medium text-gray-300 mb-1">Valor JSON</label>
-<textarea id="rec-value" rows="5" required placeholder='{"name": "Player 1", "score": 1500}' class="w-full bg-gray-900 border border-darkBorder rounded-xl px-4 py-2.5 text-xs text-white font-mono"></textarea>
-</div>
-<div class="flex justify-end gap-3 pt-2">
-<button type="button" onclick="closeAddRecordModal()" class="px-4 py-2 bg-gray-800 text-gray-300 text-xs font-semibold rounded-xl hover:bg-gray-700">Cancelar</button>
-<button type="submit" class="px-4 py-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold rounded-xl">Salvar Registro</button>
-</div>
-</form>
-</div>
-</div>
-​<!-- JAVASCRIPT APP LOGIC -->
-<script>
-// App State
-let currentUser = null;
-let currentView = 'dashboard';
-let currentServerTab = 'overview';
-let selectedServerId = null;
-​let appData = {
-users: [],
-servers: [],
-keys: [],
-database: {},
-logs: [],
-files: []
-};
-​// Firebase Config Reference
-const FIREBASE_CONFIG = {
-projectId: "subjectrobot-49600-default-rtdb",
-appId: "1:731604558049:android:7f47b30b289445814017a0",
-apiKey: "AlzaSyCTkq0uXy5kHg9N8rj9--Dooh8cuguYxPE",
-storageBucket: "subjectrobot-49600.appspot.com"
-};
-​// Initialize Local Storage persistence for prototype
-function loadState() {
-const saved = localStorage.getItem('vero_cloud_state');
-if (saved) {
-try {
-appData = JSON.parse(saved);
-} catch(e) { console.error(e); }
-}
-}
-​function saveState() {
-localStorage.setItem('vero_cloud_state', JSON.stringify(appData));
-}
-​// Toast Notifications
-function showToast(message, type = 'info') {
-const container = document.getElementById('toast-container');
-const toast = document.createElement('div');
-const bgColors = {
-success: 'bg-emerald-600/90 border-emerald-500',
-error: 'bg-red-600/90 border-red-500',
-info: 'bg-blue-600/90 border-blue-500'
-};
-const icons = {
-success: 'fa-circle-check',
-error: 'fa-triangle-exclamation',
-info: 'fa-circle-info'
-};
-toast.className = pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border text-white text-xs shadow-xl backdrop-blur-md animate-fade-in ${bgColors[type] || bgColors.info};
-toast.innerHTML = <i class="fa-solid ${icons[type] || icons.info} text-sm"></i><span class="font-medium">${message}</span>;
-container.appendChild(toast);
-setTimeout(() => {
-toast.style.opacity = '0';
-setTimeout(() => toast.remove(), 300);
-}, 3500);
-}
-​// Auth Tabs
-function switchAuthTab(tab) {
-const loginForm = document.getElementById('form-login');
-const regForm = document.getElementById('form-register');
-const btnLogin = document.getElementById('tab-login');
-const btnReg = document.getElementById('tab-register');
-​if (tab === 'login') {
-loginForm.classList.remove('hidden');
-regForm.classList.add('hidden');
-btnLogin.className = "flex-1 py-2 text-xs font-semibold rounded-lg bg-brandBlue text-white shadow transition";
-btnReg.className = "flex-1 py-2 text-xs font-semibold rounded-lg text-gray-400 hover:text-white transition";
-} else {
-loginForm.classList.add('hidden');
-regForm.classList.remove('hidden');
-btnReg.className = "flex-1 py-2 text-xs font-semibold rounded-lg bg-brandBlue text-white shadow transition";
-btnLogin.className = "flex-1 py-2 text-xs font-semibold rounded-lg text-gray-400 hover:text-white transition";
-}
-}
-​function handleLogin(e) {
-e.preventDefault();
-const identifier = document.getElementById('login-identifier').value.trim();
-loadState();
-​let user = appData.users.find(u => u.email === identifier || u.username === identifier);
-if (!user && identifier === 'admin@verocloud.io') {
-user = { uid: 'admin_uid', username: 'admin', email: 'admin@verocloud.io', role: 'admin' };
-appData.users.push(user);
-} else if (!user) {
-// Auto create for ease of testing
-user = { uid: 'user_' + Date.now(), username: identifier, email: identifier, role: 'user' };
-appData.users.push(user);
-}
-​currentUser = user;
-saveState();
-initAppSession();
-showToast('Login realizado com sucesso!', 'success');
-}
-​function handleRegister(e) {
-e.preventDefault();
-const username = document.getElementById('reg-username').value.trim();
-const email = document.getElementById('reg-email').value.trim();
-const pass = document.getElementById('reg-password').value;
-const confirmPass = document.getElementById('reg-password-confirm').value;
-​if (pass !== confirmPass) {
-showToast('As senhas não coincidem.', 'error');
-return;
-}
-​loadState();
-if (appData.users.some(u => u.email === email)) {
-showToast('E-mail já cadastrado.', 'error');
-return;
-}
-​const newUser = { uid: 'user_' + Date.now(), username, email, role: 'user' };
-appData.users.push(newUser);
-currentUser = newUser;
-saveState();
-initAppSession();
-showToast('Conta criada com sucesso!', 'success');
-}
-​function handleLogout() {
-currentUser = null;
-document.getElementById('auth-view').classList.remove('hidden');
-document.getElementById('app-wrapper').classList.add('hidden');
-showToast('Sessão encerrada.', 'info');
-}
-​function showForgotPassword(e) {
-e.preventDefault();
-const email = prompt('Digite seu e-mail cadastrado para recuperação:');
-if (email) {
-showToast('E-mail de recuperação enviado com sucesso!', 'success');
-}
-}
-​function initAppSession() {
-document.getElementById('auth-view').classList.add('hidden');
-document.getElementById('app-wrapper').classList.remove('hidden');
-​document.getElementById('nav-username').innerText = currentUser.username;
-document.getElementById('dropdown-email').innerText = currentUser.email;
-document.getElementById('profile-name').innerText = currentUser.username;
-document.getElementById('profile-email').innerText = currentUser.email;
-​document.getElementById('user-avatar-initials').innerText = currentUser.username.substring(0,2).toUpperCase();
-document.getElementById('profile-avatar-box').innerText = currentUser.username.substring(0,2).toUpperCase();
-​if (currentUser.role === 'admin' || currentUser.email.includes('admin')) {
-document.getElementById('admin-nav-btn').classList.remove('hidden');
-}
-​refreshDashboardData();
-switchView('dashboard');
-}
-​// Navigation Switching
-function switchView(viewName) {
-currentView = viewName;
-const views = ['dashboard', 'servers', 'server-detail', 'keys', 'database', 'files', 'monitor', 'logs', 'docs', 'limits', 'admin', 'profile'];
-views.forEach(v => {
-const el = document.getElementById(view-${v});
-if (el) el.classList.add('hidden');
-const btn = document.getElementById(nav-btn-${v});
-if (btn) btn.className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition";
-});
-​const activeEl = document.getElementById(view-${viewName});
-if (activeEl) activeEl.classList.remove('hidden');
-const activeBtn = document.getElementById(nav-btn-${viewName});
-if (activeBtn) activeBtn.className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-white bg-brandBlue shadow-lg shadow-blue-500/20 transition";
-​if (viewName === 'servers') renderServersList();
-if (viewName === 'keys') renderGlobalKeys();
-if (viewName === 'files') renderFilesList();
-if (viewName === 'logs') renderGlobalLogs();
-if (viewName === 'admin') renderAdminPanel();
-}
-​function switchServerTab(tab) {
-currentServerTab = tab;
-const tabs = ['overview', 'database', 'keys', 'connection', 'permissions', 'monitor', 'logs'];
-tabs.forEach(t => {
-const el = document.getElementById(st-tab-${t});
-if (el) el.classList.add('hidden');
-const btn = document.getElementById(st-btn-${t});
-if (btn) btn.className = "px-4 py-2 text-xs font-semibold rounded-xl text-gray-400 hover:text-white whitespace-nowrap transition";
-});
-const activeEl = document.getElementById(st-tab-${tab});
-if (activeEl) activeEl.classList.remove('hidden');
-const activeBtn = document.getElementById(st-btn-${tab});
-if (activeBtn) activeBtn.className = "px-4 py-2 text-xs font-semibold rounded-xl bg-brandBlue text-white whitespace-nowrap transition";
-​if (tab === 'database') renderDatabaseRecords();
-if (tab === 'keys') renderServerKeys();
-if (tab === 'logs') renderServerLogs();
-}
-​function toggleSidebar() {
-const sidebar = document.getElementById('sidebar');
-sidebar.classList.toggle('-translate-x-full');
-}
-​function toggleTheme() {
-const html = document.documentElement;
-html.classList.toggle('dark');
-const icon = document.getElementById('theme-icon');
-if (html.classList.contains('dark')) {
-icon.className = "fa-solid fa-moon";
-} else {
-icon.className = "fa-solid fa-sun";
-}
-}
-​function toggleUserDropdown() {
-document.getElementById('user-dropdown').classList.toggle('hidden');
-}
-function closeUserDropdown() {
-document.getElementById('user-dropdown').classList.add('hidden');
-}
-​// Modals
-function openServerModal() {
-document.getElementById('modal-server').classList.remove('hidden');
-}
-function closeServerModal() {
-document.getElementById('modal-server').classList.add('hidden');
-}
-​function openKeyModal() {
-const select = document.getElementById('key-server-id');
-select.innerHTML = '';
-const userServers = appData.servers.filter(s => s.ownerUid === currentUser.uid);
-if (userServers.length === 0) {
-select.innerHTML = '<option value="">Crie um servidor primeiro</option>';
-} else {
-userServers.forEach(s => {
-select.innerHTML += <option value="${s.serverId}">${s.name} (${s.serverId})</option>;
-});
-}
-document.getElementById('modal-key').classList.remove('hidden');
-}
-function closeKeyModal() {
-document.getElementById('modal-key').classList.add('hidden');
-}
-​function openAddRecordModal() {
-document.getElementById('modal-record').classList.remove('hidden');
-}
-function closeAddRecordModal() {
-document.getElementById('modal-record').classList.add('hidden');
-}
-​// Server Creation & Management
-function handleCreateServer(e) {
-e.preventDefault();
-const name = document.getElementById('srv-name').value.trim();
-const desc = document.getElementById('srv-desc').value.trim();
-const projectType = document.getElementById('srv-type').value;
-const serverId = document.getElementById('srv-identifier').value.trim();
-​loadState();
-if (appData.servers.some(s => s.serverId === serverId)) {
-showToast('Este ID de servidor já está em uso.', 'error');
-return;
-}
-​const newServer = {
-serverId,
-name,
-desc,
-projectType,
-ownerUid: currentUser.uid,
-status: 'active',
-createdAt: Date.now(),
-requestsCount: 0
-};
-​appData.servers.push(newServer);
-appData.logs.unshift({
-timestamp: Date.now(),
-type: 'SERVER_CREATED',
-serverId,
-user: currentUser.username,
-result: 'SUCCESS'
-});
-​saveState();
-closeServerModal();
-refreshDashboardData();
-switchView('servers');
-showToast('Mini servidor criado com sucesso!', 'success');
-}
-​function refreshDashboardData() {
-loadState();
-const userServers = appData.servers.filter(s => currentUser && s.ownerUid === currentUser.uid);
-const active = userServers.filter(s => s.status === 'active').length;
-const paused = userServers.filter(s => s.status === 'paused').length;
-const totalReqs = userServers.reduce((acc, s) => acc + (s.requestsCount || 0), 0);
-const userKeys = appData.keys.filter(k => userServers.some(s => s.serverId === k.serverId));
-​document.getElementById('stat-total-servers').innerText = userServers.length;
-document.getElementById('stat-active-servers').innerText = active;
-document.getElementById('stat-paused-servers').innerText = paused;
-document.getElementById('stat-total-reqs').innerText = totalReqs;
-document.getElementById('stat-keys').innerText = userKeys.length;
-document.getElementById('stat-storage').innerText = '2.4 MB';
-​// Recent Servers on Dashboard
-const dbList = document.getElementById('dashboard-servers-list');
-if (userServers.length === 0) {
-dbList.innerHTML = <div class="text-center py-6 text-xs text-gray-500">Nenhum servidor criado ainda.</div>;
-} else {
-dbList.innerHTML = userServers.slice(0, 3).map(s => <div class="flex items-center justify-between p-3 bg-gray-900/60 border border-darkBorder rounded-xl"> <div> <div class="font-bold text-white text-xs">${s.name}</div> <div class="text-[10px] font-mono text-gray-400">${s.serverId} &bull; ${s.projectType}</div> </div> <button onclick="openServerDetail('${s.serverId}')" class="px-3 py-1.5 bg-brandBlue text-white rounded-lg text-xs font-semibold">Gerenciar</button> </div>).join('');
-}
-}
-​function renderServersList() {
-loadState();
-const grid = document.getElementById('servers-grid');
-const userServers = appData.servers.filter(s => s.ownerUid === currentUser.uid);
-​if (userServers.length === 0) {
-grid.innerHTML = <div class="col-span-full text-center py-12 text-xs text-gray-500 bg-darkCard border border-darkBorder rounded-2xl">Nenhum servidor encontrado. Clique em "Novo Servidor" para iniciar.</div>;
-return;
-}
-​grid.innerHTML = userServers.map(s => <div class="bg-darkCard border border-darkBorder rounded-2xl p-6 flex flex-col justify-between shadow-sm"> <div> <div class="flex justify-between items-start mb-3"> <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${s.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}">${s.status.toUpperCase()}</span> <span class="text-[10px] font-mono text-gray-500">${s.projectType}</span> </div> <h3 class="font-bold text-white text-base mb-1">${s.name}</h3> <p class="text-xs text-gray-400 mb-4 line-clamp-2">${s.desc || 'Sem descrição.'}</p> <div class="bg-gray-900 px-3 py-2 rounded-xl text-[11px] font-mono text-brandBlue mb-4 truncate">ID: ${s.serverId}</div> </div> <div class="flex gap-2"> <button onclick="openServerDetail('${s.serverId}')" class="flex-1 py-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold rounded-xl transition">Painel</button> <button onclick="deleteServer('${s.serverId}')" class="px-3 py-2 bg-red-600/10 hover:bg-red-600/20 text-red-400 text-xs rounded-xl transition"><i class="fa-solid fa-trash"></i></button> </div> </div>).join('');
-}
-​function openServerDetail(serverId) {
-loadState();
-const server = appData.servers.find(s => s.serverId === serverId);
-if (!server) return;
-selectedServerId = serverId;
-​document.getElementById('detail-server-name').innerText = server.name;
-document.getElementById('detail-server-id').innerText = ID: ${server.serverId};
-document.getElementById('detail-project-type').innerText = server.projectType;
-document.getElementById('detail-req-count').innerText = server.requestsCount || 0;
-​const statusBadge = document.getElementById('detail-server-status');
-statusBadge.innerText = server.status === 'active' ? 'Ativo' : 'Pausado';
-statusBadge.className = server.status === 'active' ? 'px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20';
-​const snippet = const VERO_CONFIG = {\n    serverId: "${server.serverId}",\n    publicKey: "VERO_LIVE_PUB_...",\n    endpoint: "https://api.verocloud.io/v1"\n};;
-document.getElementById('detail-code-snippet').innerText = snippet;
-document.getElementById('conn-js-code').innerText = snippet;
-​switchView('server-detail');
-switchServerTab('overview');
-}
-​function toggleServerStatus() {
-loadState();
-const server = appData.servers.find(s => s.serverId === selectedServerId);
-if (!server) return;
-server.status = server.status === 'active' ? 'paused' : 'active';
-saveState();
-openServerDetail(selectedServerId);
-showToast('Status do servidor alterado.', 'success');
-}
-​function deleteServer(serverId) {
-if (!confirm('Tem certeza que deseja excluir este mini servidor e todos os dados associados?')) return;
-loadState();
-appData.servers = appData.servers.filter(s => s.serverId !== serverId);
-saveState();
-renderServersList();
-switchView('servers');
-showToast('Servidor excluído.', 'info');
-}
-​function openDeleteServerModal() {
-deleteServer(selectedServerId);
-}
-​// Access Keys
-function handleCreateKey(e) {
-e.preventDefault();
-const serverId = document.getElementById('key-server-id').value;
-const type = document.getElementById('key-type').value;
-​loadState();
-const keyId = 'VERO_LIVE_' + Math.random().toString(36).substring(2, 10).toUpperCase();
-const newKey = {
-keyId,
-serverId,
-type,
-ownerUid: currentUser.uid,
-createdAt: Date.now(),
-status: 'active',
-lastUsed: 'Nunca'
-};
-​appData.keys.push(newKey);
-saveState();
-closeKeyModal();
-renderServerKeys();
-showToast('Chave de acesso gerada com sucesso!', 'success');
-}
-​function renderServerKeys() {
-loadState();
-const container = document.getElementById('server-keys-list');
-const keys = appData.keys.filter(k => k.serverId === selectedServerId);
-​if (keys.length === 0) {
-container.innerHTML = <div class="text-center py-8 text-xs text-gray-500 bg-darkCard border border-darkBorder rounded-2xl">Nenhuma chave gerada para este servidor.</div>;
-return;
-}
-​container.innerHTML = keys.map(k => <div class="bg-darkCard border border-darkBorder p-4 rounded-2xl flex items-center justify-between"> <div> <div class="flex items-center gap-2 mb-1"> <span class="font-mono font-bold text-white text-xs">${k.keyId}</span> <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-600/10 text-brandBlue border border-blue-500/20">${k.type}</span> </div> <div class="text-[10px] text-gray-400">Criada em: ${new Date(k.createdAt).toLocaleDateString()} &bull; Último uso: ${k.lastUsed}</div> </div> <div class="flex gap-2"> <button onclick="navigator.clipboard.writeText('${k.keyId}'); showToast('Chave copiada!', 'success')" class="px-3 py-1.5 bg-gray-900 border border-darkBorder text-gray-300 hover:text-white rounded-xl text-xs"><i class="fa-solid fa-copy"></i></button> <button onclick="revokeKey('${k.keyId}')" class="px-3 py-1.5 bg-red-600/10 text-red-400 rounded-xl text-xs">Revogar</button> </div> </div>).join('');
-}
-​function renderGlobalKeys() {
-loadState();
-const container = document.getElementById('global-keys-list');
-const userServers = appData.servers.filter(s => s.ownerUid === currentUser.uid);
-const keys = appData.keys.filter(k => userServers.some(s => s.serverId === k.serverId));
-​if (keys.length === 0) {
-container.innerHTML = <div class="text-center py-12 text-xs text-gray-500 bg-darkCard border border-darkBorder rounded-2xl">Nenhuma chave ativa encontrada.</div>;
-return;
-}
-​container.innerHTML = keys.map(k => <div class="bg-darkCard border border-darkBorder p-4 rounded-2xl flex items-center justify-between"> <div> <div class="flex items-center gap-2 mb-1"> <span class="font-mono font-bold text-white text-xs">${k.keyId}</span> <span class="text-[10px] text-gray-400">Servidor: ${k.serverId}</span> </div> <div class="text-[10px] text-gray-400">Criada em: ${new Date(k.createdAt).toLocaleDateString()}</div> </div> <button onclick="revokeKey('${k.keyId}')" class="px-3 py-1.5 bg-red-600/10 text-red-400 rounded-xl text-xs">Revogar</button> </div>).join('');
-}
-​function revokeKey(keyId) {
-loadState();
-appData.keys = appData.keys.filter(k => k.keyId !== keyId);
-saveState();
-renderServerKeys();
-showToast('Chave revogada com sucesso.', 'info');
-}
-​// Database Manager
-function handleAddRecord(e) {
-e.preventDefault();
-const recKey = document.getElementById('rec-key').value.trim();
-const recValueRaw = document.getElementById('rec-value').value.trim();
-​let parsedValue;
-try {
-parsedValue = JSON.parse(recValueRaw);
-} catch(err) {
-showToast('Erro: JSON inválido.', 'error');
-return;
-}
-​loadState();
-if (!appData.database[selectedServerId]) {
-appData.database[selectedServerId] = {};
-}
-​appData.database[selectedServerId][recKey] = parsedValue;
-saveState();
-closeAddRecordModal();
-renderDatabaseRecords();
-showToast('Registro salvo com sucesso!', 'success');
-}
-​function renderDatabaseRecords() {
-loadState();
-const container = document.getElementById('db-records-container');
-const records = appData.database[selectedServerId] || {};
-const keys = Object.keys(records);
-​if (keys.length === 0) {
-container.innerHTML = <div class="text-center py-8 text-xs text-gray-500">Nenhum registro encontrado neste servidor.</div>;
-return;
-}
-​container.innerHTML = keys.map(k => <div class="bg-gray-900 border border-darkBorder p-4 rounded-xl flex items-center justify-between"> <div> <div class="font-mono font-bold text-brandBlue text-xs mb-1">${k}</div> <pre class="text-[11px] mono text-gray-300 overflow-x-auto">${JSON.stringify(records[k], null, 2)}</pre> </div> <button onclick="deleteDbRecord('${k}')" class="px-3 py-1.5 bg-red-600/10 text-red-400 rounded-xl text-xs"><i class="fa-solid fa-trash"></i></button> </div>).join('');
-}
-​function deleteDbRecord(key) {
-loadState();
-if (appData.database[selectedServerId]) {
-delete appData.database[selectedServerId][key];
-saveState();
-renderDatabaseRecords();
-showToast('Registro excluído.', 'info');
-}
-}
-​function exportServerJson() {
-loadState();
-const records = appData.database[selectedServerId] || {};
-const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(records, null, 2));
-const dlAnchorElem = document.createElement('a');
-dlAnchorElem.setAttribute("href", dataStr);
-dlAnchorElem.setAttribute("download", ${selectedServerId}_backup.json);
-dlAnchorElem.click();
-showToast('Exportação concluída!', 'success');
-}
-​// File Manager
-function handleFileUpload(e) {
-const file = e.target.files[0];
-if (!file) return;
-​loadState();
-appData.files.push({
-name: file.name,
-size: (file.size / 1024).toFixed(1) + ' KB',
-type: file.type || 'application/octet-stream',
-uploadedAt: Date.now()
-});
-saveState();
-renderFilesList();
-showToast('Arquivo enviado para o Firebase Storage!', 'success');
-}
-​function renderFilesList() {
-loadState();
-const container = document.getElementById('files-list-container');
-if (appData.files.length === 0) {
-container.innerHTML = <div class="bg-darkCard border border-darkBorder p-6 rounded-2xl text-center col-span-full py-12 text-gray-500 text-xs">Nenhum arquivo enviado no Firebase Storage.</div>;
-return;
-}
-​container.innerHTML = appData.files.map((f, idx) => <div class="bg-darkCard border border-darkBorder p-4 rounded-2xl flex flex-col justify-between"> <div> <div class="flex items-center gap-2 mb-2"> <i class="fa-solid fa-file text-brandBlue"></i> <span class="font-bold text-white text-xs truncate">${f.name}</span> </div> <div class="text-[10px] text-gray-400 mb-4">Tamanho: ${f.size} &bull; ${new Date(f.uploadedAt).toLocaleDateString()}</div> </div> <button onclick="deleteFile(${idx})" class="w-full py-1.5 bg-red-600/10 text-red-400 rounded-xl text-xs">Excluir</button> </div>).join('');
-}
-​function deleteFile(idx) {
-loadState();
-appData.files.splice(idx, 1);
-saveState();
-renderFilesList();
-showToast('Arquivo excluído.', 'info');
-}
-​// Logs & Admin
-function renderGlobalLogs() {
-loadState();
-const container = document.getElementById('global-logs-container');
-if (appData.logs.length === 0) {
-container.innerHTML = <div class="text-center py-8 text-xs text-gray-500">Nenhum log gravado.</div>;
-return;
-}
-container.innerHTML = appData.logs.map(l => <div class="bg-gray-900 border border-darkBorder p-3 rounded-xl flex items-center justify-between text-xs"> <div> <span class="font-mono text-brandBlue font-bold">[${l.type}]</span> <span class="text-gray-300 ml-2">Servidor: ${l.serverId} &bull; Usuário: ${l.user}</span> </div> <span class="text-[10px] text-gray-500">${new Date(l.timestamp).toLocaleTimeString()}</span> </div>).join('');
-}
-​function renderServerLogs() {
-const container = document.getElementById('server-logs-container');
-loadState();
-const logs = appData.logs.filter(l => l.serverId === selectedServerId);
-if (logs.length === 0) {
-container.innerHTML = <div class="text-center py-6 text-xs text-gray-500">Nenhum evento registrado para este servidor.</div>;
-return;
-}
-container.innerHTML = logs.map(l => <div class="bg-gray-900 border border-darkBorder p-3 rounded-xl flex items-center justify-between text-xs"> <div> <span class="font-mono text-brandBlue font-bold">[${l.type}]</span> <span class="text-gray-300 ml-2">Resultado: ${l.result}</span> </div> <span class="text-[10px] text-gray-500">${new Date(l.timestamp).toLocaleTimeString()}</span> </div>).join('');
-}
-​function renderAdminPanel() {
-loadState();
-document.getElementById('admin-total-users').innerText = appData.users.length;
-document.getElementById('admin-total-servers').innerText = appData.servers.length;
-}
-​// Initialize on load
-window.onload = function() {
-loadState();
-};
+
+<!-- FIREBASE SDKs (Modular v10 - Sem Storage) & APP LOGIC -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import { getDatabase, ref, set, get, remove, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+  // Configuração Firebase Fornecida (Apenas Auth e Realtime Database)
+  const firebaseConfig = {
+    apiKey: "AlzaSyCTkq0uXy5kHg9N8rj9--Dooh8cuguYxPE",
+    authDomain: "subjectrobot-49600.firebaseapp.com",
+    databaseURL: "https://subjectrobot-49600-default-rtdb.firebaseio.com",
+    projectId: "subjectrobot-49600",
+    storageBucket: "subjectrobot-49600.appspot.com",
+    messagingSenderId: "731604558049",
+    appId: "1:731604558049:android:7f47b30b289445814017a0"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
+
+  let currentUser = null;
+  let currentView = 'dashboard';
+  let currentServerTab = 'overview';
+  window.selectedServerId = null;
+
+  // Toast Notifications
+  window.showToast = function(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    const bgColors = {
+      success: 'bg-emerald-600/90 border-emerald-500',
+      error: 'bg-red-600/90 border-red-500',
+      info: 'bg-blue-600/90 border-blue-500'
+    };
+    const icons = {
+      success: 'fa-circle-check',
+      error: 'fa-triangle-exclamation',
+      info: 'fa-circle-info'
+    };
+    toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border text-white text-xs shadow-xl backdrop-blur-md transition-all ${bgColors[type] || bgColors.info}`;
+    toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info} text-sm"></i><span class="font-medium">${message}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      setTimeout(() => toast.remove(), 300);
+    }, 3500);
+  };
+
+  // Autenticação Anônima no Firebase (Gera UID válido para o RTDB)
+  signInAnonymously(auth).then((cred) => {
+    currentUser = cred.user;
+    document.getElementById('monitor-uid').innerText = currentUser.uid;
+    document.getElementById('nav-username').innerText = 'Dev (' + currentUser.uid.substring(0,6) + ')';
+    showToast('Conectado ao Firebase RTDB!', 'success');
+    refreshDashboardData();
+  }).catch((err) => {
+    showToast('Erro ao conectar Firebase Auth: ' + err.message, 'error');
+  });
+
+  // Criar Servidor no Firebase RTDB
+  window.handleCreateServer = async function(e) {
+    e.preventDefault();
+    if (!currentUser) {
+      showToast('Aguardando conexão com o Firebase...', 'error');
+      return;
+    }
+
+    const name = document.getElementById('srv-name').value.trim();
+    const desc = document.getElementById('srv-desc').value.trim();
+    const projectType = document.getElementById('srv-type').value;
+    const serverId = document.getElementById('srv-identifier').value.trim();
+
+    try {
+      const serverRef = ref(db, 'servers/' + serverId);
+      const snapshot = await get(serverRef);
+      if (snapshot.exists()) {
+        showToast('Este ID de servidor já existe no Firebase RTDB.', 'error');
+        return;
+      }
+
+      const newServer = {
+        serverId,
+        name,
+        desc,
+        projectType,
+        ownerUid: currentUser.uid,
+        status: 'active',
+        createdAt: Date.now(),
+        requestsCount: 0
+      };
+
+      await set(serverRef, newServer);
+
+      await push(ref(db, 'logs'), {
+        timestamp: Date.now(),
+        type: 'SERVER_CREATED',
+        serverId,
+        user: currentUser.uid,
+        result: 'SUCCESS'
+      });
+
+      closeServerModal();
+      showToast('Servidor criado e salvo no RTDB com sucesso!', 'success');
+      refreshDashboardData();
+      switchView('servers');
+    } catch (err) {
+      showToast('Erro ao gravar no RTDB: ' + err.message, 'error');
+    }
+  };
+
+  // Gerar Chave de Acesso no RTDB
+  window.handleCreateKey = async function(e) {
+    e.preventDefault();
+    const serverId = document.getElementById('key-server-id').value;
+    const type = document.getElementById('key-type').value;
+    const keyId = 'VERO_LIVE_' + Math.random().toString(36).substring(2, 10).toUpperCase();
+
+    try {
+      await set(ref(db, `keys/${keyId}`), {
+        keyId,
+        serverId,
+        type,
+        ownerUid: currentUser.uid,
+        createdAt: Date.now(),
+        status: 'active',
+        lastUsed: 'Nunca'
+      });
+      closeKeyModal();
+      renderServerKeys();
+      renderGlobalKeys();
+      showToast('Chave de acesso gerada no RTDB!', 'success');
+    } catch (err) {
+      showToast('Erro ao criar chave: ' + err.message, 'error');
+    }
+  };
+
+  // Carregar dados do Dashboard do RTDB
+  window.refreshDashboardData = async function() {
+    if (!currentUser) return;
+    try {
+      const serversSnap = await get(ref(db, 'servers'));
+      const keysSnap = await get(ref(db, 'keys'));
+      const logsSnap = await get(ref(db, 'logs'));
+
+      let userServers = [];
+      let totalReqs = 0;
+      let active = 0;
+      let paused = 0;
+
+      if (serversSnap.exists()) {
+        serversSnap.forEach(child => {
+          const srv = child.val();
+          if (srv.ownerUid === currentUser.uid) {
+            userServers.push(srv);
+            totalReqs += (srv.requestsCount || 0);
+            if (srv.status === 'active') active++; else paused++;
+          }
+        });
+      }
+
+      let userKeysCount = 0;
+      if (keysSnap.exists()) {
+        keysSnap.forEach(child => {
+          const k = child.val();
+          if (k.ownerUid === currentUser.uid) userKeysCount++;
+        });
+      }
+
+      document.getElementById('stat-total-servers').innerText = userServers.length;
+      document.getElementById('stat-active-servers').innerText = active;
+      document.getElementById('stat-paused-servers').innerText = paused;
+      document.getElementById('stat-total-reqs').innerText = totalReqs;
+      document.getElementById('stat-keys').innerText = userKeysCount;
+
+      const dbList = document.getElementById('dashboard-servers-list');
+      if (userServers.length === 0) {
+        dbList.innerHTML = `<div class="text-center py-6 text-xs text-gray-500">Nenhum servidor criado no Firebase RTDB.</div>`;
+      } else {
+        dbList.innerHTML = userServers.slice(0, 3).map(s => `
+          <div class="flex items-center justify-between p-3 bg-gray-900/60 border border-darkBorder rounded-xl">
+            <div>
+              <div class="font-bold text-white text-xs">${s.name}</div>
+              <div class="text-[10px] font-mono text-gray-400">${s.serverId} &bull; ${s.projectType}</div>
+            </div>
+            <button onclick="openServerDetail('${s.serverId}')" class="px-3 py-1.5 bg-brandBlue text-white rounded-lg text-xs font-semibold">Gerenciar</button>
+          </div>
+        `).join('');
+      }
+
+      const logsList = document.getElementById('dashboard-logs-list');
+      if (logsSnap.exists()) {
+        let logsArr = [];
+        logsSnap.forEach(child => logsArr.push(child.val()));
+        logsList.innerHTML = logsArr.reverse().slice(0, 5).map(l => `
+          <div class="bg-gray-900 p-2.5 rounded-xl border border-darkBorder text-[11px] font-mono">
+            <span class="text-emerald-400">[${l.type}]</span> Servidor: ${l.serverId}
+          </div>
+        `).join('');
+      }
+    } catch (err) {
+      console.error("Erro ao sincronizar com Firebase RTDB:", err);
+    }
+  };
+
+  // Renderizar Servidores
+  window.renderServersList = async function() {
+    if (!currentUser) return;
+    const grid = document.getElementById('servers-grid');
+    grid.innerHTML = `<div class="col-span-full text-center py-12 text-xs text-gray-500">Carregando do Firebase RTDB...</div>`;
+
+    try {
+      const snap = await get(ref(db, 'servers'));
+      let userServers = [];
+      if (snap.exists()) {
+        snap.forEach(child => {
+          const srv = child.val();
+          if (srv.ownerUid === currentUser.uid) userServers.push(srv);
+        });
+      }
+
+      if (userServers.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-center py-12 text-xs text-gray-500 bg-darkCard border border-darkBorder rounded-2xl">Nenhum servidor encontrado no RTDB. Clique em "Novo Servidor" para criar.</div>`;
+        return;
+      }
+
+      grid.innerHTML = userServers.map(s => `
+        <div class="bg-darkCard border border-darkBorder rounded-2xl p-6 flex flex-col justify-between shadow-sm">
+          <div>
+            <div class="flex justify-between items-start mb-3">
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${s.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}">${s.status.toUpperCase()}</span>
+              <span class="text-[10px] font-mono text-gray-500">${s.projectType}</span>
+            </div>
+            <h3 class="font-bold text-white text-base mb-1">${s.name}</h3>
+            <p class="text-xs text-gray-400 mb-4 line-clamp-2">${s.desc || 'Sem descrição.'}</p>
+            <div class="bg-gray-900 px-3 py-2 rounded-xl text-[11px] font-mono text-brandBlue mb-4 truncate">ID: ${s.serverId}</div>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="openServerDetail('${s.serverId}')" class="flex-1 py-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold rounded-xl transition">Painel RTDB</button>
+            <button onclick="deleteServer('${s.serverId}')" class="px-3 py-2 bg-red-600/10 hover:bg-red-600/20 text-red-400 text-xs rounded-xl transition"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>
+      `).join('');
+    } catch (err) {
+      showToast('Erro ao carregar servidores: ' + err.message, 'error');
+    }
+  };
+
+  window.openServerDetail = async function(serverId) {
+    window.selectedServerId = serverId;
+    const snap = await get(ref(db, 'servers/' + serverId));
+    if (!snap.exists()) return;
+    const server = snap.val();
+
+    document.getElementById('detail-server-name').innerText = server.name;
+    document.getElementById('detail-server-id').innerText = `ID: ${server.serverId}`;
+    document.getElementById('detail-project-type').innerText = server.projectType;
+    document.getElementById('detail-req-count').innerText = server.requestsCount || 0;
+
+    const statusBadge = document.getElementById('detail-server-status');
+    statusBadge.innerText = server.status === 'active' ? 'Ativo' : 'Pausado';
+
+    const snippet = `const VERO_CONFIG = {\n    serverId: "${server.serverId}",\n    databaseURL: "https://subjectrobot-49600-default-rtdb.firebaseio.com"\n};`;
+    document.getElementById('detail-code-snippet').innerText = snippet;
+    document.getElementById('conn-js-code').innerText = snippet;
+
+    switchView('server-detail');
+    switchServerTab('overview');
+  };
+
+  window.deleteServer = async function(serverId) {
+    if (!confirm('Deseja excluir este servidor do Firebase RTDB?')) return;
+    try {
+      await remove(ref(db, 'servers/' + serverId));
+      await remove(ref(db, 'serverData/' + serverId));
+      showToast('Servidor excluído do RTDB!', 'success');
+      renderServersList();
+      switchView('servers');
+    } catch (err) {
+      showToast('Erro ao excluir: ' + err.message, 'error');
+    }
+  };
+
+  // Gerenciamento de Banco de Dados JSON no RTDB
+  window.handleAddRecord = async function(e) {
+    e.preventDefault();
+    const recKey = document.getElementById('rec-key').value.trim();
+    const recValueRaw = document.getElementById('rec-value').value.trim();
+
+    let parsedValue;
+    try {
+      parsedValue = JSON.parse(recValueRaw);
+    } catch(err) {
+      showToast('Erro: JSON inválido.', 'error');
+      return;
+    }
+
+    try {
+      await set(ref(db, `serverData/${window.selectedServerId}/${recKey}`), parsedValue);
+      closeAddRecordModal();
+      renderDatabaseRecords();
+      showToast('Registro salvo no Firebase RTDB!', 'success');
+    } catch (err) {
+      showToast('Erro ao salvar no banco: ' + err.message, 'error');
+    }
+  };
+
+  window.renderDatabaseRecords = async function() {
+    const container = document.getElementById('db-records-container');
+    container.innerHTML = `<div class="text-center py-8 text-xs text-gray-500">Carregando dados do RTDB...</div>`;
+
+    try {
+      const snap = await get(ref(db, `serverData/${window.selectedServerId}`));
+      if (!snap.exists()) {
+        container.innerHTML = `<div class="text-center py-8 text-xs text-gray-500">Nenhum registro encontrado neste servidor no RTDB.</div>`;
+        return;
+      }
+
+      const records = snap.val();
+      container.innerHTML = Object.keys(records).map(k => `
+        <div class="bg-gray-900 border border-darkBorder p-4 rounded-xl flex items-center justify-between">
+          <div>
+            <div class="font-mono font-bold text-brandBlue text-xs mb-1">${k}</div>
+            <pre class="text-[11px] mono text-gray-300 overflow-x-auto">${JSON.stringify(records[k], null, 2)}</pre>
+          </div>
+          <button onclick="deleteDbRecord('${k}')" class="px-3 py-1.5 bg-red-600/10 text-red-400 rounded-xl text-xs"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      `).join('');
+    } catch (err) {
+      container.innerHTML = `<div class="text-center py-8 text-xs text-red-400">Erro ao carregar dados.</div>`;
+    }
+  };
+
+  window.deleteDbRecord = async function(key) {
+    try {
+      await remove(ref(db, `serverData/${window.selectedServerId}/${key}`));
+      renderDatabaseRecords();
+      showToast('Registro removido do RTDB.', 'info');
+    } catch (err) {
+      showToast('Erro ao remover: ' + err.message, 'error');
+    }
+  };
+
+  // Envio de Arquivos Direto no RTDB (em Base64/Texto)
+  window.handleFileUpload = async function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async function(event) {
+      try {
+        await push(ref(db, 'files'), {
+          name: file.name,
+          size: (file.size / 1024).toFixed(1) + ' KB',
+          type: file.type || 'application/octet-stream',
+          data: event.target.result,
+          uploadedAt: Date.now()
+        });
+        renderFilesList();
+        showToast('Arquivo salvo diretamente no Realtime Database!', 'success');
+      } catch (err) {
+        showToast('Erro ao salvar arquivo no RTDB: ' + err.message, 'error');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.renderFilesList = async function() {
+    const container = document.getElementById('files-list-container');
+    try {
+      const snap = await get(ref(db, 'files'));
+      if (!snap.exists()) {
+        container.innerHTML = `<div class="bg-darkCard border border-darkBorder p-6 rounded-2xl text-center col-span-full py-12 text-gray-500 text-xs">Nenhum arquivo enviado no RTDB.</div>`;
+        return;
+      }
+
+      let filesArr = [];
+      snap.forEach(child => filesArr.push({ id: child.key, ...child.val() }));
+
+      container.innerHTML = filesArr.map(f => `
+        <div class="bg-darkCard border border-darkBorder p-4 rounded-2xl flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <i class="fa-solid fa-file text-brandBlue"></i>
+              <span class="font-bold text-white text-xs truncate">${f.name}</span>
+            </div>
+            <div class="text-[10px] text-gray-400 mb-4">Tamanho: ${f.size} (RTDB)</div>
+          </div>
+          <div class="flex gap-2">
+            <a href="${f.data}" download="${f.name}" class="flex-1 py-1.5 bg-brandBlue text-center text-white rounded-xl text-xs">Baixar</a>
+            <button onclick="deleteFile('${f.id}')" class="px-3 py-1.5 bg-red-600/10 text-red-400 rounded-xl text-xs">Excluir</button>
+          </div>
+        </div>
+      `).join('');
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  window.deleteFile = async function(fileId) {
+    try {
+      await remove(ref(db, `files/${fileId}`));
+      renderFilesList();
+      showToast('Arquivo removido do RTDB.', 'info');
+    } catch (err) {
+      showToast('Erro ao excluir: ' + err.message, 'error');
+    }
+  };
+
+  // Renderizar Chaves de Acesso
+  window.renderServerKeys = async function() {
+    const container = document.getElementById('server-keys-list');
+    if (!window.selectedServerId) return;
+    try {
+      const snap = await get(ref(db, 'keys'));
+      let keys = [];
+      if (snap.exists()) {
+        snap.forEach(child => {
+          const k = child.val();
+          if (k.serverId === window.selectedServerId) keys.push(k);
+        });
+      }
+      if (keys.length === 0) {
+        container.innerHTML = `<div class="text-center py-8 text-xs text-gray-500 bg-darkCard border border-darkBorder rounded-2xl">Nenhuma chave gerada para este servidor.</div>`;
+        return;
+      }
+      container.innerHTML = keys.map(k => `
+        <div class="bg-darkCard border border-darkBorder p-4 rounded-2xl flex items-center justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="font-mono font-bold text-white text-xs">${k.keyId}</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-600/10 text-brandBlue border border-blue-500/20">${k.type}</span>
+            </div>
+            <div class="text-[10px] text-gray-400">Criada em: ${new Date(k.createdAt).toLocaleDateString()}</div>
+          </div>
+          <button onclick="deleteKey('${k.keyId}')" class="px-3 py-1.5 bg-red-600/10 text-red-400 rounded-xl text-xs">Revogar</button>
+        </div>
+      `).join('');
+    } catch(err) { console.error(err); }
+  };
+
+  window.renderGlobalKeys = async function() {
+    const container = document.getElementById('global-keys-list');
+    try {
+      const snap = await get(ref(db, 'keys'));
+      if (!snap.exists()) {
+        container.innerHTML = `<div class="text-center py-12 text-xs text-gray-500 bg-darkCard border border-darkBorder rounded-2xl">Nenhuma chave ativa encontrada no RTDB.</div>`;
+        return;
+      }
+      let keys = [];
+      snap.forEach(child => keys.push(child.val()));
+      container.innerHTML = keys.map(k => `
+        <div class="bg-darkCard border border-darkBorder p-4 rounded-2xl flex items-center justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="font-mono font-bold text-white text-xs">${k.keyId}</span>
+              <span class="text-[10px] text-gray-400">Servidor: ${k.serverId}</span>
+            </div>
+            <div class="text-[10px] text-gray-400">Tipo: ${k.type}</div>
+          </div>
+          <button onclick="deleteKey('${k.keyId}')" class="px-3 py-1.5 bg-red-600/10 text-red-400 rounded-xl text-xs">Revogar</button>
+        </div>
+      `).join('');
+    } catch(err) { console.error(err); }
+  };
+
+  window.deleteKey = async function(keyId) {
+    try {
+      await remove(ref(db, `keys/${keyId}`));
+      renderServerKeys();
+      renderGlobalKeys();
+      showToast('Chave revogada no RTDB.', 'info');
+    } catch (err) {
+      showToast('Erro ao revogar chave: ' + err.message, 'error');
+    }
+  };
+
+  // Funções Globais de Navegação e Modals
+  window.switchView = function(viewName) {
+    currentView = viewName;
+    ['dashboard', 'servers', 'server-detail', 'keys', 'database', 'files', 'monitor', 'logs', 'docs', 'limits', 'admin', 'profile'].forEach(v => {
+      const el = document.getElementById(`view-${v}`);
+      if (el) el.classList.add('hidden');
+      const btn = document.getElementById(`nav-btn-${v}`);
+      if (btn) btn.className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition";
+    });
+
+    const activeEl = document.getElementById(`view-${viewName}`);
+    if (activeEl) activeEl.classList.remove('hidden');
+    const activeBtn = document.getElementById(`nav-btn-${viewName}`);
+    if (activeBtn) activeBtn.className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-white bg-brandBlue shadow-lg shadow-blue-500/20 transition";
+
+    if (viewName === 'servers') renderServersList();
+    if (viewName === 'keys') renderGlobalKeys();
+    if (viewName === 'files') renderFilesList();
+  };
+
+  window.switchServerTab = function(tab) {
+    currentServerTab = tab;
+    ['overview', 'database', 'keys', 'connection', 'logs'].forEach(t => {
+      const el = document.getElementById(`st-tab-${t}`);
+      if (el) el.classList.add('hidden');
+      const btn = document.getElementById(`st-btn-${t}`);
+      if (btn) btn.className = "px-4 py-2 text-xs font-semibold rounded-xl text-gray-400 hover:text-white whitespace-nowrap transition";
+    });
+    const activeEl = document.getElementById(`st-tab-${tab}`);
+    if (activeEl) activeEl.classList.remove('hidden');
+    const activeBtn = document.getElementById(`st-btn-${tab}`);
+    if (activeBtn) activeBtn.className = "px-4 py-2 text-xs font-semibold rounded-xl bg-brandBlue text-white whitespace-nowrap transition";
+
+    if (tab === 'database') renderDatabaseRecords();
+    if (tab === 'keys') renderServerKeys();
+  };
+
+  window.toggleSidebar = () => document.getElementById('sidebar').classList.toggle('-translate-x-full');
+  window.toggleTheme = () => document.documentElement.classList.toggle('dark');
+  window.toggleUserDropdown = () => document.getElementById('user-dropdown').classList.toggle('hidden');
+  window.closeUserDropdown = () => document.getElementById('user-dropdown').classList.add('hidden');
+  window.openServerModal = () => document.getElementById('modal-server').classList.remove('hidden');
+  window.closeServerModal = () => document.getElementById('modal-server').classList.add('hidden');
+  window.openKeyModal = () => {
+    const select = document.getElementById('key-server-id');
+    select.innerHTML = `<option value="${window.selectedServerId || ''}">${window.selectedServerId || 'Servidor Atual'}</option>`;
+    document.getElementById('modal-key').classList.remove('hidden');
+  };
+  window.closeKeyModal = () => document.getElementById('modal-key').classList.add('hidden');
+  window.openAddRecordModal = () => document.getElementById('modal-record').classList.remove('hidden');
+  window.closeAddRecordModal = () => document.getElementById('modal-record').classList.add('hidden');
+
 </script>
 </body>
 </html>
