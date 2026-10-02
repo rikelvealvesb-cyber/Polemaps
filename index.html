@@ -1,1094 +1,1526 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="dark">
+<html lang="pt-BR" data-theme="dark">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VERO CLOUD — Plataforma de Mini Servidores Firebase RTDB</title>
-<!-- Tailwind CSS CDN -->
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-tailwind.config = {
-  darkMode: 'class',
-  theme: {
-    extend: {
-      colors: {
-        darkBg: '#090d16',
-        darkCard: '#111827',
-        darkBorder: '#1f293d',
-        brandBlue: '#3b82f6',
-        brandHover: '#2563eb'
-      }
-    }
-  }
-}
-</script>
-<!-- FontAwesome Icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<!-- Google Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-  body { font-family: 'Inter', sans-serif; }
-  .mono { font-family: 'JetBrains Mono', monospace; }
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: #090d16; }
-  ::-webkit-scrollbar-thumb { background: #1f293d; border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gerenciador de Arquivos Profissional</title>
+    <style>
+        :root {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --bg-tertiary: #2a2a2a;
+            --bg-hover: #333333;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+            --danger-color: #ef4444;
+            --success-color: #22c55e;
+            --border-color: #333333;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.18);
+            --transition: all 0.2s ease-in-out;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f1f5f9;
+            --bg-hover: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --accent-color: #2563eb;
+            --accent-hover: #1d4ed8;
+            --danger-color: #dc2626;
+            --success-color: #16a34a;
+            --border-color: #cbd5e1;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            height: 60px;
+            z-index: 100;
+        }
+
+        .header-left, .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .search-container {
+            flex: 1;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            background-color: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 12px 8px 36px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-color);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        button, .btn {
+            background-color: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        button:hover, .btn:hover {
+            background-color: var(--bg-hover);
+        }
+
+        button.primary {
+            background-color: var(--accent-color);
+            color: white;
+            border-color: transparent;
+        }
+
+        button.primary:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .app-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        sidebar {
+            width: 260px;
+            background-color: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+            z-index: 90;
+        }
+
+        .sidebar-section {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+            overflow-y: auto;
+            max-height: calc(100vh - 120px);
+        }
+
+        .sidebar-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+            padding-left: 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: var(--transition);
+            margin-bottom: 2px;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background-color: var(--bg-hover);
+            color: var(--accent-color);
+        }
+
+        .nav-item span.icon {
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background-color: var(--bg-primary);
+        }
+
+        .path-bar {
+            padding: 12px 20px;
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .breadcrumbs {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow-x: auto;
+            white-space: nowrap;
+            flex: 1;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb-item {
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .breadcrumb-item:hover {
+            color: var(--text-primary);
+        }
+
+        .breadcrumb-item::after {
+            content: "/";
+            margin-left: 6px;
+            color: var(--text-secondary);
+        }
+
+        .breadcrumb-item:last-child::after {
+            content: "";
+        }
+
+        .breadcrumb-item:last-child {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .toolbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .file-viewport {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 16px;
+        }
+
+        .file-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 14px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            user-select: none;
+        }
+
+        .file-card:hover {
+            background-color: var(--bg-hover);
+            border-color: var(--accent-color);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .file-card.selected {
+            background-color: rgba(59, 130, 246, 0.15);
+            border-color: var(--accent-color);
+        }
+
+        .file-icon {
+            font-size: 2.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 50px;
+        }
+
+        .file-name {
+            font-size: 0.85rem;
+            text-align: center;
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: var(--text-primary);
+        }
+
+        .file-meta {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        .file-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .file-row {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .file-row:hover {
+            background-color: var(--bg-hover);
+        }
+
+        .file-row.selected {
+            background-color: rgba(59, 130, 246, 0.15);
+            border-color: var(--accent-color);
+        }
+
+        .file-row .file-icon {
+            font-size: 1.5rem;
+            height: auto;
+        }
+
+        .file-row .file-info-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+
+        .file-row .file-name {
+            text-align: left;
+            font-size: 0.95rem;
+        }
+
+        .file-row .file-details {
+            display: flex;
+            gap: 16px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .details-panel {
+            width: 320px;
+            background-color: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
+            display: none;
+            flex-direction: column;
+            z-index: 80;
+        }
+
+        .details-panel.open {
+            display: flex;
+        }
+
+        .details-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+        }
+
+        .details-content {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .detail-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .detail-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .detail-value {
+            font-size: 0.95rem;
+            word-break: break-all;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow);
+            transform: scale(0.95);
+            transition: transform 0.2s ease;
+        }
+
+        .modal-overlay.open .modal {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .modal-footer {
+            padding: 12px 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-control {
+            background-color: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            outline: none;
+            width: 100%;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent-color);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 150px;
+            font-family: monospace;
+        }
+
+        .context-menu {
+            position: fixed;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 6px;
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            min-width: 160px;
+        }
+
+        .context-menu-item {
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-primary);
+        }
+
+        .context-menu-item:hover {
+            background-color: var(--bg-hover);
+            color: var(--accent-color);
+        }
+
+        .context-menu-divider {
+            height: 1px;
+            background-color: var(--border-color);
+            margin: 4px 0;
+        }
+
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1100;
+        }
+
+        .toast {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 12px 18px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.95rem;
+            animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; transform: translateY(10px); }
+        }
+
+        .mobile-bottom-nav {
+            display: none;
+            background-color: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            height: 60px;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 95;
+        }
+
+        .mobile-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 4px;
+        }
+
+        .mobile-nav-item.active, .mobile-nav-item:hover {
+            color: var(--accent-color);
+        }
+
+        .mobile-nav-item span {
+            font-size: 1.2rem;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            height: 100%;
+            color: var(--text-secondary);
+            text-align: center;
+            padding: 40px;
+        }
+
+        .empty-state span {
+            font-size: 3.5rem;
+        }
+
+        @media (max-width: 768px) {
+            sidebar {
+                position: fixed;
+                top: 60px;
+                bottom: 60px;
+                left: -260px;
+                box-shadow: var(--shadow);
+            }
+            sidebar.open {
+                left: 0;
+            }
+            .mobile-bottom-nav {
+                display: flex;
+            }
+            .hide-mobile {
+                display: none !important;
+            }
+            .path-bar {
+                padding: 8px 12px;
+            }
+            .file-viewport {
+                padding: 12px;
+            }
+        }
+    </style>
 </head>
-<body class="bg-darkBg text-gray-100 min-h-screen flex flex-col selection:bg-brandBlue selection:text-white">
+<body>
 
-<!-- Toast Notification Container -->
-<div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
-
-<!-- MAIN APP WRAPPER -->
-<div id="app-wrapper" class="flex-1 flex flex-col">
-
-<!-- Top Navbar -->
-<header class="h-16 bg-darkCard border-b border-darkBorder flex items-center justify-between px-4 lg:px-8 sticky top-0 z-40">
-  <div class="flex items-center gap-4">
-    <button onclick="toggleSidebar()" class="lg:hidden text-gray-400 hover:text-white text-xl p-2"><i class="fa-solid fa-bars"></i></button>
-    <div class="flex items-center gap-2 font-bold text-lg text-white">
-      <span class="w-8 h-8 rounded-lg bg-blue-600/20 text-brandBlue flex items-center justify-center border border-blue-500/30"><i class="fa-solid fa-cloud-bolt"></i></span>
-      <span>VERO CLOUD</span>
-      <span class="text-xs bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/30 hidden sm:inline flex items-center gap-1.5">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> 100% Firebase Realtime DB
-      </span>
-    </div>
-  </div>
-
-  <div class="flex items-center gap-4">
-    <button onclick="toggleTheme()" class="w-10 h-10 rounded-xl bg-gray-900 border border-darkBorder text-gray-400 hover:text-white flex items-center justify-center transition" title="Alternar Tema">
-      <i id="theme-icon" class="fa-solid fa-moon"></i>
-    </button>
-
-    <button onclick="openServerModal()" class="hidden sm:flex items-center gap-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-lg shadow-blue-500/25 transition">
-      <i class="fa-solid fa-plus"></i> Criar Novo Servidor
-    </button>
-
-    <div class="relative">
-      <button onclick="toggleUserDropdown()" class="flex items-center gap-3 bg-gray-900/80 border border-darkBorder px-3 py-1.5 rounded-xl hover:border-gray-700 transition">
-        <div id="user-avatar-initials" class="w-8 h-8 rounded-lg bg-brandBlue text-white font-bold flex items-center justify-center text-xs">DV</div>
-        <div class="text-left hidden md:block">
-          <div id="nav-username" class="text-xs font-bold text-white">Desenvolvedor</div>
-          <div class="text-[10px] text-emerald-400 font-mono">RTDB Sincronizado</div>
-        </div>
-        <i class="fa-solid fa-chevron-down text-xs text-gray-500"></i>
-      </button>
-
-      <div id="user-dropdown" class="absolute right-0 mt-2 w-56 bg-darkCard border border-darkBorder rounded-xl shadow-2xl py-2 hidden z-50">
-        <div class="px-4 py-2 border-b border-darkBorder">
-          <p class="text-xs text-gray-400">Database URL</p>
-          <p class="text-[10px] font-mono text-brandBlue truncate">subjectrobot-49600-default-rtdb</p>
-        </div>
-        <a href="#" onclick="switchView('profile'); closeUserDropdown();" class="flex items-center gap-2 px-4 py-2 text-xs text-gray-300 hover:bg-gray-800 transition"><i class="fa-solid fa-user-gear w-4"></i> Meu Perfil</a>
-        <a href="#" onclick="switchView('limits'); closeUserDropdown();" class="flex items-center gap-2 px-4 py-2 text-xs text-gray-300 hover:bg-gray-800 transition"><i class="fa-solid fa-chart-pie w-4"></i> Planos & Limites</a>
-      </div>
-    </div>
-  </div>
-</header>
-
-<!-- Main Layout Body -->
-<div class="flex-1 flex relative">
-
-<!-- Sidebar Navigation -->
-<aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-30 w-64 bg-darkCard border-r border-darkBorder transform -translate-x-full lg:translate-x-0 transition-transform duration-300 flex flex-col">
-  <div class="p-4 border-b border-darkBorder flex items-center justify-between lg:hidden">
-    <span class="font-bold text-white">Navegação</span>
-    <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-  </div>
-  <div class="flex-1 overflow-y-auto p-4 space-y-6">
-    <div>
-      <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">Geral</p>
-      <nav class="space-y-1">
-        <button onclick="switchView('dashboard')" id="nav-btn-dashboard" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-white bg-brandBlue shadow-lg shadow-blue-500/20 transition">
-          <i class="fa-solid fa-chart-line w-5 text-center"></i> Dashboard
-        </button>
-        <button onclick="switchView('servers')" id="nav-btn-servers" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition">
-          <i class="fa-solid fa-server w-5 text-center"></i> Meus Servidores
-        </button>
-        <button onclick="switchView('keys')" id="nav-btn-keys" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition">
-          <i class="fa-solid fa-key w-5 text-center"></i> Chaves de Acesso
-        </button>
-      </nav>
-    </div>
-
-    <div>
-      <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">Ferramentas DB</p>
-      <nav class="space-y-1">
-        <button onclick="switchView('database')" id="nav-btn-database" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition">
-          <i class="fa-solid fa-database w-5 text-center"></i> Banco de Dados RTDB
-        </button>
-        <button onclick="switchView('files')" id="nav-btn-files" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition">
-          <i class="fa-solid fa-folder-open w-5 text-center"></i> Arquivos no RTDB
-        </button>
-        <button onclick="switchView('monitor')" id="nav-btn-monitor" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition">
-          <i class="fa-solid fa-heart-pulse w-5 text-center"></i> Monitoramento
-        </button>
-        <button onclick="switchView('logs')" id="nav-btn-logs" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition">
-          <i class="fa-solid fa-clock-rotate-left w-5 text-center"></i> Logs & Auditoria
-        </button>
-      </nav>
-    </div>
-
-    <div>
-      <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">Plataforma</p>
-      <nav class="space-y-1">
-        <button onclick="switchView('docs')" id="nav-btn-docs" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition">
-          <i class="fa-solid fa-book w-5 text-center"></i> Documentação & API
-        </button>
-        <button onclick="switchView('limits')" id="nav-btn-limits" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition">
-          <i class="fa-solid fa-gauge-high w-5 text-center"></i> Limites & Planos
-        </button>
-        <button id="admin-nav-btn" onclick="switchView('admin')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-amber-400 hover:bg-amber-500/10 transition">
-          <i class="fa-solid fa-shield-halved w-5 text-center"></i> Painel Admin
-        </button>
-      </nav>
-    </div>
-  </div>
-
-  <div class="p-4 border-t border-darkBorder">
-    <div class="bg-gray-900/80 p-3 rounded-xl border border-darkBorder">
-      <div class="flex justify-between items-center mb-1 text-[11px]">
-        <span class="text-gray-400">Banco de Dados RTDB</span>
-        <span id="sidebar-storage-text" class="text-white font-medium">Sincronizado</span>
-      </div>
-      <div class="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
-        <div class="h-full bg-brandBlue rounded-full" style="width: 15%"></div>
-      </div>
-    </div>
-  </div>
-</aside>
-
-<!-- Main Content Area -->
-<main class="flex-1 p-4 lg:p-8 overflow-y-auto bg-darkBg">
-
-  <!-- VIEW 1: DASHBOARD -->
-  <section id="view-dashboard" class="space-y-6">
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-      <div>
-        <h2 class="text-xl font-bold text-white">Dashboard do Desenvolvedor (Firebase RTDB)</h2>
-        <p class="text-xs text-gray-400">Gerenciamento completo 100% baseado no Realtime Database.</p>
-      </div>
-      <button onclick="openServerModal()" class="sm:hidden flex items-center gap-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow">
-        <i class="fa-solid fa-plus"></i> Criar Novo Servidor
-      </button>
-    </div>
-
-    <!-- Metrics Cards Grid -->
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-      <div class="bg-darkCard border border-darkBorder p-4 rounded-2xl shadow-sm">
-        <div class="text-gray-400 text-xs mb-1">Total Servidores</div>
-        <div id="stat-total-servers" class="text-2xl font-bold text-white">0</div>
-      </div>
-      <div class="bg-darkCard border border-darkBorder p-4 rounded-2xl shadow-sm">
-        <div class="text-gray-400 text-xs mb-1">Servidores Ativos</div>
-        <div id="stat-active-servers" class="text-2xl font-bold text-emerald-400">0</div>
-      </div>
-      <div class="bg-darkCard border border-darkBorder p-4 rounded-2xl shadow-sm">
-        <div class="text-gray-400 text-xs mb-1">Servidores Pausados</div>
-        <div id="stat-paused-servers" class="text-2xl font-bold text-amber-400">0</div>
-      </div>
-      <div class="bg-darkCard border border-darkBorder p-4 rounded-2xl shadow-sm">
-        <div class="text-gray-400 text-xs mb-1">Total Requisições</div>
-        <div id="stat-total-reqs" class="text-2xl font-bold text-brandBlue">0</div>
-      </div>
-      <div class="bg-darkCard border border-darkBorder p-4 rounded-2xl shadow-sm">
-        <div class="text-gray-400 text-xs mb-1">Armazenamento DB</div>
-        <div id="stat-storage" class="text-2xl font-bold text-purple-400">RTDB</div>
-      </div>
-      <div class="bg-darkCard border border-darkBorder p-4 rounded-2xl shadow-sm">
-        <div class="text-gray-400 text-xs mb-1">Chaves Ativas</div>
-        <div id="stat-keys" class="text-2xl font-bold text-indigo-400">0</div>
-      </div>
-    </div>
-
-    <!-- Quick Alerts Banner -->
-    <div class="bg-emerald-600/10 border border-emerald-500/20 p-4 rounded-2xl flex items-center gap-3 text-xs text-emerald-200">
-      <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
-      <div>
-        <span class="font-bold">Modo 100% Realtime Database:</span> Todos os dados, servidores, chaves e arquivos salvos são persistidos diretamente no nó do seu banco de dados Firebase (`subjectrobot-49600-default-rtdb`).
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div class="lg:col-span-2 bg-darkCard border border-darkBorder rounded-2xl p-6 shadow-sm">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="font-bold text-white text-sm">Seus Mini Servidores no Firebase</h3>
-          <button onclick="switchView('servers')" class="text-xs text-brandBlue hover:underline">Ver todos</button>
-        </div>
-        <div id="dashboard-servers-list" class="space-y-3">
-          <div class="text-center py-8 text-xs text-gray-500">Carregando servidores do Firebase RTDB...</div>
-        </div>
-      </div>
-
-      <div class="bg-darkCard border border-darkBorder rounded-2xl p-6 shadow-sm flex flex-col">
-        <h3 class="font-bold text-white text-sm mb-4">Logs em Tempo Real</h3>
-        <div id="dashboard-logs-list" class="space-y-3 flex-1 overflow-y-auto max-h-[300px]">
-          <div class="text-center py-8 text-xs text-gray-500">Nenhum evento recente.</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- VIEW 2: SERVERS LIST -->
-  <section id="view-servers" class="space-y-6 hidden">
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-      <div>
-        <h2 class="text-xl font-bold text-white">Gerenciamento de Servidores (Firebase RTDB)</h2>
-        <p class="text-xs text-gray-400">Instâncias criadas e persistidas no banco de dados em nuvem.</p>
-      </div>
-      <button onclick="openServerModal()" class="flex items-center gap-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow">
-        <i class="fa-solid fa-plus"></i> Novo Servidor
-      </button>
-    </div>
-
-    <div id="servers-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-  </section>
-
-  <!-- VIEW 3: SERVER DETAIL & MANAGEMENT -->
-  <section id="view-server-detail" class="space-y-6 hidden">
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <button onclick="switchView('servers')" class="w-9 h-9 rounded-xl bg-gray-900 border border-darkBorder flex items-center justify-center text-gray-400 hover:text-white transition">
-          <i class="fa-solid fa-arrow-left"></i>
-        </button>
-        <div>
-          <div class="flex items-center gap-2">
-            <h2 id="detail-server-name" class="text-xl font-bold text-white">Nome do Servidor</h2>
-            <span id="detail-server-status" class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Ativo</span>
-          </div>
-          <p id="detail-server-id" class="text-xs font-mono text-gray-400">ID: server_id_123</p>
-        </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <button onclick="toggleServerStatus()" id="btn-toggle-status" class="px-3 py-2 bg-gray-900 border border-darkBorder hover:bg-gray-800 text-xs font-semibold rounded-xl text-amber-400 transition">Pausar</button>
-        <button onclick="deleteServer(selectedServerId)" class="px-3 py-2 bg-red-600/10 border border-red-500/20 hover:bg-red-600/20 text-xs font-semibold rounded-xl text-red-400 transition"><i class="fa-solid fa-trash"></i></button>
-      </div>
-    </div>
-
-    <!-- Server Sub-navigation Tabs -->
-    <div class="flex overflow-x-auto gap-2 bg-darkCard p-1.5 rounded-2xl border border-darkBorder">
-      <button onclick="switchServerTab('overview')" id="st-btn-overview" class="px-4 py-2 text-xs font-semibold rounded-xl bg-brandBlue text-white whitespace-nowrap transition">Visão Geral</button>
-      <button onclick="switchServerTab('database')" id="st-btn-database" class="px-4 py-2 text-xs font-semibold rounded-xl text-gray-400 hover:text-white whitespace-nowrap transition">Banco de Dados</button>
-      <button onclick="switchServerTab('keys')" id="st-btn-keys" class="px-4 py-2 text-xs font-semibold rounded-xl text-gray-400 hover:text-white whitespace-nowrap transition">Chaves de Acesso</button>
-      <button onclick="switchServerTab('connection')" id="st-btn-connection" class="px-4 py-2 text-xs font-semibold rounded-xl text-gray-400 hover:text-white whitespace-nowrap transition">Conectar Projeto</button>
-      <button onclick="switchServerTab('logs')" id="st-btn-logs" class="px-4 py-2 text-xs font-semibold rounded-xl text-gray-400 hover:text-white whitespace-nowrap transition">Logs</button>
-    </div>
-
-    <!-- Server Tab: Overview -->
-    <div id="st-tab-overview" class="space-y-6">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
-          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Tipo de Projeto</h3>
-          <p id="detail-project-type" class="text-sm font-bold text-white">Jogos HTML</p>
-        </div>
-        <div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
-          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Backend Firebase</h3>
-          <p class="text-sm font-bold text-emerald-400">Realtime Database Ativo</p>
-        </div>
-        <div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
-          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Requisições</h3>
-          <p id="detail-req-count" class="text-sm font-bold text-brandBlue">0</p>
-        </div>
-      </div>
-
-      <div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
-        <h3 class="font-bold text-white text-sm mb-4">Snippet Rápido de Conexão RTDB</h3>
-        <pre class="bg-gray-900 border border-darkBorder p-4 rounded-xl text-xs mono text-blue-300 overflow-x-auto"><code id="detail-code-snippet">const VERO_CONFIG = {
-  serverId: "...",
-  databaseURL: "https://subjectrobot-49600-default-rtdb.firebaseio.com"
-};</code></pre>
-        <div class="mt-4 flex gap-3">
-          <button onclick="copySnippet()" class="px-4 py-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold rounded-xl transition"><i class="fa-solid fa-copy mr-2"></i> Copiar Configuração</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Server Tab: Database Manager -->
-    <div id="st-tab-database" class="space-y-6 hidden">
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-darkCard border border-darkBorder p-6 rounded-2xl">
-        <div>
-          <h3 class="font-bold text-white text-sm">Gerenciador de Banco de Dados JSON (Firebase RTDB)</h3>
-          <p class="text-xs text-gray-400">Modifique e salve dados diretamente no nó do servidor no RTDB.</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <button onclick="openAddRecordModal()" class="px-3 py-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold rounded-xl transition"><i class="fa-solid fa-plus mr-1"></i> Novo Registro</button>
-          <button onclick="exportServerJson()" class="px-3 py-2 bg-gray-900 border border-darkBorder hover:bg-gray-800 text-xs font-semibold rounded-xl text-gray-300 transition"><i class="fa-solid fa-download mr-1"></i> Exportar</button>
-        </div>
-      </div>
-
-      <div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
-        <div id="db-records-container" class="space-y-3">
-          <div class="text-center py-8 text-xs text-gray-500">Nenhum registro encontrado neste servidor.</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Server Tab: Access Keys -->
-    <div id="st-tab-keys" class="space-y-6 hidden">
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-darkCard border border-darkBorder p-6 rounded-2xl">
-        <div>
-          <h3 class="font-bold text-white text-sm">Chaves de Acesso Únicas</h3>
-          <p class="text-xs text-gray-400">Gere chaves públicas e privadas para autenticar requisições.</p>
-        </div>
-        <button onclick="openKeyModal()" class="px-4 py-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold rounded-xl transition"><i class="fa-solid fa-key mr-2"></i> Gerar Nova Chave</button>
-      </div>
-      <div id="server-keys-list" class="space-y-3"></div>
-    </div>
-
-    <!-- Server Tab: Connection Hub -->
-    <div id="st-tab-connection" class="space-y-6 hidden">
-      <div class="bg-darkCard border border-darkBorder rounded-2xl p-6 space-y-4">
-        <h3 class="font-bold text-white text-base">Conectar Projeto Externo</h3>
-        <p class="text-xs text-gray-400">Utilize o trecho abaixo em seu site ou aplicativo.</p>
-        <pre class="bg-gray-900 border border-darkBorder p-4 rounded-xl text-xs mono text-blue-300 overflow-x-auto"><code id="conn-js-code">const VERO_CONFIG = {
-  serverId: "server_123",
-  databaseURL: "https://subjectrobot-49600-default-rtdb.firebaseio.com"
-};</code></pre>
-      </div>
-    </div>
-
-    <!-- Server Tab: Logs -->
-    <div id="st-tab-logs" class="space-y-6 hidden">
-      <div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
-        <h3 class="font-bold text-white text-sm mb-4">Histórico de Eventos do Servidor</h3>
-        <div id="server-logs-container" class="space-y-2">
-          <div class="text-center py-6 text-xs text-gray-500">Nenhum evento registrado.</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- VIEW 4: KEYS MANAGEMENT -->
-  <section id="view-keys" class="space-y-6 hidden">
-    <div class="flex justify-between items-center">
-      <div>
-        <h2 class="text-xl font-bold text-white">Chaves de Acesso Globais</h2>
-        <p class="text-xs text-gray-400">Gerencie todas as credenciais vinculadas aos seus servidores.</p>
-      </div>
-      <button onclick="openKeyModal()" class="px-4 py-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold rounded-xl transition"><i class="fa-solid fa-key mr-2"></i> Nova Chave</button>
-    </div>
-    <div id="global-keys-list" class="space-y-3"></div>
-  </section>
-
-  <!-- VIEW 5: DATABASE MANAGER -->
-  <section id="view-database" class="space-y-6 hidden">
-    <div>
-      <h2 class="text-xl font-bold text-white">Gerenciador Geral de Banco de Dados</h2>
-      <p class="text-xs text-gray-400">Selecione um servidor para gerenciar dados no RTDB.</p>
-    </div>
-    <div class="bg-darkCard border border-darkBorder rounded-2xl p-6 text-center py-12">
-      <i class="fa-solid fa-database text-4xl text-gray-600 mb-4"></i>
-      <h3 class="text-sm font-bold text-white mb-2">Nenhum Servidor Selecionado</h3>
-      <p class="text-xs text-gray-400 mb-4">Acesse "Meus Servidores" e escolha um servidor.</p>
-      <button onclick="switchView('servers')" class="px-4 py-2 bg-brandBlue text-white text-xs font-semibold rounded-xl">Selecionar Servidor</button>
-    </div>
-  </section>
-
-  <!-- VIEW 6: FILES MANAGER (RTDB BASED) -->
-  <section id="view-files" class="space-y-6 hidden">
-    <div class="flex justify-between items-center">
-      <div>
-        <h2 class="text-xl font-bold text-white">Gerenciador de Arquivos (Salvo no RTDB)</h2>
-        <p class="text-xs text-gray-400">Arquivos e recursos salvos diretamente no Realtime Database.</p>
-      </div>
-      <label class="px-4 py-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold rounded-xl cursor-pointer transition">
-        <i class="fa-solid fa-upload mr-2"></i> Enviar Arquivo no DB
-        <input type="file" onchange="handleFileUpload(event)" class="hidden">
-      </label>
-    </div>
-    <div id="files-list-container" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="bg-darkCard border border-darkBorder p-6 rounded-2xl text-center col-span-full py-12 text-gray-500 text-xs">
-        Nenhum arquivo enviado.
-      </div>
-    </div>
-  </section>
-
-  <!-- VIEW 7: MONITOR -->
-  <section id="view-monitor" class="space-y-6 hidden">
-    <div>
-      <h2 class="text-xl font-bold text-white">Monitoramento Firebase RTDB</h2>
-      <p class="text-xs text-gray-400">Status em tempo real da infraestrutura em banco de dados.</p>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
-        <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Conexão RTDB</h3>
-        <div class="text-3xl font-bold text-emerald-400">Ativa</div>
-        <p class="text-[11px] text-gray-500 mt-1">subjectrobot-49600-default-rtdb</p>
-      </div>
-      <div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
-        <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Autenticação</h3>
-        <div class="text-3xl font-bold text-brandBlue">UID Ativo</div>
-        <p class="text-[11px] text-gray-500 mt-1" id="monitor-uid">---</p>
-      </div>
-      <div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
-        <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Modo de Armazenamento</h3>
-        <div class="text-3xl font-bold text-purple-400">100% DB</div>
-        <p class="text-[11px] text-gray-500 mt-1">Nenhum Storage externo utilizado</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- VIEW 8: LOGS -->
-  <section id="view-logs" class="space-y-6 hidden">
-    <div>
-      <h2 class="text-xl font-bold text-white">Logs & Histórico do Realtime Database</h2>
-    </div>
-    <div class="bg-darkCard border border-darkBorder rounded-2xl p-6">
-      <div id="global-logs-container" class="space-y-2">
-        <div class="text-center py-8 text-xs text-gray-500">Nenhum log gravado.</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- VIEW 9: DOCUMENTATION -->
-  <section id="view-docs" class="space-y-6 hidden">
-    <div class="bg-darkCard border border-darkBorder rounded-2xl p-8 space-y-6">
-      <h2 class="text-2xl font-bold text-white mb-2">Documentação Oficial Firebase RTDB — Vero Cloud</h2>
-      <p class="text-sm text-gray-400">Esta plataforma opera integralmente via Realtime Database para máxima portabilidade e controle de dados.</p>
-    </div>
-  </section>
-
-  <!-- VIEW 10: LIMITS -->
-  <section id="view-limits" class="space-y-6 hidden">
-    <div><h2 class="text-xl font-bold text-white">Planos & Limites</h2></div>
-  </section>
-
-  <!-- VIEW 11: ADMIN PANEL -->
-  <section id="view-admin" class="space-y-6 hidden">
-    <div class="bg-amber-500/10 border border-amber-500/20 p-4 rounded-2xl flex items-center gap-3 text-xs text-amber-200">
-      <i class="fa-solid fa-shield-halved text-amber-400 text-lg"></i>
-      <div><span class="font-bold">Painel Admin Firebase:</span> Gerenciamento global via Realtime Database.</div>
-    </div>
-  </section>
-
-  <!-- VIEW 12: PROFILE -->
-  <section id="view-profile" class="space-y-6 hidden">
-    <div class="max-w-xl mx-auto bg-darkCard border border-darkBorder rounded-2xl p-8 space-y-6">
-      <h2 class="text-xl font-bold text-white">Configurações de Perfil Firebase</h2>
-    </div>
-  </section>
-
-</main>
-</div>
-</div>
-
-<!-- MODALS -->
-<div id="modal-server" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-  <div class="max-w-lg w-full bg-darkCard border border-darkBorder rounded-2xl p-6 shadow-2xl relative space-y-4">
-    <div class="flex justify-between items-center">
-      <h3 class="font-bold text-white text-lg">Criar Novo Mini Servidor (RTDB)</h3>
-      <button onclick="closeServerModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-    </div>
-    <form onsubmit="handleCreateServer(event)" class="space-y-4">
-      <div>
-        <label class="block text-xs font-medium text-gray-300 mb-1">Nome do Servidor</label>
-        <input type="text" id="srv-name" required placeholder="Ex: Meu Jogo RPG Online" class="w-full bg-gray-900 border border-darkBorder rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brandBlue">
-      </div>
-      <div>
-        <label class="block text-xs font-medium text-gray-300 mb-1">Descrição</label>
-        <textarea id="srv-desc" rows="2" placeholder="Breve descrição..." class="w-full bg-gray-900 border border-darkBorder rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brandBlue"></textarea>
-      </div>
-      <div>
-        <label class="block text-xs font-medium text-gray-300 mb-1">Tipo de Projeto</label>
-        <select id="srv-type" class="w-full bg-gray-900 border border-darkBorder rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brandBlue">
-          <option value="Jogos HTML">Jogos HTML</option>
-          <option value="Aplicativos web">Aplicativos Web</option>
-          <option value="Sites">Sites</option>
-          <option value="Sistemas de chat">Sistemas de Chat</option>
-          <option value="APIs">APIs</option>
-        </select>
-      </div>
-      <div>
-        <label class="block text-xs font-medium text-gray-300 mb-1">Identificador Exclusivo (ID)</label>
-        <input type="text" id="srv-identifier" required placeholder="Ex: rgp-game-srv-01" class="w-full bg-gray-900 border border-darkBorder rounded-xl px-4 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-brandBlue">
-      </div>
-      <div class="flex justify-end gap-3 pt-2">
-        <button type="button" onclick="closeServerModal()" class="px-4 py-2 bg-gray-800 text-gray-300 text-xs font-semibold rounded-xl">Cancelar</button>
-        <button type="submit" class="px-4 py-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold rounded-xl">Criar no RTDB</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<div id="modal-key" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-  <div class="max-w-md w-full bg-darkCard border border-darkBorder rounded-2xl p-6 shadow-2xl relative space-y-4">
-    <div class="flex justify-between items-center">
-      <h3 class="font-bold text-white text-lg">Gerar Chave de Acesso</h3>
-      <button onclick="closeKeyModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-    </div>
-    <form onsubmit="handleCreateKey(event)" class="space-y-4">
-      <div>
-        <label class="block text-xs font-medium text-gray-300 mb-1">Servidor Vinculado</label>
-        <select id="key-server-id" class="w-full bg-gray-900 border border-darkBorder rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brandBlue"></select>
-      </div>
-      <div>
-        <label class="block text-xs font-medium text-gray-300 mb-1">Tipo de Chave</label>
-        <select id="key-type" class="w-full bg-gray-900 border border-darkBorder rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brandBlue">
-          <option value="PUBLIC">Chave Pública (Frontend)</option>
-          <option value="PRIVATE">Chave Privada (Backend)</option>
-        </select>
-      </div>
-      <div class="flex justify-end gap-3 pt-2">
-        <button type="button" onclick="closeKeyModal()" class="px-4 py-2 bg-gray-800 text-gray-300 text-xs font-semibold rounded-xl">Cancelar</button>
-        <button type="submit" class="px-4 py-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold rounded-xl">Gerar Chave</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<div id="modal-record" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-  <div class="max-w-lg w-full bg-darkCard border border-darkBorder rounded-2xl p-6 shadow-2xl relative space-y-4">
-    <div class="flex justify-between items-center">
-      <h3 class="font-bold text-white text-lg">Novo Registro JSON (Firebase RTDB)</h3>
-      <button onclick="closeAddRecordModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-    </div>
-    <form onsubmit="handleAddRecord(event)" class="space-y-4">
-      <div>
-        <label class="block text-xs font-medium text-gray-300 mb-1">Chave / Registro</label>
-        <input type="text" id="rec-key" required placeholder="Ex: player_001" class="w-full bg-gray-900 border border-darkBorder rounded-xl px-4 py-2.5 text-xs text-white font-mono">
-      </div>
-      <div>
-        <label class="block text-xs font-medium text-gray-300 mb-1">Valor JSON</label>
-        <textarea id="rec-value" rows="5" required placeholder='{"score": 1500}' class="w-full bg-gray-900 border border-darkBorder rounded-xl px-4 py-2.5 text-xs text-white font-mono"></textarea>
-      </div>
-      <div class="flex justify-end gap-3 pt-2">
-        <button type="button" onclick="closeAddRecordModal()" class="px-4 py-2 bg-gray-800 text-gray-300 text-xs font-semibold rounded-xl">Cancelar</button>
-        <button type="submit" class="px-4 py-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold rounded-xl">Salvar no RTDB</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- FIREBASE SDKs (Modular v10 - Sem Storage) & APP LOGIC -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import { getDatabase, ref, set, get, remove, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-  // Configuração Firebase Fornecida (Apenas Auth e Realtime Database)
-  const firebaseConfig = {
-    apiKey: "AlzaSyCTkq0uXy5kHg9N8rj9--Dooh8cuguYxPE",
-    authDomain: "subjectrobot-49600.firebaseapp.com",
-    databaseURL: "https://subjectrobot-49600-default-rtdb.firebaseio.com",
-    projectId: "subjectrobot-49600",
-    storageBucket: "subjectrobot-49600.appspot.com",
-    messagingSenderId: "731604558049",
-    appId: "1:731604558049:android:7f47b30b289445814017a0"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getDatabase(app);
-
-  let currentUser = null;
-  let currentView = 'dashboard';
-  let currentServerTab = 'overview';
-  window.selectedServerId = null;
-
-  // Toast Notifications
-  window.showToast = function(message, type = 'info') {
-    const container = document.getElementById('toast-container');
-    const toast = document.createElement('div');
-    const bgColors = {
-      success: 'bg-emerald-600/90 border-emerald-500',
-      error: 'bg-red-600/90 border-red-500',
-      info: 'bg-blue-600/90 border-blue-500'
-    };
-    const icons = {
-      success: 'fa-circle-check',
-      error: 'fa-triangle-exclamation',
-      info: 'fa-circle-info'
-    };
-    toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border text-white text-xs shadow-xl backdrop-blur-md transition-all ${bgColors[type] || bgColors.info}`;
-    toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info} text-sm"></i><span class="font-medium">${message}</span>`;
-    container.appendChild(toast);
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      setTimeout(() => toast.remove(), 300);
-    }, 3500);
-  };
-
-  // Autenticação Anônima no Firebase (Gera UID válido para o RTDB)
-  signInAnonymously(auth).then((cred) => {
-    currentUser = cred.user;
-    document.getElementById('monitor-uid').innerText = currentUser.uid;
-    document.getElementById('nav-username').innerText = 'Dev (' + currentUser.uid.substring(0,6) + ')';
-    showToast('Conectado ao Firebase RTDB!', 'success');
-    refreshDashboardData();
-  }).catch((err) => {
-    showToast('Erro ao conectar Firebase Auth: ' + err.message, 'error');
-  });
-
-  // Criar Servidor no Firebase RTDB
-  window.handleCreateServer = async function(e) {
-    e.preventDefault();
-    if (!currentUser) {
-      showToast('Aguardando conexão com o Firebase...', 'error');
-      return;
-    }
-
-    const name = document.getElementById('srv-name').value.trim();
-    const desc = document.getElementById('srv-desc').value.trim();
-    const projectType = document.getElementById('srv-type').value;
-    const serverId = document.getElementById('srv-identifier').value.trim();
-
-    try {
-      const serverRef = ref(db, 'servers/' + serverId);
-      const snapshot = await get(serverRef);
-      if (snapshot.exists()) {
-        showToast('Este ID de servidor já existe no Firebase RTDB.', 'error');
-        return;
-      }
-
-      const newServer = {
-        serverId,
-        name,
-        desc,
-        projectType,
-        ownerUid: currentUser.uid,
-        status: 'active',
-        createdAt: Date.now(),
-        requestsCount: 0
-      };
-
-      await set(serverRef, newServer);
-
-      await push(ref(db, 'logs'), {
-        timestamp: Date.now(),
-        type: 'SERVER_CREATED',
-        serverId,
-        user: currentUser.uid,
-        result: 'SUCCESS'
-      });
-
-      closeServerModal();
-      showToast('Servidor criado e salvo no RTDB com sucesso!', 'success');
-      refreshDashboardData();
-      switchView('servers');
-    } catch (err) {
-      showToast('Erro ao gravar no RTDB: ' + err.message, 'error');
-    }
-  };
-
-  // Gerar Chave de Acesso no RTDB
-  window.handleCreateKey = async function(e) {
-    e.preventDefault();
-    const serverId = document.getElementById('key-server-id').value;
-    const type = document.getElementById('key-type').value;
-    const keyId = 'VERO_LIVE_' + Math.random().toString(36).substring(2, 10).toUpperCase();
-
-    try {
-      await set(ref(db, `keys/${keyId}`), {
-        keyId,
-        serverId,
-        type,
-        ownerUid: currentUser.uid,
-        createdAt: Date.now(),
-        status: 'active',
-        lastUsed: 'Nunca'
-      });
-      closeKeyModal();
-      renderServerKeys();
-      renderGlobalKeys();
-      showToast('Chave de acesso gerada no RTDB!', 'success');
-    } catch (err) {
-      showToast('Erro ao criar chave: ' + err.message, 'error');
-    }
-  };
-
-  // Carregar dados do Dashboard do RTDB
-  window.refreshDashboardData = async function() {
-    if (!currentUser) return;
-    try {
-      const serversSnap = await get(ref(db, 'servers'));
-      const keysSnap = await get(ref(db, 'keys'));
-      const logsSnap = await get(ref(db, 'logs'));
-
-      let userServers = [];
-      let totalReqs = 0;
-      let active = 0;
-      let paused = 0;
-
-      if (serversSnap.exists()) {
-        serversSnap.forEach(child => {
-          const srv = child.val();
-          if (srv.ownerUid === currentUser.uid) {
-            userServers.push(srv);
-            totalReqs += (srv.requestsCount || 0);
-            if (srv.status === 'active') active++; else paused++;
-          }
-        });
-      }
-
-      let userKeysCount = 0;
-      if (keysSnap.exists()) {
-        keysSnap.forEach(child => {
-          const k = child.val();
-          if (k.ownerUid === currentUser.uid) userKeysCount++;
-        });
-      }
-
-      document.getElementById('stat-total-servers').innerText = userServers.length;
-      document.getElementById('stat-active-servers').innerText = active;
-      document.getElementById('stat-paused-servers').innerText = paused;
-      document.getElementById('stat-total-reqs').innerText = totalReqs;
-      document.getElementById('stat-keys').innerText = userKeysCount;
-
-      const dbList = document.getElementById('dashboard-servers-list');
-      if (userServers.length === 0) {
-        dbList.innerHTML = `<div class="text-center py-6 text-xs text-gray-500">Nenhum servidor criado no Firebase RTDB.</div>`;
-      } else {
-        dbList.innerHTML = userServers.slice(0, 3).map(s => `
-          <div class="flex items-center justify-between p-3 bg-gray-900/60 border border-darkBorder rounded-xl">
-            <div>
-              <div class="font-bold text-white text-xs">${s.name}</div>
-              <div class="text-[10px] font-mono text-gray-400">${s.serverId} &bull; ${s.projectType}</div>
+    <header>
+        <div class="header-left">
+            <button id="menuToggle" class="hide-desktop" title="Menu" style="display:none">☰</button>
+            <div class="logo-area">
+                <span>📁</span>
+                <span class="hide-mobile">FilesPro</span>
             </div>
-            <button onclick="openServerDetail('${s.serverId}')" class="px-3 py-1.5 bg-brandBlue text-white rounded-lg text-xs font-semibold">Gerenciar</button>
-          </div>
-        `).join('');
-      }
+        </div>
+        <div class="search-container">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" class="search-input" placeholder="Pesquisar arquivos e pastas...">
+        </div>
+        <div class="header-right">
+            <button id="btnNewFolder" title="Nova Pasta">📁+</button>
+            <button id="btnNewFile" title="Novo Arquivo">📄+</button>
+            <button id="btnUpload" title="Importar">📤</button>
+            <input type="file" id="fileInput" multiple style="display: none">
+        </div>
+    </header>
 
-      const logsList = document.getElementById('dashboard-logs-list');
-      if (logsSnap.exists()) {
-        let logsArr = [];
-        logsSnap.forEach(child => logsArr.push(child.val()));
-        logsList.innerHTML = logsArr.reverse().slice(0, 5).map(l => `
-          <div class="bg-gray-900 p-2.5 rounded-xl border border-darkBorder text-[11px] font-mono">
-            <span class="text-emerald-400">[${l.type}]</span> Servidor: ${l.serverId}
-          </div>
-        `).join('');
-      }
-    } catch (err) {
-      console.error("Erro ao sincronizar com Firebase RTDB:", err);
-    }
-  };
+    <div class="app-container">
+        <sidebar id="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Navegação</div>
+                <a class="nav-item active" data-view="all" data-category="root">
+                    <span class="icon">🏠</span> Início / Raiz
+                </a>
+                <a class="nav-item" data-view="category" data-category="favorites">
+                    <span class="icon">⭐</span> Favoritos
+                </a>
+                <a class="nav-item" data-view="category" data-category="recent">
+                    <span class="icon">🕘</span> Recentes
+                </a>
+                <a class="nav-item" data-view="category" data-category="trash">
+                    <span class="icon">🗑️</span> Lixeira
+                </a>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Categorias</div>
+                <a class="nav-item" data-view="category" data-category="documents"><span class="icon">📄</span> Documentos</a>
+                <a class="nav-item" data-view="category" data-category="images"><span class="icon">🖼️</span> Imagens</a>
+                <a class="nav-item" data-view="category" data-category="videos"><span class="icon">🎬</span> Vídeos</a>
+                <a class="nav-item" data-view="category" data-category="audios"><span class="icon">🎵</span> Áudios</a>
+                <a class="nav-item" data-view="category" data-category="archives"><span class="icon">📦</span> Compactados</a>
+                <a class="nav-item" data-view="category" data-category="code"><span class="icon">💻</span> Programação</a>
+                <a class="nav-item" data-view="category" data-category="apks"><span class="icon">📱</span> APKs & Apps</a>
+                <a class="nav-item" data-view="category" data-category="pdfs"><span class="icon">📕</span> PDFs</a>
+            </div>
+            <div class="sidebar-section" style="margin-top: auto;">
+                <a class="nav-item" data-view="settings"><span class="icon">⚙️</span> Configurações</a>
+            </div>
+        </sidebar>
 
-  // Renderizar Servidores
-  window.renderServersList = async function() {
-    if (!currentUser) return;
-    const grid = document.getElementById('servers-grid');
-    grid.innerHTML = `<div class="col-span-full text-center py-12 text-xs text-gray-500">Carregando do Firebase RTDB...</div>`;
+        <main>
+            <div class="path-bar">
+                <div class="breadcrumbs" id="breadcrumbs">
+                    <span class="breadcrumb-item">Raiz</span>
+                </div>
+                <div class="toolbar-actions">
+                    <button id="btnSelectAll" title="Selecionar Todos">☑️</button>
+                    <button id="btnSort" title="Ordenar por Nome/Tamanho">🔄</button>
+                    <button id="btnInfoPanel" title="Painel de Informações">ℹ️</button>
+                </div>
+            </div>
 
-    try {
-      const snap = await get(ref(db, 'servers'));
-      let userServers = [];
-      if (snap.exists()) {
-        snap.forEach(child => {
-          const srv = child.val();
-          if (srv.ownerUid === currentUser.uid) userServers.push(srv);
+            <div class="file-viewport" id="fileViewport"></div>
+        </main>
+
+        <div class="details-panel" id="detailsPanel">
+            <div class="details-header">
+                <span>Propriedades</span>
+                <button id="closeDetails" style="background:none;border:none;font-size:1.1rem;cursor:pointer;">✕</button>
+            </div>
+            <div class="details-content" id="detailsContent">
+                <div class="empty-state" style="padding: 20px;">
+                    <p style="font-size: 0.9rem;">Selecione um arquivo ou pasta para ver os detalhes.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="mobile-bottom-nav">
+        <button class="mobile-nav-item active" data-nav="home"><span>🏠</span>Início</button>
+        <button class="mobile-nav-item" data-nav="search"><span>🔍</span>Pesquisa</button>
+        <button class="mobile-nav-item" data-nav="upload"><span>📤</span>Enviar</button>
+        <button class="mobile-nav-item" data-nav="favorites"><span>⭐</span>Favoritos</button>
+        <button class="mobile-nav-item" data-nav="settings"><span>⚙️</span>Ajustes</button>
+    </nav>
+
+    <div class="modal-overlay" id="inputModal">
+        <div class="modal">
+            <div class="modal-header" id="inputModalTitle">Criar Pasta</div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="detail-label" id="inputModalLabel">Nome</label>
+                    <input type="text" id="modalInputText" class="form-control" placeholder="Digite o nome...">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="modalCancel">Cancelar</button>
+                <button class="primary" id="modalConfirm">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editorModal">
+        <div class="modal" style="max-width: 700px; height: 80vh;">
+            <div class="modal-header">
+                <span id="editorTitle">Editor de Arquivo</span>
+                <button id="editorClose" style="background:none;border:none;cursor:pointer;font-size:1.1rem;">✕</button>
+            </div>
+            <div class="modal-body" style="flex:1; display:flex; flex-direction:column; padding:12px;">
+                <div id="mediaViewerContainer" style="display:none; flex:1; align-items:center; justify-content:center; overflow:hidden;"></div>
+                <textarea id="editorTextarea" class="form-control" style="flex:1; display:none; resize:none;"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button id="editorSave" class="primary" style="display:none;">Salvar Alterações</button>
+                <button id="editorDownload">Baixar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="context-menu" id="contextMenu">
+        <div class="context-menu-item" data-action="open">📂 Abrir</div>
+        <div class="context-menu-item" data-action="edit">✏️ Editar / Visualizar</div>
+        <div class="context-menu-item" data-action="rename">🏷️ Renomear</div>
+        <div class="context-menu-item" data-action="copy">📋 Copiar</div>
+        <div class="context-menu-item" data-action="cut">✂️ Recortar</div>
+        <div class="context-menu-item" data-action="paste" id="ctxPaste" style="display:none;">📋 Colar aqui</div>
+        <div class="context-menu-item" data-action="favorite">⭐ Favoritar</div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item" data-action="download">⬇️ Baixar</div>
+        <div class="context-menu-item" data-action="share">🔗 Compartilhar</div>
+        <div class="context-menu-item" data-action="restore" id="ctxRestore" style="display:none; color:var(--success-color);">♻️ Restaurar</div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item" data-action="delete" style="color: var(--danger-color);">🗑️ Excluir</div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        class StorageManager {
+            constructor() {
+                this.dbName = 'FilesProDB';
+                this.dbVersion = 1;
+                this.db = null;
+            }
+
+            async init() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(this.dbName, this.dbVersion);
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => {
+                        this.db = request.result;
+                        resolve(this.db);
+                    };
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        if (!db.objectStoreNames.contains('files')) {
+                            const fileStore = db.createObjectStore('files', { keyPath: 'id' });
+                            fileStore.createIndex('parentId', 'parentId', { unique: false });
+                            fileStore.createIndex('category', 'category', { unique: false });
+                        }
+                    };
+                });
+            }
+
+            async getAllFiles() {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction(['files'], 'readonly');
+                    const store = transaction.objectStore('files');
+                    const request = store.getAll();
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async saveFile(fileObj) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction(['files'], 'readwrite');
+                    const store = transaction.objectStore('files');
+                    const request = store.put(fileObj);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async deleteFile(id) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction(['files'], 'readwrite');
+                    const store = transaction.objectStore('files');
+                    const request = store.delete(id);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+        }
+
+        class FilesProApp {
+            constructor() {
+                this.storage = new StorageManager();
+                this.currentFolderId = 'root';
+                this.currentViewMode = 'grid';
+                this.currentCategory = 'root';
+                this.currentSearchQuery = '';
+                this.selectedIds = new Set();
+                this.clipboard = { action: null, items: [] };
+                this.files = [];
+                this.sortBy = 'name'; // name, size, date
+                this.settings = JSON.parse(localStorage.getItem('filespro_settings')) || { theme: 'dark' };
+            }
+
+            async init() {
+                await this.storage.init();
+                this.applyTheme(this.settings.theme);
+                await this.loadFiles();
+                this.setupEventListeners();
+                this.checkMobile();
+                
+                if (this.files.length === 0) {
+                    await this.createInitialData();
+                } else {
+                    this.render();
+                }
+            }
+
+            applyTheme(theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+                this.settings.theme = theme;
+                localStorage.setItem('filespro_settings', JSON.stringify(this.settings));
+            }
+
+            async loadFiles() {
+                this.files = await this.storage.getAllFiles();
+            }
+
+            async createInitialData() {
+                const sampleFiles = [
+                    { id: 'f1', name: 'Documentos', type: 'folder', parentId: 'root', category: 'folders', size: 0, createdAt: Date.now(), modifiedAt: Date.now(), isFavorite: true, isTrash: false },
+                    { id: 'f2', name: 'Imagens', type: 'folder', parentId: 'root', category: 'folders', size: 0, createdAt: Date.now(), modifiedAt: Date.now(), isFavorite: true, isTrash: false },
+                    { id: 'f3', name: 'bem-vindo.txt', type: 'file', mime: 'text/plain', parentId: 'root', category: 'documents', size: 45, content: 'Olá! Bem-vindo ao seu novo Gerenciador de Arquivos Profissional.', createdAt: Date.now(), modifiedAt: Date.now(), isFavorite: false, isTrash: false }
+                ];
+                for (let f of sampleFiles) {
+                    await this.storage.saveFile(f);
+                }
+                await this.loadFiles();
+                this.render();
+            }
+
+            showToast(message) {
+                const container = document.getElementById('toastContainer');
+                const toast = document.createElement('div');
+                toast.className = 'toast';
+                toast.innerHTML = `<span>ℹ️</span> ${message}`;
+                container.appendChild(toast);
+                setTimeout(() => toast.remove(), 3000);
+            }
+
+            getFileCategory(filename, mime = '') {
+                const ext = filename.split('.').pop().toLowerCase();
+                if (mime.startsWith('image/') || ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) return 'images';
+                if (mime.startsWith('video/') || ['mp4', 'webm', 'mkv', 'avi'].includes(ext)) return 'videos';
+                if (mime.startsWith('audio/') || ['mp3', 'wav', 'ogg', 'm4a'].includes(ext)) return 'audios';
+                if (['pdf'].includes(ext)) return 'pdfs';
+                if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) return 'archives';
+                if (['html', 'css', 'js', 'json', 'py', 'java', 'c', 'cpp', 'ts', 'php'].includes(ext)) return 'code';
+                if (['apk'].includes(ext)) return 'apks';
+                return 'documents';
+            }
+
+            getFileIcon(file) {
+                if (file.type === 'folder') return '📁';
+                switch(file.category) {
+                    case 'images': return '🖼️';
+                    case 'videos': return '🎬';
+                    case 'audios': return '🎵';
+                    case 'pdfs': return '📕';
+                    case 'archives': return '📦';
+                    case 'code': return '💻';
+                    case 'apks': return '📱';
+                    default: return '📄';
+                }
+            }
+
+            formatSize(bytes) {
+                if (bytes === 0 || !bytes) return '0 B';
+                const k = 1024, sizes = ['B', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+            }
+
+            render() {
+                const viewport = document.getElementById('fileViewport');
+                viewport.innerHTML = '';
+
+                let displayedFiles = [];
+
+                if (this.currentSearchQuery) {
+                    const q = this.currentSearchQuery.toLowerCase();
+                    displayedFiles = this.files.filter(f => !f.isTrash && f.name.toLowerCase().includes(q));
+                } else if (this.currentCategory === 'trash') {
+                    displayedFiles = this.files.filter(f => f.isTrash);
+                } else if (this.currentCategory === 'favorites') {
+                    displayedFiles = this.files.filter(f => !f.isTrash && f.isFavorite);
+                } else if (this.currentCategory === 'recent') {
+                    displayedFiles = [...this.files].filter(f => !f.isTrash && f.type === 'file').sort((a,b) => b.modifiedAt - a.modifiedAt).slice(0, 20);
+                } else if (['documents', 'images', 'videos', 'audios', 'archives', 'code', 'apks', 'pdfs'].includes(this.currentCategory)) {
+                    displayedFiles = this.files.filter(f => !f.isTrash && f.category === this.currentCategory);
+                } else {
+                    displayedFiles = this.files.filter(f => !f.isTrash && f.parentId === this.currentFolderId);
+                }
+
+                // Ordenação
+                displayedFiles.sort((a, b) => {
+                    if (this.sortBy === 'size') return (b.size || 0) - (a.size || 0);
+                    if (this.sortBy === 'date') return b.modifiedAt - a.modifiedAt;
+                    return a.name.localeCompare(b.name);
+                });
+
+                if (displayedFiles.length === 0) {
+                    viewport.innerHTML = `
+                        <div class="empty-state">
+                            <span>📭</span>
+                            <p>Nenhum arquivo encontrado aqui.</p>
+                        </div>
+                    `;
+                    this.updateBreadcrumbs();
+                    return;
+                }
+
+                const container = document.createElement('div');
+                container.className = this.currentViewMode === 'grid' ? 'file-grid' : 'file-list';
+
+                displayedFiles.forEach(file => {
+                    const item = document.createElement('div');
+                    item.className = this.currentViewMode === 'grid' ? 'file-card' : 'file-row';
+                    if (this.selectedIds.has(file.id)) item.classList.add('selected');
+
+                    item.dataset.id = file.id;
+
+                    const icon = this.getFileIcon(file);
+                    const sizeStr = file.type === 'folder' ? '' : this.formatSize(file.size);
+                    const dateStr = new Date(file.modifiedAt).toLocaleDateString();
+
+                    if (this.currentViewMode === 'grid') {
+                        item.innerHTML = `
+                            <div class="file-icon">${icon}</div>
+                            <div class="file-name" title="${file.name}">${file.name}</div>
+                            <div class="file-meta">${sizeStr || dateStr}</div>
+                        `;
+                    } else {
+                        item.innerHTML = `
+                            <div class="file-icon">${icon}</div>
+                            <div class="file-info-main">
+                                <div class="file-name">${file.name}</div>
+                                <div class="file-details">
+                                    <span>${sizeStr}</span>
+                                    <span>${dateStr}</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    item.addEventListener('click', (e) => {
+                        if (e.ctrlKey || e.shiftKey) {
+                            this.toggleSelect(file.id);
+                        } else {
+                            this.selectedIds.clear();
+                            this.selectedIds.add(file.id);
+                            this.render();
+                            this.updateDetailsPanel(file);
+                        }
+                    });
+
+                    item.addEventListener('dblclick', () => {
+                        this.openFileOrFolder(file);
+                    });
+
+                    item.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        this.selectedIds.clear();
+                        this.selectedIds.add(file.id);
+                        this.render();
+                        this.showContextMenu(e.clientX, e.clientY, file);
+                    });
+
+                    container.appendChild(item);
+                });
+
+                viewport.appendChild(container);
+                this.updateBreadcrumbs();
+            }
+
+            async openFileOrFolder(file) {
+                if (file.type === 'folder') {
+                    this.currentFolderId = file.id;
+                    this.currentCategory = 'root';
+                    this.currentSearchQuery = '';
+                    this.selectedIds.clear();
+                    this.render();
+                } else {
+                    this.openEditorModal(file);
+                }
+            }
+
+            updateBreadcrumbs() {
+                const bc = document.getElementById('breadcrumbs');
+                bc.innerHTML = '';
+
+                if (this.currentCategory !== 'root' && !this.currentSearchQuery) {
+                    bc.innerHTML = `<span class="breadcrumb-item" style="color:var(--accent-color)">Categoria: ${this.currentCategory.toUpperCase()}</span>`;
+                    return;
+                }
+                if (this.currentSearchQuery) {
+                    bc.innerHTML = `<span class="breadcrumb-item" style="color:var(--accent-color)">Pesquisa: "${this.currentSearchQuery}"</span>`;
+                    return;
+                }
+
+                let path = [];
+                let currId = this.currentFolderId;
+                while (currId !== 'root' && currId) {
+                    const folder = this.files.find(f => f.id === currId);
+                    if (folder) {
+                        path.unshift(folder);
+                        currId = folder.parentId;
+                    } else {
+                        break;
+                    }
+                }
+
+                const rootItem = document.createElement('span');
+                rootItem.className = 'breadcrumb-item';
+                rootItem.innerText = 'Raiz';
+                rootItem.onclick = () => {
+                    this.currentFolderId = 'root';
+                    this.currentCategory = 'root';
+                    this.render();
+                };
+                bc.appendChild(rootItem);
+
+                path.forEach(folder => {
+                    const item = document.createElement('span');
+                    item.className = 'breadcrumb-item';
+                    item.innerText = folder.name;
+                    item.onclick = () => {
+                        this.currentFolderId = folder.id;
+                        this.currentCategory = 'root';
+                        this.render();
+                    };
+                    bc.appendChild(item);
+                });
+            }
+
+            toggleSelect(id) {
+                if (this.selectedIds.has(id)) {
+                    this.selectedIds.delete(id);
+                } else {
+                    this.selectedIds.add(id);
+                }
+                this.render();
+            }
+
+            updateDetailsPanel(file) {
+                const content = document.getElementById('detailsContent');
+                content.innerHTML = `
+                    <div style="text-align: center; font-size: 3rem; margin-bottom: 10px;">${this.getFileIcon(file)}</div>
+                    <div class="detail-group"><span class="detail-label">Nome</span><span class="detail-value">${file.name}</span></div>
+                    <div class="detail-group"><span class="detail-label">Tipo</span><span class="detail-value">${file.type.toUpperCase()}</span></div>
+                    <div class="detail-group"><span class="detail-label">Categoria</span><span class="detail-value">${file.category || '-'}</span></div>
+                    <div class="detail-group"><span class="detail-label">Tamanho</span><span class="detail-value">${file.type === 'folder' ? '-' : this.formatSize(file.size)}</span></div>
+                    <div class="detail-group"><span class="detail-label">Modificado em</span><span class="detail-value">${new Date(file.modifiedAt).toLocaleString()}</span></div>
+                `;
+                document.getElementById('detailsPanel').classList.add('open');
+            }
+
+            showContextMenu(x, y, file) {
+                const menu = document.getElementById('contextMenu');
+                const restoreBtn = document.getElementById('ctxRestore');
+                const pasteBtn = document.getElementById('ctxPaste');
+
+                if (file.isTrash) {
+                    restoreBtn.style.display = 'flex';
+                } else {
+                    restoreBtn.style.display = 'none';
+                }
+
+                if (this.clipboard.items.length > 0 && file.type === 'folder') {
+                    pasteBtn.style.display = 'flex';
+                } else {
+                    pasteBtn.style.display = 'none';
+                }
+
+                menu.style.left = `${x}px`;
+                menu.style.top = `${y}px`;
+                menu.style.display = 'flex';
+
+                const closeHandler = () => {
+                    menu.style.display = 'none';
+                    document.removeEventListener('click', closeHandler);
+                };
+                setTimeout(() => document.addEventListener('click', closeHandler), 10);
+            }
+
+            openEditorModal(file) {
+                const modal = document.getElementById('editorModal');
+                const title = document.getElementById('editorTitle');
+                const textarea = document.getElementById('editorTextarea');
+                const mediaContainer = document.getElementById('mediaViewerContainer');
+                const saveBtn = document.getElementById('editorSave');
+
+                title.innerText = file.name;
+                textarea.style.display = 'none';
+                mediaContainer.style.display = 'none';
+                saveBtn.style.display = 'none';
+                mediaContainer.innerHTML = '';
+
+                const ext = file.name.split('.').pop().toLowerCase();
+
+                if (['txt', 'json', 'html', 'css', 'js', 'md'].includes(ext) || file.mime?.startsWith('text/')) {
+                    textarea.value = file.content || '';
+                    textarea.style.display = 'block';
+                    saveBtn.style.display = 'block';
+                    saveBtn.onclick = async () => {
+                        file.content = textarea.value;
+                        file.size = new Blob([file.content]).size;
+                        file.modifiedAt = Date.now();
+                        await this.storage.saveFile(file);
+                        this.showToast('Alterações salvas com sucesso.');
+                        this.loadFiles();
+                    };
+                } else if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) {
+                    mediaContainer.style.display = 'flex';
+                    mediaContainer.innerHTML = `<img src="${file.content}" style="max-width:100%; max-height:100%; object-fit:contain; border-radius:8px;">`;
+                } else if (['mp4', 'webm'].includes(ext)) {
+                    mediaContainer.style.display = 'flex';
+                    mediaContainer.innerHTML = `<video src="${file.content}" controls style="max-width:100%; max-height:100%; border-radius:8px;"></video>`;
+                } else if (['mp3', 'wav', 'ogg'].includes(ext)) {
+                    mediaContainer.style.display = 'flex';
+                    mediaContainer.innerHTML = `<audio src="${file.content}" controls></audio>`;
+                } else {
+                    mediaContainer.style.display = 'flex';
+                    mediaContainer.innerHTML = `<p style="color:var(--text-secondary)">Visualização não suportada. Utilize o botão de baixar.</p>`;
+                }
+
+                document.getElementById('editorDownload').onclick = () => {
+                    this.downloadFile(file);
+                };
+
+                modal.classList.add('open');
+            }
+
+            downloadFile(file) {
+                const a = document.createElement('a');
+                a.href = file.content || '#';
+                a.download = file.name;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                this.showToast('Download iniciado.');
+            }
+
+            async createFolder(name) {
+                if (!name) return;
+                const newFolder = {
+                    id: 'folder_' + Date.now() + Math.random().toString(36).substring(2, 9),
+                    name: name,
+                    type: 'folder',
+                    parentId: this.currentFolderId,
+                    category: 'folders',
+                    size: 0,
+                    createdAt: Date.now(),
+                    modifiedAt: Date.now(),
+                    isFavorite: false,
+                    isTrash: false
+                };
+                await this.storage.saveFile(newFolder);
+                await this.loadFiles();
+                this.render();
+                this.showToast('Pasta criada com sucesso.');
+            }
+
+            async createTextFile(name, content = '') {
+                if (!name) return;
+                const newFile = {
+                    id: 'file_' + Date.now() + Math.random().toString(36).substring(2, 9),
+                    name: name,
+                    type: 'file',
+                    mime: 'text/plain',
+                    parentId: this.currentFolderId,
+                    category: this.getFileCategory(name, 'text/plain'),
+                    size: new Blob([content]).size,
+                    content: content,
+                    createdAt: Date.now(),
+                    modifiedAt: Date.now(),
+                    isFavorite: false,
+                    isTrash: false
+                };
+                await this.storage.saveFile(newFile);
+                await this.loadFiles();
+                this.render();
+                this.showToast('Arquivo criado com sucesso.');
+            }
+
+            async importFiles(fileList) {
+                for (let file of fileList) {
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        const fileObj = {
+                            id: 'file_' + Date.now() + Math.random().toString(36).substring(2, 9),
+                            name: file.name,
+                            type: 'file',
+                            mime: file.type,
+                            parentId: this.currentFolderId,
+                            category: this.getFileCategory(file.name, file.type),
+                            size: file.size,
+                            content: e.target.result,
+                            createdAt: Date.now(),
+                            modifiedAt: Date.now(),
+                            isFavorite: false,
+                            isTrash: false
+                        };
+                        await this.storage.saveFile(fileObj);
+                        await this.loadFiles();
+                        this.render();
+                        this.showToast(`Arquivo ${file.name} importado.`);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+
+            setupEventListeners() {
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                        item.classList.add('active');
+                        const view = item.dataset.view;
+                        const category = item.dataset.category;
+
+                        if (view === 'category') {
+                            this.currentCategory = category;
+                            this.currentSearchQuery = '';
+                        } else if (view === 'all') {
+                            this.currentFolderId = 'root';
+                            this.currentCategory = 'root';
+                            this.currentSearchQuery = '';
+                        } else if (view === 'settings') {
+                            this.openSettingsModal();
+                            return;
+                        }
+                        this.render();
+                        if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+                    });
+                });
+
+                document.getElementById('menuToggle').onclick = () => {
+                    document.getElementById('sidebar').classList.toggle('open');
+                };
+
+                document.getElementById('btnNewFolder').onclick = () => {
+                    this.promptModal('Criar Pasta', 'Nome da nova pasta:', async (name) => {
+                        await this.createFolder(name);
+                    });
+                };
+
+                document.getElementById('btnNewFile').onclick = () => {
+                    this.promptModal('Criar Arquivo de Texto', 'Nome do arquivo (ex: notas.txt):', async (name) => {
+                        await this.createTextFile(name);
+                    });
+                };
+
+                document.getElementById('btnUpload').onclick = () => {
+                    document.getElementById('fileInput').click();
+                };
+
+                document.getElementById('fileInput').onchange = (e) => {
+                    this.importFiles(e.target.files);
+                };
+
+                document.getElementById('searchInput').oninput = (e) => {
+                    this.currentSearchQuery = e.target.value.trim();
+                    this.render();
+                };
+
+                document.getElementById('btnViewMode').onclick = () => {
+                    this.currentViewMode = this.currentViewMode === 'grid' ? 'list' : 'grid';
+                    this.render();
+                };
+
+                // Eventos adicionados aos botões antes mortos
+                document.getElementById('btnSelectAll').onclick = () => {
+                    const viewport = document.getElementById('fileViewport');
+                    const cards = viewport.querySelectorAll('[data-id]');
+                    if (this.selectedIds.size === cards.length) {
+                        this.selectedIds.clear();
+                    } else {
+                        cards.forEach(c => this.selectedIds.add(c.dataset.id));
+                    }
+                    this.render();
+                };
+
+                document.getElementById('btnSort').onclick = () => {
+                    if (this.sortBy === 'name') this.sortBy = 'size';
+                    else if (this.sortBy === 'size') this.sortBy = 'date';
+                    else this.sortBy = 'name';
+                    this.showToast(`Ordenando por: ${this.sortBy.toUpperCase()}`);
+                    this.render();
+                };
+
+                document.getElementById('btnInfoPanel').onclick = () => {
+                    const panel = document.getElementById('detailsPanel');
+                    panel.classList.toggle('open');
+                };
+
+                document.getElementById('closeDetails').onclick = () => {
+                    document.getElementById('detailsPanel').classList.remove('open');
+                };
+
+                // Ações do Menu Contextual (Corrigidas e implementadas)
+                document.querySelectorAll('.context-menu-item').forEach(item => {
+                    item.onclick = async () => {
+                        const action = item.dataset.action;
+                        const id = Array.from(this.selectedIds)[0];
+                        const file = this.files.find(f => f.id === id);
+                        if (!file && action !== 'paste') return;
+
+                        if (action === 'open') {
+                            this.openFileOrFolder(file);
+                        } else if (action === 'edit') {
+                            this.openEditorModal(file);
+                        } else if (action === 'rename') {
+                            this.promptModal('Renomear', 'Novo nome:', async (newName) => {
+                                if (newName) {
+                                    file.name = newName;
+                                    file.modifiedAt = Date.now();
+                                    await this.storage.saveFile(file);
+                                    await this.loadFiles();
+                                    this.render();
+                                    this.showToast('Renomeado com sucesso.');
+                                }, file.name);
+                            });
+                        } else if (action === 'copy') {
+                            this.clipboard = { action: 'copy', items: Array.from(this.selectedIds) };
+                            this.showToast('Itens copiados para a área de transferência.');
+                        } else if (action === 'cut') {
+                            this.clipboard = { action: 'cut', items: Array.from(this.selectedIds) };
+                            this.showToast('Itens recortados.');
+                        } else if (action === 'paste') {
+                            if (file && file.type === 'folder') {
+                                for (let itemId of this.clipboard.items) {
+                                    const itemToMove = this.files.find(f => f.id === itemId);
+                                    if (itemToMove) {
+                                        itemToMove.parentId = file.id;
+                                        await this.storage.saveFile(itemToMove);
+                                    }
+                                }
+                                await this.loadFiles();
+                                this.render();
+                                this.showToast('Itens colados com sucesso.');
+                            }
+                        } else if (action === 'favorite') {
+                            file.isFavorite = !file.isFavorite;
+                            await this.storage.saveFile(file);
+                            await this.loadFiles();
+                            this.render();
+                            this.showToast(file.isFavorite ? 'Adicionado aos favoritos.' : 'Removido dos favoritos.');
+                        } else if (action === 'download') {
+                            this.downloadFile(file);
+                        } else if (action === 'restore') {
+                            file.isTrash = false;
+                            await this.storage.saveFile(file);
+                            await this.loadFiles();
+                            this.render();
+                            this.showToast('Arquivo restaurado.');
+                        } else if (action === 'delete') {
+                            if (file.isTrash) {
+                                await this.storage.deleteFile(file.id);
+                                this.showToast('Excluído permanentemente.');
+                            } else {
+                                file.isTrash = true;
+                                await this.storage.saveFile(file);
+                                this.showToast('Movido para a lixeira.');
+                            }
+                            await this.loadFiles();
+                            this.render();
+                        }
+                    };
+                });
+
+                document.getElementById('editorClose').onclick = () => {
+                    document.getElementById('editorModal').classList.remove('open');
+                };
+
+                document.querySelectorAll('.mobile-nav-item').forEach(btn => {
+                    btn.onclick = () => {
+                        document.querySelectorAll('.mobile-nav-item').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        const nav = btn.dataset.nav;
+                        if (nav === 'home') {
+                            this.currentFolderId = 'root';
+                            this.currentCategory = 'root';
+                            this.currentSearchQuery = '';
+                            this.render();
+                        } else if (nav === 'search') {
+                            document.getElementById('searchInput').focus();
+                        } else if (nav === 'upload') {
+                            document.getElementById('fileInput').click();
+                        } else if (nav === 'favorites') {
+                            this.currentCategory = 'favorites';
+                            this.render();
+                        } else if (nav === 'settings') {
+                            this.openSettingsModal();
+                        }
+                    };
+                });
+            }
+
+            promptModal(title, label, callback, initialValue = '') {
+                const modal = document.getElementById('inputModal');
+                document.getElementById('inputModalTitle').innerText = title;
+                document.getElementById('inputModalLabel').innerText = label;
+                const input = document.getElementById('modalInputText');
+                input.value = initialValue;
+
+                modal.classList.add('open');
+                input.focus();
+
+                const confirmBtn = document.getElementById('modalConfirm');
+                const cancelBtn = document.getElementById('modalCancel');
+
+                const cleanup = () => {
+                    modal.classList.remove('open');
+                    confirmBtn.onclick = null;
+                    cancelBtn.onclick = null;
+                };
+
+                confirmBtn.onclick = () => {
+                    const val = input.value.trim();
+                    cleanup();
+                    if (callback) callback(val);
+                };
+
+                cancelBtn.onclick = () => {
+                    cleanup();
+                };
+            }
+
+            openSettingsModal() {
+                this.promptModal('Configurações', 'Tema (digite "dark" ou "light"):', async (theme) => {
+                    if (theme === 'dark' || theme === 'light') {
+                        this.applyTheme(theme);
+                        this.showToast('Tema alterado com sucesso.');
+                    }
+                }, this.settings.theme);
+            }
+
+            checkMobile() {
+                if (window.innerWidth <= 768) {
+                    document.getElementById('menuToggle').style.display = 'inline-flex';
+                }
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const app = new FilesProApp();
+            app.init();
         });
-      }
-
-      if (userServers.length === 0) {
-        grid.innerHTML = `<div class="col-span-full text-center py-12 text-xs text-gray-500 bg-darkCard border border-darkBorder rounded-2xl">Nenhum servidor encontrado no RTDB. Clique em "Novo Servidor" para criar.</div>`;
-        return;
-      }
-
-      grid.innerHTML = userServers.map(s => `
-        <div class="bg-darkCard border border-darkBorder rounded-2xl p-6 flex flex-col justify-between shadow-sm">
-          <div>
-            <div class="flex justify-between items-start mb-3">
-              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${s.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}">${s.status.toUpperCase()}</span>
-              <span class="text-[10px] font-mono text-gray-500">${s.projectType}</span>
-            </div>
-            <h3 class="font-bold text-white text-base mb-1">${s.name}</h3>
-            <p class="text-xs text-gray-400 mb-4 line-clamp-2">${s.desc || 'Sem descrição.'}</p>
-            <div class="bg-gray-900 px-3 py-2 rounded-xl text-[11px] font-mono text-brandBlue mb-4 truncate">ID: ${s.serverId}</div>
-          </div>
-          <div class="flex gap-2">
-            <button onclick="openServerDetail('${s.serverId}')" class="flex-1 py-2 bg-brandBlue hover:bg-brandHover text-white text-xs font-semibold rounded-xl transition">Painel RTDB</button>
-            <button onclick="deleteServer('${s.serverId}')" class="px-3 py-2 bg-red-600/10 hover:bg-red-600/20 text-red-400 text-xs rounded-xl transition"><i class="fa-solid fa-trash"></i></button>
-          </div>
-        </div>
-      `).join('');
-    } catch (err) {
-      showToast('Erro ao carregar servidores: ' + err.message, 'error');
-    }
-  };
-
-  window.openServerDetail = async function(serverId) {
-    window.selectedServerId = serverId;
-    const snap = await get(ref(db, 'servers/' + serverId));
-    if (!snap.exists()) return;
-    const server = snap.val();
-
-    document.getElementById('detail-server-name').innerText = server.name;
-    document.getElementById('detail-server-id').innerText = `ID: ${server.serverId}`;
-    document.getElementById('detail-project-type').innerText = server.projectType;
-    document.getElementById('detail-req-count').innerText = server.requestsCount || 0;
-
-    const statusBadge = document.getElementById('detail-server-status');
-    statusBadge.innerText = server.status === 'active' ? 'Ativo' : 'Pausado';
-
-    const snippet = `const VERO_CONFIG = {\n    serverId: "${server.serverId}",\n    databaseURL: "https://subjectrobot-49600-default-rtdb.firebaseio.com"\n};`;
-    document.getElementById('detail-code-snippet').innerText = snippet;
-    document.getElementById('conn-js-code').innerText = snippet;
-
-    switchView('server-detail');
-    switchServerTab('overview');
-  };
-
-  window.deleteServer = async function(serverId) {
-    if (!confirm('Deseja excluir este servidor do Firebase RTDB?')) return;
-    try {
-      await remove(ref(db, 'servers/' + serverId));
-      await remove(ref(db, 'serverData/' + serverId));
-      showToast('Servidor excluído do RTDB!', 'success');
-      renderServersList();
-      switchView('servers');
-    } catch (err) {
-      showToast('Erro ao excluir: ' + err.message, 'error');
-    }
-  };
-
-  // Gerenciamento de Banco de Dados JSON no RTDB
-  window.handleAddRecord = async function(e) {
-    e.preventDefault();
-    const recKey = document.getElementById('rec-key').value.trim();
-    const recValueRaw = document.getElementById('rec-value').value.trim();
-
-    let parsedValue;
-    try {
-      parsedValue = JSON.parse(recValueRaw);
-    } catch(err) {
-      showToast('Erro: JSON inválido.', 'error');
-      return;
-    }
-
-    try {
-      await set(ref(db, `serverData/${window.selectedServerId}/${recKey}`), parsedValue);
-      closeAddRecordModal();
-      renderDatabaseRecords();
-      showToast('Registro salvo no Firebase RTDB!', 'success');
-    } catch (err) {
-      showToast('Erro ao salvar no banco: ' + err.message, 'error');
-    }
-  };
-
-  window.renderDatabaseRecords = async function() {
-    const container = document.getElementById('db-records-container');
-    container.innerHTML = `<div class="text-center py-8 text-xs text-gray-500">Carregando dados do RTDB...</div>`;
-
-    try {
-      const snap = await get(ref(db, `serverData/${window.selectedServerId}`));
-      if (!snap.exists()) {
-        container.innerHTML = `<div class="text-center py-8 text-xs text-gray-500">Nenhum registro encontrado neste servidor no RTDB.</div>`;
-        return;
-      }
-
-      const records = snap.val();
-      container.innerHTML = Object.keys(records).map(k => `
-        <div class="bg-gray-900 border border-darkBorder p-4 rounded-xl flex items-center justify-between">
-          <div>
-            <div class="font-mono font-bold text-brandBlue text-xs mb-1">${k}</div>
-            <pre class="text-[11px] mono text-gray-300 overflow-x-auto">${JSON.stringify(records[k], null, 2)}</pre>
-          </div>
-          <button onclick="deleteDbRecord('${k}')" class="px-3 py-1.5 bg-red-600/10 text-red-400 rounded-xl text-xs"><i class="fa-solid fa-trash"></i></button>
-        </div>
-      `).join('');
-    } catch (err) {
-      container.innerHTML = `<div class="text-center py-8 text-xs text-red-400">Erro ao carregar dados.</div>`;
-    }
-  };
-
-  window.deleteDbRecord = async function(key) {
-    try {
-      await remove(ref(db, `serverData/${window.selectedServerId}/${key}`));
-      renderDatabaseRecords();
-      showToast('Registro removido do RTDB.', 'info');
-    } catch (err) {
-      showToast('Erro ao remover: ' + err.message, 'error');
-    }
-  };
-
-  // Envio de Arquivos Direto no RTDB (em Base64/Texto)
-  window.handleFileUpload = async function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = async function(event) {
-      try {
-        await push(ref(db, 'files'), {
-          name: file.name,
-          size: (file.size / 1024).toFixed(1) + ' KB',
-          type: file.type || 'application/octet-stream',
-          data: event.target.result,
-          uploadedAt: Date.now()
-        });
-        renderFilesList();
-        showToast('Arquivo salvo diretamente no Realtime Database!', 'success');
-      } catch (err) {
-        showToast('Erro ao salvar arquivo no RTDB: ' + err.message, 'error');
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
-  window.renderFilesList = async function() {
-    const container = document.getElementById('files-list-container');
-    try {
-      const snap = await get(ref(db, 'files'));
-      if (!snap.exists()) {
-        container.innerHTML = `<div class="bg-darkCard border border-darkBorder p-6 rounded-2xl text-center col-span-full py-12 text-gray-500 text-xs">Nenhum arquivo enviado no RTDB.</div>`;
-        return;
-      }
-
-      let filesArr = [];
-      snap.forEach(child => filesArr.push({ id: child.key, ...child.val() }));
-
-      container.innerHTML = filesArr.map(f => `
-        <div class="bg-darkCard border border-darkBorder p-4 rounded-2xl flex flex-col justify-between">
-          <div>
-            <div class="flex items-center gap-2 mb-2">
-              <i class="fa-solid fa-file text-brandBlue"></i>
-              <span class="font-bold text-white text-xs truncate">${f.name}</span>
-            </div>
-            <div class="text-[10px] text-gray-400 mb-4">Tamanho: ${f.size} (RTDB)</div>
-          </div>
-          <div class="flex gap-2">
-            <a href="${f.data}" download="${f.name}" class="flex-1 py-1.5 bg-brandBlue text-center text-white rounded-xl text-xs">Baixar</a>
-            <button onclick="deleteFile('${f.id}')" class="px-3 py-1.5 bg-red-600/10 text-red-400 rounded-xl text-xs">Excluir</button>
-          </div>
-        </div>
-      `).join('');
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  window.deleteFile = async function(fileId) {
-    try {
-      await remove(ref(db, `files/${fileId}`));
-      renderFilesList();
-      showToast('Arquivo removido do RTDB.', 'info');
-    } catch (err) {
-      showToast('Erro ao excluir: ' + err.message, 'error');
-    }
-  };
-
-  // Renderizar Chaves de Acesso
-  window.renderServerKeys = async function() {
-    const container = document.getElementById('server-keys-list');
-    if (!window.selectedServerId) return;
-    try {
-      const snap = await get(ref(db, 'keys'));
-      let keys = [];
-      if (snap.exists()) {
-        snap.forEach(child => {
-          const k = child.val();
-          if (k.serverId === window.selectedServerId) keys.push(k);
-        });
-      }
-      if (keys.length === 0) {
-        container.innerHTML = `<div class="text-center py-8 text-xs text-gray-500 bg-darkCard border border-darkBorder rounded-2xl">Nenhuma chave gerada para este servidor.</div>`;
-        return;
-      }
-      container.innerHTML = keys.map(k => `
-        <div class="bg-darkCard border border-darkBorder p-4 rounded-2xl flex items-center justify-between">
-          <div>
-            <div class="flex items-center gap-2 mb-1">
-              <span class="font-mono font-bold text-white text-xs">${k.keyId}</span>
-              <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-600/10 text-brandBlue border border-blue-500/20">${k.type}</span>
-            </div>
-            <div class="text-[10px] text-gray-400">Criada em: ${new Date(k.createdAt).toLocaleDateString()}</div>
-          </div>
-          <button onclick="deleteKey('${k.keyId}')" class="px-3 py-1.5 bg-red-600/10 text-red-400 rounded-xl text-xs">Revogar</button>
-        </div>
-      `).join('');
-    } catch(err) { console.error(err); }
-  };
-
-  window.renderGlobalKeys = async function() {
-    const container = document.getElementById('global-keys-list');
-    try {
-      const snap = await get(ref(db, 'keys'));
-      if (!snap.exists()) {
-        container.innerHTML = `<div class="text-center py-12 text-xs text-gray-500 bg-darkCard border border-darkBorder rounded-2xl">Nenhuma chave ativa encontrada no RTDB.</div>`;
-        return;
-      }
-      let keys = [];
-      snap.forEach(child => keys.push(child.val()));
-      container.innerHTML = keys.map(k => `
-        <div class="bg-darkCard border border-darkBorder p-4 rounded-2xl flex items-center justify-between">
-          <div>
-            <div class="flex items-center gap-2 mb-1">
-              <span class="font-mono font-bold text-white text-xs">${k.keyId}</span>
-              <span class="text-[10px] text-gray-400">Servidor: ${k.serverId}</span>
-            </div>
-            <div class="text-[10px] text-gray-400">Tipo: ${k.type}</div>
-          </div>
-          <button onclick="deleteKey('${k.keyId}')" class="px-3 py-1.5 bg-red-600/10 text-red-400 rounded-xl text-xs">Revogar</button>
-        </div>
-      `).join('');
-    } catch(err) { console.error(err); }
-  };
-
-  window.deleteKey = async function(keyId) {
-    try {
-      await remove(ref(db, `keys/${keyId}`));
-      renderServerKeys();
-      renderGlobalKeys();
-      showToast('Chave revogada no RTDB.', 'info');
-    } catch (err) {
-      showToast('Erro ao revogar chave: ' + err.message, 'error');
-    }
-  };
-
-  // Funções Globais de Navegação e Modals
-  window.switchView = function(viewName) {
-    currentView = viewName;
-    ['dashboard', 'servers', 'server-detail', 'keys', 'database', 'files', 'monitor', 'logs', 'docs', 'limits', 'admin', 'profile'].forEach(v => {
-      const el = document.getElementById(`view-${v}`);
-      if (el) el.classList.add('hidden');
-      const btn = document.getElementById(`nav-btn-${v}`);
-      if (btn) btn.className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800/60 transition";
-    });
-
-    const activeEl = document.getElementById(`view-${viewName}`);
-    if (activeEl) activeEl.classList.remove('hidden');
-    const activeBtn = document.getElementById(`nav-btn-${viewName}`);
-    if (activeBtn) activeBtn.className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-white bg-brandBlue shadow-lg shadow-blue-500/20 transition";
-
-    if (viewName === 'servers') renderServersList();
-    if (viewName === 'keys') renderGlobalKeys();
-    if (viewName === 'files') renderFilesList();
-  };
-
-  window.switchServerTab = function(tab) {
-    currentServerTab = tab;
-    ['overview', 'database', 'keys', 'connection', 'logs'].forEach(t => {
-      const el = document.getElementById(`st-tab-${t}`);
-      if (el) el.classList.add('hidden');
-      const btn = document.getElementById(`st-btn-${t}`);
-      if (btn) btn.className = "px-4 py-2 text-xs font-semibold rounded-xl text-gray-400 hover:text-white whitespace-nowrap transition";
-    });
-    const activeEl = document.getElementById(`st-tab-${tab}`);
-    if (activeEl) activeEl.classList.remove('hidden');
-    const activeBtn = document.getElementById(`st-btn-${tab}`);
-    if (activeBtn) activeBtn.className = "px-4 py-2 text-xs font-semibold rounded-xl bg-brandBlue text-white whitespace-nowrap transition";
-
-    if (tab === 'database') renderDatabaseRecords();
-    if (tab === 'keys') renderServerKeys();
-  };
-
-  window.toggleSidebar = () => document.getElementById('sidebar').classList.toggle('-translate-x-full');
-  window.toggleTheme = () => document.documentElement.classList.toggle('dark');
-  window.toggleUserDropdown = () => document.getElementById('user-dropdown').classList.toggle('hidden');
-  window.closeUserDropdown = () => document.getElementById('user-dropdown').classList.add('hidden');
-  window.openServerModal = () => document.getElementById('modal-server').classList.remove('hidden');
-  window.closeServerModal = () => document.getElementById('modal-server').classList.add('hidden');
-  window.openKeyModal = () => {
-    const select = document.getElementById('key-server-id');
-    select.innerHTML = `<option value="${window.selectedServerId || ''}">${window.selectedServerId || 'Servidor Atual'}</option>`;
-    document.getElementById('modal-key').classList.remove('hidden');
-  };
-  window.closeKeyModal = () => document.getElementById('modal-key').classList.add('hidden');
-  window.openAddRecordModal = () => document.getElementById('modal-record').classList.remove('hidden');
-  window.closeAddRecordModal = () => document.getElementById('modal-record').classList.add('hidden');
-
-</script>
+    </script>
 </body>
 </html>
