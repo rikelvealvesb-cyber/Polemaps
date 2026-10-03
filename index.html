@@ -1,1526 +1,1455 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="dark">
+<html lang="pt-BR" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gerenciador de Arquivos Profissional</title>
+    <title>Godot Engine Mobile</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- FontAwesome para Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --bg-primary: #121212;
-            --bg-secondary: #1e1e1e;
-            --bg-tertiary: #2a2a2a;
-            --bg-hover: #333333;
-            --text-primary: #e0e0e0;
-            --text-secondary: #a0a0a0;
-            --accent-color: #3b82f6;
-            --accent-hover: #2563eb;
-            --danger-color: #ef4444;
-            --success-color: #22c55e;
-            --border-color: #333333;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.18);
-            --transition: all 0.2s ease-in-out;
+            --godot-bg: #181a1f;
+            --godot-panel: #21252b;
+            --godot-border: #181a1f;
+            --godot-accent: #3d8ec9;
+            --godot-text: #abb2bf;
         }
-
-        [data-theme="light"] {
-            --bg-primary: #f8fafc;
-            --bg-secondary: #ffffff;
-            --bg-tertiary: #f1f5f9;
-            --bg-hover: #e2e8f0;
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
-            --accent-color: #2563eb;
-            --accent-hover: #1d4ed8;
-            --danger-color: #dc2626;
-            --success-color: #16a34a;
-            --border-color: #cbd5e1;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
         body {
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
+            background-color: var(--godot-bg);
+            color: var(--godot-text);
+            font-family: system-ui, -apple-system, sans-serif;
+            touch-action: none;
             overflow: hidden;
         }
-
-        header {
-            background-color: var(--bg-secondary);
-            border-bottom: 1px solid var(--border-color);
-            padding: 10px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            height: 60px;
-            z-index: 100;
-        }
-
-        .header-left, .header-right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .logo-area {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 700;
-            font-size: 1.1rem;
-        }
-
-        .search-container {
-            flex: 1;
-            max-width: 500px;
-            position: relative;
-        }
-
-        .search-input {
-            width: 100%;
-            background-color: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 8px 12px 8px 36px;
-            color: var(--text-primary);
-            font-size: 0.95rem;
-            outline: none;
-            transition: var(--transition);
-        }
-
-        .search-input:focus {
-            border-color: var(--accent-color);
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-secondary);
-        }
-
-        button, .btn {
-            background-color: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            padding: 8px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: var(--transition);
-            white-space: nowrap;
-        }
-
-        button:hover, .btn:hover {
-            background-color: var(--bg-hover);
-        }
-
-        button.primary {
-            background-color: var(--accent-color);
-            color: white;
-            border-color: transparent;
-        }
-
-        button.primary:hover {
-            background-color: var(--accent-hover);
-        }
-
-        .app-container {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-            position: relative;
-        }
-
-        sidebar {
-            width: 260px;
-            background-color: var(--bg-secondary);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.3s ease;
-            z-index: 90;
-        }
-
-        .sidebar-section {
-            padding: 12px;
-            border-bottom: 1px solid var(--border-color);
-            overflow-y: auto;
-            max-height: calc(100vh - 120px);
-        }
-
-        .sidebar-title {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            color: var(--text-secondary);
-            letter-spacing: 0.05em;
-            margin-bottom: 8px;
-            padding-left: 8px;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            color: var(--text-primary);
-            text-decoration: none;
-            font-size: 0.95rem;
-            transition: var(--transition);
-            margin-bottom: 2px;
-        }
-
-        .nav-item:hover, .nav-item.active {
-            background-color: var(--bg-hover);
-            color: var(--accent-color);
-        }
-
-        .nav-item span.icon {
-            font-size: 1.2rem;
-            width: 24px;
-            text-align: center;
-        }
-
-        main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            background-color: var(--bg-primary);
-        }
-
-        .path-bar {
-            padding: 12px 20px;
-            background-color: var(--bg-secondary);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-        }
-
-        .breadcrumbs {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            overflow-x: auto;
-            white-space: nowrap;
-            flex: 1;
-            font-size: 0.9rem;
-        }
-
-        .breadcrumb-item {
-            color: var(--text-secondary);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .breadcrumb-item:hover {
-            color: var(--text-primary);
-        }
-
-        .breadcrumb-item::after {
-            content: "/";
-            margin-left: 6px;
-            color: var(--text-secondary);
-        }
-
-        .breadcrumb-item:last-child::after {
-            content: "";
-        }
-
-        .breadcrumb-item:last-child {
-            color: var(--text-primary);
-            font-weight: 500;
-        }
-
-        .toolbar-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .file-viewport {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-        }
-
-        .file-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-            gap: 16px;
-        }
-
-        .file-card {
-            background-color: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 14px 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            transition: var(--transition);
-            position: relative;
-            user-select: none;
-        }
-
-        .file-card:hover {
-            background-color: var(--bg-hover);
-            border-color: var(--accent-color);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow);
-        }
-
-        .file-card.selected {
-            background-color: rgba(59, 130, 246, 0.15);
-            border-color: var(--accent-color);
-        }
-
-        .file-icon {
-            font-size: 2.8rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 50px;
-        }
-
-        .file-name {
-            font-size: 0.85rem;
-            text-align: center;
-            width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            color: var(--text-primary);
-        }
-
-        .file-meta {
-            font-size: 0.7rem;
-            color: var(--text-secondary);
-        }
-
-        .file-list {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .file-row {
-            background-color: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 10px 16px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .file-row:hover {
-            background-color: var(--bg-hover);
-        }
-
-        .file-row.selected {
-            background-color: rgba(59, 130, 246, 0.15);
-            border-color: var(--accent-color);
-        }
-
-        .file-row .file-icon {
-            font-size: 1.5rem;
-            height: auto;
-        }
-
-        .file-row .file-info-main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            min-width: 0;
-        }
-
-        .file-row .file-name {
-            text-align: left;
-            font-size: 0.95rem;
-        }
-
-        .file-row .file-details {
-            display: flex;
-            gap: 16px;
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-        }
-
-        .details-panel {
-            width: 320px;
-            background-color: var(--bg-secondary);
-            border-left: 1px solid var(--border-color);
-            display: none;
-            flex-direction: column;
-            z-index: 80;
-        }
-
-        .details-panel.open {
-            display: flex;
-        }
-
-        .details-header {
-            padding: 16px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 600;
-        }
-
-        .details-content {
-            padding: 20px;
-            overflow-y: auto;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .detail-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .detail-label {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-        }
-
-        .detail-value {
-            font-size: 0.95rem;
-            word-break: break-all;
-        }
-
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: rgba(0, 0, 0, 0.6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease;
-        }
-
-        .modal-overlay.open {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .modal {
-            background-color: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            width: 90%;
-            max-width: 500px;
-            max-height: 90vh;
-            display: flex;
-            flex-direction: column;
-            box-shadow: var(--shadow);
-            transform: scale(0.95);
-            transition: transform 0.2s ease;
-        }
-
-        .modal-overlay.open .modal {
-            transform: scale(1);
-        }
-
-        .modal-header {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-
-        .modal-body {
-            padding: 20px;
-            overflow-y: auto;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .modal-footer {
-            padding: 12px 20px;
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .form-control {
-            background-color: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 10px 14px;
-            color: var(--text-primary);
-            font-size: 1rem;
-            outline: none;
-            width: 100%;
-        }
-
-        .form-control:focus {
-            border-color: var(--accent-color);
-        }
-
-        textarea.form-control {
-            resize: vertical;
-            min-height: 150px;
-            font-family: monospace;
-        }
-
-        .context-menu {
-            position: fixed;
-            background-color: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-shadow: var(--shadow);
-            padding: 6px;
-            z-index: 1000;
-            display: none;
-            flex-direction: column;
-            min-width: 160px;
-        }
-
-        .context-menu-item {
-            padding: 8px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--text-primary);
-        }
-
-        .context-menu-item:hover {
-            background-color: var(--bg-hover);
-            color: var(--accent-color);
-        }
-
-        .context-menu-divider {
-            height: 1px;
-            background-color: var(--border-color);
-            margin: 4px 0;
-        }
-
-        .toast-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 1100;
-        }
-
-        .toast {
-            background-color: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            padding: 12px 18px;
-            border-radius: 8px;
-            box-shadow: var(--shadow);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 0.95rem;
-            animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
-        }
-
-        @keyframes slideIn {
-            from { transform: translateY(100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        @keyframes fadeOut {
-            to { opacity: 0; transform: translateY(10px); }
-        }
-
-        .mobile-bottom-nav {
-            display: none;
-            background-color: var(--bg-secondary);
-            border-top: 1px solid var(--border-color);
-            height: 60px;
-            justify-content: space-around;
-            align-items: center;
-            z-index: 95;
-        }
-
-        .mobile-nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 2px;
-            color: var(--text-secondary);
-            font-size: 0.7rem;
-            cursor: pointer;
-            background: none;
-            border: none;
-            padding: 4px;
-        }
-
-        .mobile-nav-item.active, .mobile-nav-item:hover {
-            color: var(--accent-color);
-        }
-
-        .mobile-nav-item span {
-            font-size: 1.2rem;
-        }
-
-        .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            height: 100%;
-            color: var(--text-secondary);
-            text-align: center;
-            padding: 40px;
-        }
-
-        .empty-state span {
-            font-size: 3.5rem;
-        }
-
-        @media (max-width: 768px) {
-            sidebar {
-                position: fixed;
-                top: 60px;
-                bottom: 60px;
-                left: -260px;
-                box-shadow: var(--shadow);
-            }
-            sidebar.open {
-                left: 0;
-            }
-            .mobile-bottom-nav {
-                display: flex;
-            }
-            .hide-mobile {
-                display: none !important;
-            }
-            .path-bar {
-                padding: 8px 12px;
-            }
-            .file-viewport {
-                padding: 12px;
-            }
-        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #1e2229; }
+        ::-webkit-scrollbar-thumb { background: #3a3f4b; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--godot-accent); }
+        .godot-panel { background-color: var(--godot-panel); border-color: #2c313a; }
+        .tab-active { border-bottom: 2px solid var(--godot-accent); color: #fff; }
     </style>
 </head>
-<body>
+<body class="h-full flex flex-col select-none">
 
-    <header>
-        <div class="header-left">
-            <button id="menuToggle" class="hide-desktop" title="Menu" style="display:none">☰</button>
-            <div class="logo-area">
-                <span>📁</span>
-                <span class="hide-mobile">FilesPro</span>
-            </div>
-        </div>
-        <div class="search-container">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="searchInput" class="search-input" placeholder="Pesquisar arquivos e pastas...">
-        </div>
-        <div class="header-right">
-            <button id="btnNewFolder" title="Nova Pasta">📁+</button>
-            <button id="btnNewFile" title="Novo Arquivo">📄+</button>
-            <button id="btnUpload" title="Importar">📤</button>
-            <input type="file" id="fileInput" multiple style="display: none">
-        </div>
-    </header>
-
-    <div class="app-container">
-        <sidebar id="sidebar">
-            <div class="sidebar-section">
-                <div class="sidebar-title">Navegação</div>
-                <a class="nav-item active" data-view="all" data-category="root">
-                    <span class="icon">🏠</span> Início / Raiz
-                </a>
-                <a class="nav-item" data-view="category" data-category="favorites">
-                    <span class="icon">⭐</span> Favoritos
-                </a>
-                <a class="nav-item" data-view="category" data-category="recent">
-                    <span class="icon">🕘</span> Recentes
-                </a>
-                <a class="nav-item" data-view="category" data-category="trash">
-                    <span class="icon">🗑️</span> Lixeira
-                </a>
-            </div>
-            <div class="sidebar-section">
-                <div class="sidebar-title">Categorias</div>
-                <a class="nav-item" data-view="category" data-category="documents"><span class="icon">📄</span> Documentos</a>
-                <a class="nav-item" data-view="category" data-category="images"><span class="icon">🖼️</span> Imagens</a>
-                <a class="nav-item" data-view="category" data-category="videos"><span class="icon">🎬</span> Vídeos</a>
-                <a class="nav-item" data-view="category" data-category="audios"><span class="icon">🎵</span> Áudios</a>
-                <a class="nav-item" data-view="category" data-category="archives"><span class="icon">📦</span> Compactados</a>
-                <a class="nav-item" data-view="category" data-category="code"><span class="icon">💻</span> Programação</a>
-                <a class="nav-item" data-view="category" data-category="apks"><span class="icon">📱</span> APKs & Apps</a>
-                <a class="nav-item" data-view="category" data-category="pdfs"><span class="icon">📕</span> PDFs</a>
-            </div>
-            <div class="sidebar-section" style="margin-top: auto;">
-                <a class="nav-item" data-view="settings"><span class="icon">⚙️</span> Configurações</a>
-            </div>
-        </sidebar>
-
-        <main>
-            <div class="path-bar">
-                <div class="breadcrumbs" id="breadcrumbs">
-                    <span class="breadcrumb-item">Raiz</span>
-                </div>
-                <div class="toolbar-actions">
-                    <button id="btnSelectAll" title="Selecionar Todos">☑️</button>
-                    <button id="btnSort" title="Ordenar por Nome/Tamanho">🔄</button>
-                    <button id="btnInfoPanel" title="Painel de Informações">ℹ️</button>
+    <!-- ================= 1. GERENCIADOR DE PROJETOS ================= -->
+    <div id="project-manager" class="absolute inset-0 z-50 flex flex-col bg-[#181a1f] p-4 overflow-y-auto">
+        <header class="flex justify-between items-center pb-4 border-b border-[#2c313a] mb-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-[#3d8ec9] rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg">G</div>
+                <div>
+                    <h1 class="text-xl font-bold text-white tracking-wide">Godot Engine Mobile</h1>
+                    <p class="text-xs text-gray-400">Gerenciador de Projetos v3.2</p>
                 </div>
             </div>
-
-            <div class="file-viewport" id="fileViewport"></div>
-        </main>
-
-        <div class="details-panel" id="detailsPanel">
-            <div class="details-header">
-                <span>Propriedades</span>
-                <button id="closeDetails" style="background:none;border:none;font-size:1.1rem;cursor:pointer;">✕</button>
+            <div class="flex space-x-2">
+                <button onclick="app.showNewProjectModal()" class="bg-[#3d8ec9] hover:bg-[#327bb5] text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center shadow transition cursor-pointer">
+                    <i class="fa-solid fa-plus mr-2"></i> Novo Projeto
+                </button>
             </div>
-            <div class="details-content" id="detailsContent">
-                <div class="empty-state" style="padding: 20px;">
-                    <p style="font-size: 0.9rem;">Selecione um arquivo ou pasta para ver os detalhes.</p>
+        </header>
+
+        <div class="mb-4 flex space-x-2">
+            <div class="relative flex-1">
+                <i class="fa-solid fa-search absolute left-3 top-3 text-gray-500"></i>
+                <input type="text" id="project-search" placeholder="Pesquisar projetos..." oninput="app.filterProjects(this.value)" class="w-full bg-[#21252b] border border-[#3a3f4b] rounded-lg pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-[#3d8ec9]">
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto">
+            <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Projetos Recentes</h2>
+            <div id="project-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-12"></div>
+        </div>
+    </div>
+
+    <!-- ================= 2. EDITOR PRINCIPAL ================= -->
+    <div id="editor-view" class="absolute inset-0 flex flex-col hidden bg-[#181a1f]">
+        <!-- Barra Superior -->
+        <header id="editor-header" class="h-11 bg-[#21252b] border-b border-[#2c313a] flex items-center justify-between px-3 text-xs z-30 transition-all duration-200">
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
+                    <div class="w-6 h-6 bg-[#3d8ec9] rounded flex items-center justify-center text-white font-bold text-xs">G</div>
+                    <span id="current-project-title" class="font-bold text-white">MeuProjeto</span>
+                </div>
+                <nav class="hidden md:flex space-x-3 text-gray-300">
+                    <button onclick="app.openProjectManager()" class="hover:text-white cursor-pointer"><i class="fa-solid fa-folder-open mr-1"></i> Projetos</button>
+                    <span id="autosave-status" class="text-green-400 text-[10px] flex items-center"><i class="fa-solid fa-check mr-1"></i> Salvamento Automático Ativo</span>
+                </nav>
+            </div>
+
+            <!-- Botões de Execução -->
+            <div class="flex items-center space-x-2 bg-[#181a1f] px-3 py-1 rounded-lg border border-[#2c313a]">
+                <button onclick="gameRunner.playGame()" class="text-green-400 hover:text-green-300 px-2 py-1 cursor-pointer" title="Executar Jogo"><i class="fa-solid fa-play text-sm"></i></button>
+                <button id="btn-header-pause" onclick="gameRunner.pauseGame()" class="text-yellow-400 hover:text-yellow-300 px-2 py-1 cursor-pointer hidden" title="Pausar"><i class="fa-solid fa-pause text-sm"></i></button>
+                <button id="btn-header-stop" onclick="gameRunner.stopGame()" class="text-red-400 hover:text-red-300 px-2 py-1 cursor-pointer hidden" title="Parar"><i class="fa-solid fa-stop text-sm"></i></button>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <button onclick="app.toggleFullscreen()" class="text-gray-300 hover:text-white cursor-pointer" title="Tela Cheia"><i class="fa-solid fa-expand"></i></button>
+            </div>
+        </header>
+
+        <!-- Barra de Controle Flutuante para o Modo Jogo -->
+        <div id="game-runtime-hud" class="absolute top-3 right-3 z-50 hidden bg-[#21252b]/90 border border-[#3a3f4b] px-3 py-1.5 rounded-lg shadow-2xl flex items-center space-x-3">
+            <span id="runtime-hud-stats" class="text-xs font-bold text-yellow-400">Vida: 3</span>
+            <span class="text-xs font-bold text-green-400 flex items-center"><span class="w-2 h-2 rounded-full bg-green-500 animate-ping mr-2"></span> Rodando</span>
+            <button onclick="gameRunner.stopGame()" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded text-xs font-bold cursor-pointer flex items-center shadow"><i class="fa-solid fa-stop mr-1.5"></i> Parar</button>
+        </div>
+
+        <!-- Área de Trabalho Principal -->
+        <div class="flex-1 flex relative overflow-hidden">
+            
+            <!-- Painel Esquerdo: Cena / Nós -->
+            <div id="left-panel" class="w-64 godot-panel border-r border-[#2c313a] flex flex-col z-20 transition-all duration-200">
+                <div class="flex border-b border-[#2c313a] text-xs bg-[#1e2229]">
+                    <span class="flex-1 py-2 text-center tab-active font-medium">Cena</span>
+                </div>
+                <div class="flex-1 flex flex-col overflow-hidden p-2">
+                    <div class="flex justify-between items-center mb-2 px-1">
+                        <span class="text-xs font-bold uppercase text-gray-400">Árvore de Nós</span>
+                        <button onclick="sceneTree.showAddNodeModal()" class="bg-[#3d8ec9] text-white w-6 h-6 rounded flex items-center justify-center text-xs shadow cursor-pointer"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                    <div id="node-tree-container" class="flex-1 overflow-y-auto font-mono text-xs space-y-1"></div>
+                </div>
+            </div>
+
+            <!-- Área Central: Visualização / Editores -->
+            <div class="flex-1 flex flex-col relative overflow-hidden bg-[#15171b]">
+                <div id="editor-tabs" class="h-9 bg-[#1e2229] border-b border-[#2c313a] flex items-center px-2 space-x-1 text-xs z-10 overflow-x-auto transition-all duration-200">
+                    <button onclick="editorManager.switchTab('2d')" id="tab-btn-2d" class="px-3 py-1.5 bg-[#21252b] text-white rounded-t border-t border-x border-[#2c313a] font-medium cursor-pointer"><i class="fa-solid fa-shapes mr-1 text-[#3d8ec9]"></i> 2D</button>
+                    <button onclick="editorManager.switchTab('script')" id="tab-btn-script" class="px-3 py-1.5 text-gray-400 hover:text-white rounded-t cursor-pointer"><i class="fa-solid fa-code mr-1 text-[#98c379]"></i> GodotScript</button>
+                    <button onclick="editorManager.switchTab('globals')" id="tab-btn-globals" class="px-3 py-1.5 text-gray-400 hover:text-white rounded-t cursor-pointer"><i class="fa-solid fa-globe mr-1 text-[#e5c07b]"></i> Globais</button>
+                </div>
+
+                <div class="flex-1 relative overflow-hidden flex flex-col">
+                    <!-- Editor 2D -->
+                    <div id="view-2d" class="absolute inset-0 flex flex-col">
+                        <div id="canvas-tools-hud" class="absolute top-2 left-2 z-10 bg-[#21252b]/90 border border-[#3a3f4b] p-1.5 rounded flex space-x-2 text-xs shadow">
+                            <button onclick="editor2D.setTool('select')" id="tool-select" class="p-1.5 bg-[#3d8ec9] text-white rounded cursor-pointer transition" title="Selecionar / Mover Objeto"><i class="fa-solid fa-arrow-pointer"></i></button>
+                            <button onclick="editor2D.setTool('move')" id="tool-move" class="p-1.5 text-gray-300 hover:bg-[#2c313a] rounded cursor-pointer transition" title="Mover Câmera"><i class="fa-solid fa-up-down-left-right"></i></button>
+                            <button onclick="editor2D.toggleMaximize()" id="tool-maximize" class="p-1.5 text-gray-300 hover:bg-[#2c313a] rounded cursor-pointer transition" title="Tela Cheia do Editor"><i class="fa-solid fa-expand"></i></button>
+                        </div>
+                        <canvas id="canvas-2d" class="w-full h-full cursor-crosshair"></canvas>
+                    </div>
+
+                    <!-- Editor de Scripts Simplificados -->
+                    <div id="view-script" class="absolute inset-0 hidden flex flex-col bg-[#181a1f] z-30">
+                        <div class="bg-[#21252b] border-b border-[#2c313a] px-4 py-3 flex items-center justify-between shrink-0">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded bg-[#98c379]/20 border border-[#98c379] flex items-center justify-center text-[#98c379]">
+                                    <i class="fa-solid fa-code"></i>
+                                </div>
+                                <div>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-xs text-gray-400">GodotScript de:</span>
+                                        <span id="script-owner-name" class="font-bold text-white text-sm">Player</span>
+                                        <span id="script-owner-type" class="text-[10px] bg-[#2c313a] text-gray-300 px-1.5 py-0.5 rounded">Player</span>
+                                    </div>
+                                    <p class="text-[10px] text-gray-400">Exemplos: <code class="text-yellow-400">joystick "Joystick", 4</code> | <code class="text-yellow-400">se toca "Plataforma1" { ... }</code></p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <button onclick="editorManager.switchTab('2d')" class="bg-[#3d8ec9] hover:bg-[#327bb5] text-white px-3 py-1.5 rounded text-xs font-medium cursor-pointer flex items-center shadow">
+                                    <i class="fa-solid fa-arrow-left mr-1.5"></i> Voltar ao 2D
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex-1 p-4 pb-44 overflow-y-auto flex flex-col">
+                            <textarea id="script-textarea" oninput="scriptEditor.onInput(this.value)" class="w-full flex-1 bg-[#1e2229] border border-[#2c313a] rounded-lg text-[#abb2bf] font-mono p-4 text-sm resize-none focus:outline-none focus:border-[#3d8ec9] shadow-inner min-h-[250px]" spellcheck="false" placeholder="// Escreva seu GodotScript aqui..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Aba de Variáveis Globais -->
+                    <div id="view-globals" class="absolute inset-0 hidden flex flex-col bg-[#181a1f] z-30">
+                        <div class="bg-[#21252b] border-b border-[#2c313a] px-4 py-3 flex items-center justify-between shrink-0">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded bg-[#e5c07b]/20 border border-[#e5c07b] flex items-center justify-center text-[#e5c07b]">
+                                    <i class="fa-solid fa-globe"></i>
+                                </div>
+                                <div>
+                                    <h2 class="font-bold text-white text-sm">Variáveis Globais do Projeto</h2>
+                                    <p class="text-[10px] text-gray-400">Modifique diretamente nos scripts usando o nome dela (ex: <code class="text-yellow-400">vida = vida - 1</code>)</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <button onclick="globalsManager.addGlobal()" class="bg-[#3d8ec9] hover:bg-[#327bb5] text-white px-3 py-1.5 rounded text-xs font-medium cursor-pointer flex items-center shadow">
+                                    <i class="fa-solid fa-plus mr-1.5"></i> Nova Variável
+                                </button>
+                                <button onclick="editorManager.switchTab('2d')" class="bg-[#2c313a] hover:bg-[#3a3f4b] text-white px-3 py-1.5 rounded text-xs font-medium cursor-pointer flex items-center shadow">
+                                    <i class="fa-solid fa-arrow-left mr-1.5"></i> Voltar ao 2D
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex-1 p-4 overflow-y-auto space-y-3" id="globals-list-container"></div>
+                    </div>
+                </div>
+
+                <!-- Painel Inferior: Console -->
+                <div id="bottom-console" class="h-28 godot-panel border-t border-[#2c313a] flex flex-col transition-all duration-200">
+                    <div class="h-7 bg-[#1e2229] border-b border-[#2c313a] flex items-center px-3 justify-between text-xs">
+                        <span class="font-bold text-white uppercase text-[10px]">Console de Saída</span>
+                        <button onclick="consoleWindow.clear()" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-trash-can"></i> Limpar</button>
+                    </div>
+                    <div id="console-output" class="flex-1 p-2 font-mono text-[11px] overflow-y-auto space-y-1 text-gray-300">
+                        <div class="text-blue-400">[Godot Engine Mobile v3.2] GodotScript Simples ativado.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Painel Direito: Inspetor -->
+            <div id="right-panel" class="w-72 godot-panel border-l border-[#2c313a] flex flex-col z-20 transition-all duration-200">
+                <div class="h-8 bg-[#1e2229] border-b border-[#2c313a] flex items-center px-3 text-xs font-bold uppercase text-gray-400">
+                    Inspetor de Propriedades
+                </div>
+                <div id="inspector-content" class="flex-1 p-3 overflow-y-auto space-y-3 text-xs">
+                    <p class="text-gray-500 italic text-center mt-6">Nenhum nó selecionado.</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <nav class="mobile-bottom-nav">
-        <button class="mobile-nav-item active" data-nav="home"><span>🏠</span>Início</button>
-        <button class="mobile-nav-item" data-nav="search"><span>🔍</span>Pesquisa</button>
-        <button class="mobile-nav-item" data-nav="upload"><span>📤</span>Enviar</button>
-        <button class="mobile-nav-item" data-nav="favorites"><span>⭐</span>Favoritos</button>
-        <button class="mobile-nav-item" data-nav="settings"><span>⚙️</span>Ajustes</button>
-    </nav>
-
-    <div class="modal-overlay" id="inputModal">
-        <div class="modal">
-            <div class="modal-header" id="inputModalTitle">Criar Pasta</div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label class="detail-label" id="inputModalLabel">Nome</label>
-                    <input type="text" id="modalInputText" class="form-control" placeholder="Digite o nome...">
+    <!-- ================= MODAIS ================= -->
+    <div id="modal-new-project" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
+        <div class="godot-panel border border-[#3a3f4b] rounded-xl w-full max-w-md p-5 shadow-2xl">
+            <h2 class="text-base font-bold text-white mb-4">Criar Novo Projeto</h2>
+            <div class="space-y-3 mb-5">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Nome do Projeto</label>
+                    <input type="text" id="new-project-name" value="JogoPlataforma" class="w-full bg-[#181a1f] border border-[#3a3f4b] rounded p-2 text-xs text-white">
                 </div>
             </div>
-            <div class="modal-footer">
-                <button id="modalCancel">Cancelar</button>
-                <button class="primary" id="modalConfirm">Confirmar</button>
+            <div class="flex justify-end space-x-2">
+                <button onclick="app.closeNewProjectModal()" class="px-4 py-2 bg-[#2c313a] hover:bg-[#3a3f4b] text-white rounded text-xs cursor-pointer">Cancelar</button>
+                <button onclick="app.createProject()" class="px-4 py-2 bg-[#3d8ec9] hover:bg-[#327bb5] text-white rounded text-xs font-bold cursor-pointer">Criar e Editar</button>
             </div>
         </div>
     </div>
 
-    <div class="modal-overlay" id="editorModal">
-        <div class="modal" style="max-width: 700px; height: 80vh;">
-            <div class="modal-header">
-                <span id="editorTitle">Editor de Arquivo</span>
-                <button id="editorClose" style="background:none;border:none;cursor:pointer;font-size:1.1rem;">✕</button>
-            </div>
-            <div class="modal-body" style="flex:1; display:flex; flex-direction:column; padding:12px;">
-                <div id="mediaViewerContainer" style="display:none; flex:1; align-items:center; justify-content:center; overflow:hidden;"></div>
-                <textarea id="editorTextarea" class="form-control" style="flex:1; display:none; resize:none;"></textarea>
-            </div>
-            <div class="modal-footer">
-                <button id="editorSave" class="primary" style="display:none;">Salvar Alterações</button>
-                <button id="editorDownload">Baixar</button>
+    <div id="modal-add-node" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
+        <div class="godot-panel border border-[#3a3f4b] rounded-xl w-full max-w-sm p-4 shadow-2xl flex flex-col h-96">
+            <h2 class="text-sm font-bold text-white mb-3">Criar Novo Nó</h2>
+            <div id="node-type-list" class="flex-1 overflow-y-auto space-y-1.5 pr-1"></div>
+            <div class="flex justify-end space-x-2 mt-3 pt-2 border-t border-[#2c313a]">
+                <button onclick="sceneTree.closeAddNodeModal()" class="px-3 py-1.5 bg-[#2c313a] text-white rounded text-xs cursor-pointer">Cancelar</button>
             </div>
         </div>
     </div>
 
-    <div class="context-menu" id="contextMenu">
-        <div class="context-menu-item" data-action="open">📂 Abrir</div>
-        <div class="context-menu-item" data-action="edit">✏️ Editar / Visualizar</div>
-        <div class="context-menu-item" data-action="rename">🏷️ Renomear</div>
-        <div class="context-menu-item" data-action="copy">📋 Copiar</div>
-        <div class="context-menu-item" data-action="cut">✂️ Recortar</div>
-        <div class="context-menu-item" data-action="paste" id="ctxPaste" style="display:none;">📋 Colar aqui</div>
-        <div class="context-menu-item" data-action="favorite">⭐ Favoritar</div>
-        <div class="context-menu-divider"></div>
-        <div class="context-menu-item" data-action="download">⬇️ Baixar</div>
-        <div class="context-menu-item" data-action="share">🔗 Compartilhar</div>
-        <div class="context-menu-item" data-action="restore" id="ctxRestore" style="display:none; color:var(--success-color);">♻️ Restaurar</div>
-        <div class="context-menu-divider"></div>
-        <div class="context-menu-item" data-action="delete" style="color: var(--danger-color);">🗑️ Excluir</div>
-    </div>
-
-    <div class="toast-container" id="toastContainer"></div>
-
+    <!-- ================= SCRIPT PRINCIPAL ================= -->
     <script>
-        class StorageManager {
-            constructor() {
-                this.dbName = 'FilesProDB';
-                this.dbVersion = 1;
-                this.db = null;
+        class ConsoleWindow {
+            log(msg, type = 'info') {
+                const box = document.getElementById('console-output');
+                if (!box) return;
+                const div = document.createElement('div');
+                div.className = type === 'error' ? 'text-red-400' : type === 'warning' ? 'text-yellow-400' : 'text-gray-300';
+                div.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
+                box.appendChild(div);
+                box.scrollTop = box.scrollHeight;
             }
+            clear() { document.getElementById('console-output').innerHTML = ''; }
+        }
+        const consoleWindow = new ConsoleWindow();
 
-            async init() {
+        function sanitizeNodeForSave(node) {
+            if (!node) return null;
+            const clean = {};
+            for (let key in node) {
+                if (key.startsWith('_') || key === 'vy' || key === 'onGround') continue;
+                if (key === 'children' && Array.isArray(node.children)) {
+                    clean.children = node.children.map(c => sanitizeNodeForSave(c));
+                } else {
+                    clean[key] = node[key];
+                }
+            }
+            if (clean.frames && Array.isArray(clean.frames)) {
+                clean.frames = [...clean.frames];
+            }
+            return clean;
+        }
+
+        class StorageManager {
+            constructor() { this.dbName = "GodotMobileDB_v12"; this.db = null; }
+            init() {
                 return new Promise((resolve, reject) => {
-                    const request = indexedDB.open(this.dbName, this.dbVersion);
-                    request.onerror = () => reject(request.error);
-                    request.onsuccess = () => {
-                        this.db = request.result;
-                        resolve(this.db);
-                    };
-                    request.onupgradeneeded = (event) => {
-                        const db = event.target.result;
-                        if (!db.objectStoreNames.contains('files')) {
-                            const fileStore = db.createObjectStore('files', { keyPath: 'id' });
-                            fileStore.createIndex('parentId', 'parentId', { unique: false });
-                            fileStore.createIndex('category', 'category', { unique: false });
+                    if (this.db) { resolve(this.db); return; }
+                    const req = indexedDB.open(this.dbName, 1);
+                    req.onupgradeneeded = (e) => {
+                        const db = e.target.result;
+                        if (!db.objectStoreNames.contains("projects")) {
+                            db.createObjectStore("projects", { keyPath: "id" });
                         }
                     };
+                    req.onsuccess = (e) => { 
+                        this.db = e.target.result; 
+                        resolve(this.db); 
+                    };
+                    req.onerror = (e) => { reject(e.target.error); };
                 });
             }
-
-            async getAllFiles() {
+            async saveProject(proj) {
+                if (!this.db) await this.init();
                 return new Promise((resolve, reject) => {
-                    const transaction = this.db.transaction(['files'], 'readonly');
-                    const store = transaction.objectStore('files');
-                    const request = store.getAll();
-                    request.onsuccess = () => resolve(request.result);
-                    request.onerror = () => reject(request.error);
+                    const tx = this.db.transaction("projects", "readwrite");
+                    const cleanProj = {
+                        id: proj.id,
+                        name: proj.name,
+                        updatedAt: new Date().toISOString(),
+                        globals: proj.globals || {},
+                        scene: sanitizeNodeForSave(proj.scene)
+                    };
+                    const req = tx.objectStore("projects").put(cleanProj);
+                    req.onsuccess = () => resolve(true);
+                    req.onerror = (e) => reject(req.error);
                 });
             }
-
-            async saveFile(fileObj) {
+            async getProjects() {
+                if (!this.db) await this.init();
                 return new Promise((resolve, reject) => {
-                    const transaction = this.db.transaction(['files'], 'readwrite');
-                    const store = transaction.objectStore('files');
-                    const request = store.put(fileObj);
-                    request.onsuccess = () => resolve(request.result);
-                    request.onerror = () => reject(request.error);
+                    const tx = this.db.transaction("projects", "readonly");
+                    const req = tx.objectStore("projects").getAll();
+                    req.onsuccess = () => resolve(req.result || []);
+                    req.onerror = (e) => reject(req.error);
                 });
             }
-
-            async deleteFile(id) {
+            async deleteProject(id) {
+                if (!this.db) await this.init();
                 return new Promise((resolve, reject) => {
-                    const transaction = this.db.transaction(['files'], 'readwrite');
-                    const store = transaction.objectStore('files');
-                    const request = store.delete(id);
-                    request.onsuccess = () => resolve(request.result);
-                    request.onerror = () => reject(request.error);
+                    const tx = this.db.transaction("projects", "readwrite");
+                    const req = tx.objectStore("projects").delete(id);
+                    req.onsuccess = () => resolve(true);
+                    req.onerror = (e) => reject(req.error);
                 });
             }
         }
 
-        class FilesProApp {
-            constructor() {
-                this.storage = new StorageManager();
-                this.currentFolderId = 'root';
-                this.currentViewMode = 'grid';
-                this.currentCategory = 'root';
-                this.currentSearchQuery = '';
-                this.selectedIds = new Set();
-                this.clipboard = { action: null, items: [] };
-                this.files = [];
-                this.sortBy = 'name'; // name, size, date
-                this.settings = JSON.parse(localStorage.getItem('filespro_settings')) || { theme: 'dark' };
-            }
-
-            async init() {
-                await this.storage.init();
-                this.applyTheme(this.settings.theme);
-                await this.loadFiles();
-                this.setupEventListeners();
-                this.checkMobile();
-                
-                if (this.files.length === 0) {
-                    await this.createInitialData();
-                } else {
-                    this.render();
-                }
-            }
-
-            applyTheme(theme) {
-                document.documentElement.setAttribute('data-theme', theme);
-                this.settings.theme = theme;
-                localStorage.setItem('filespro_settings', JSON.stringify(this.settings));
-            }
-
-            async loadFiles() {
-                this.files = await this.storage.getAllFiles();
-            }
-
-            async createInitialData() {
-                const sampleFiles = [
-                    { id: 'f1', name: 'Documentos', type: 'folder', parentId: 'root', category: 'folders', size: 0, createdAt: Date.now(), modifiedAt: Date.now(), isFavorite: true, isTrash: false },
-                    { id: 'f2', name: 'Imagens', type: 'folder', parentId: 'root', category: 'folders', size: 0, createdAt: Date.now(), modifiedAt: Date.now(), isFavorite: true, isTrash: false },
-                    { id: 'f3', name: 'bem-vindo.txt', type: 'file', mime: 'text/plain', parentId: 'root', category: 'documents', size: 45, content: 'Olá! Bem-vindo ao seu novo Gerenciador de Arquivos Profissional.', createdAt: Date.now(), modifiedAt: Date.now(), isFavorite: false, isTrash: false }
-                ];
-                for (let f of sampleFiles) {
-                    await this.storage.saveFile(f);
-                }
-                await this.loadFiles();
-                this.render();
-            }
-
-            showToast(message) {
-                const container = document.getElementById('toastContainer');
-                const toast = document.createElement('div');
-                toast.className = 'toast';
-                toast.innerHTML = `<span>ℹ️</span> ${message}`;
-                container.appendChild(toast);
-                setTimeout(() => toast.remove(), 3000);
-            }
-
-            getFileCategory(filename, mime = '') {
-                const ext = filename.split('.').pop().toLowerCase();
-                if (mime.startsWith('image/') || ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) return 'images';
-                if (mime.startsWith('video/') || ['mp4', 'webm', 'mkv', 'avi'].includes(ext)) return 'videos';
-                if (mime.startsWith('audio/') || ['mp3', 'wav', 'ogg', 'm4a'].includes(ext)) return 'audios';
-                if (['pdf'].includes(ext)) return 'pdfs';
-                if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) return 'archives';
-                if (['html', 'css', 'js', 'json', 'py', 'java', 'c', 'cpp', 'ts', 'php'].includes(ext)) return 'code';
-                if (['apk'].includes(ext)) return 'apks';
-                return 'documents';
-            }
-
-            getFileIcon(file) {
-                if (file.type === 'folder') return '📁';
-                switch(file.category) {
-                    case 'images': return '🖼️';
-                    case 'videos': return '🎬';
-                    case 'audios': return '🎵';
-                    case 'pdfs': return '📕';
-                    case 'archives': return '📦';
-                    case 'code': return '💻';
-                    case 'apks': return '📱';
-                    default: return '📄';
-                }
-            }
-
-            formatSize(bytes) {
-                if (bytes === 0 || !bytes) return '0 B';
-                const k = 1024, sizes = ['B', 'KB', 'MB', 'GB'];
-                const i = Math.floor(Math.log(bytes) / Math.log(k));
-                return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-            }
-
+        class GlobalsManager {
             render() {
-                const viewport = document.getElementById('fileViewport');
-                viewport.innerHTML = '';
-
-                let displayedFiles = [];
-
-                if (this.currentSearchQuery) {
-                    const q = this.currentSearchQuery.toLowerCase();
-                    displayedFiles = this.files.filter(f => !f.isTrash && f.name.toLowerCase().includes(q));
-                } else if (this.currentCategory === 'trash') {
-                    displayedFiles = this.files.filter(f => f.isTrash);
-                } else if (this.currentCategory === 'favorites') {
-                    displayedFiles = this.files.filter(f => !f.isTrash && f.isFavorite);
-                } else if (this.currentCategory === 'recent') {
-                    displayedFiles = [...this.files].filter(f => !f.isTrash && f.type === 'file').sort((a,b) => b.modifiedAt - a.modifiedAt).slice(0, 20);
-                } else if (['documents', 'images', 'videos', 'audios', 'archives', 'code', 'apks', 'pdfs'].includes(this.currentCategory)) {
-                    displayedFiles = this.files.filter(f => !f.isTrash && f.category === this.currentCategory);
-                } else {
-                    displayedFiles = this.files.filter(f => !f.isTrash && f.parentId === this.currentFolderId);
+                const container = document.getElementById('globals-list-container');
+                if (!container || !app.currentProject) return;
+                if (!app.currentProject.globals) app.currentProject.globals = { vida: 3, pontos: 0 };
+                
+                container.innerHTML = '';
+                const globals = app.currentProject.globals;
+                
+                if (Object.keys(globals).length === 0) {
+                    container.innerHTML = '<p class="text-gray-500 italic text-center mt-6">Nenhuma variável global definida. Clique em "Nova Variável".</p>';
+                    return;
                 }
 
-                // Ordenação
-                displayedFiles.sort((a, b) => {
-                    if (this.sortBy === 'size') return (b.size || 0) - (a.size || 0);
-                    if (this.sortBy === 'date') return b.modifiedAt - a.modifiedAt;
-                    return a.name.localeCompare(b.name);
-                });
+                for (let key in globals) {
+                    const val = globals[key];
+                    const div = document.createElement('div');
+                    div.className = "flex items-center space-x-3 bg-[#1e2229] p-3 rounded-lg border border-[#2c313a]";
+                    div.innerHTML = `
+                        <div class="flex-1">
+                            <label class="text-[10px] text-gray-400 uppercase font-semibold">Nome da Variável</label>
+                            <input type="text" value="${key}" onchange="globalsManager.renameKey('${key}', this.value)" class="w-full bg-[#181a1f] border border-[#3a3f4b] rounded p-1.5 text-xs text-white mt-1">
+                        </div>
+                        <div class="flex-1">
+                            <label class="text-[10px] text-gray-400 uppercase font-semibold">Valor</label>
+                            <input type="text" value="${val}" onchange="globalsManager.updateValue('${key}', this.value)" class="w-full bg-[#181a1f] border border-[#3a3f4b] rounded p-1.5 text-xs text-white mt-1">
+                        </div>
+                        <button onclick="globalsManager.deleteKey('${key}')" class="text-red-400 hover:text-red-300 p-2 mt-4 cursor-pointer" title="Excluir"><i class="fa-solid fa-trash-can"></i></button>
+                    `;
+                    container.appendChild(div);
+                }
+            }
+            addGlobal() {
+                if (!app.currentProject) return;
+                if (!app.currentProject.globals) app.currentProject.globals = {};
+                let baseName = 'variavel';
+                let count = 1;
+                let name = baseName;
+                while (app.currentProject.globals[name] !== undefined) {
+                    name = baseName + '_' + count++;
+                }
+                app.currentProject.globals[name] = 0;
+                this.render();
+                app.autoSave();
+            }
+            renameKey(oldKey, newKey) {
+                newKey = newKey.trim();
+                if (!newKey || oldKey === newKey || !app.currentProject.globals) return;
+                if (app.currentProject.globals[newKey] !== undefined) {
+                    alert("Já existe uma variável com esse nome!");
+                    this.render();
+                    return;
+                }
+                const val = app.currentProject.globals[oldKey];
+                delete app.currentProject.globals[oldKey];
+                app.currentProject.globals[newKey] = val;
+                this.render();
+                app.autoSave();
+            }
+            updateValue(key, val) {
+                if (!app.currentProject.globals) return;
+                if (!isNaN(val) && val.trim() !== '') {
+                    app.currentProject.globals[key] = Number(val);
+                } else if (val === 'true') {
+                    app.currentProject.globals[key] = true;
+                } else if (val === 'false') {
+                    app.currentProject.globals[key] = false;
+                } else {
+                    app.currentProject.globals[key] = val;
+                }
+                app.autoSave();
+            }
+            deleteKey(key) {
+                if (!app.currentProject.globals) return;
+                delete app.currentProject.globals[key];
+                this.render();
+                app.autoSave();
+            }
+        }
+        const globalsManager = new GlobalsManager();
 
-                if (displayedFiles.length === 0) {
-                    viewport.innerHTML = `
-                        <div class="empty-state">
-                            <span>📭</span>
-                            <p>Nenhum arquivo encontrado aqui.</p>
+        function enrichNode(node) {
+            if (node.locked === undefined && node.type !== 'Camera2D') node.locked = false;
+            if (node.gravity === undefined) node.gravity = (node.type === 'Player' ? 0.5 : 0);
+            if (node.opacity === undefined) node.opacity = 1;
+            if (node.sprite === undefined) node.sprite = '';
+            if (node.frames === undefined) node.frames = [];
+            if (node.animSpeed === undefined) node.animSpeed = 10;
+            if (node.animation === undefined) node.animation = 'none';
+            if (node.text === undefined && node.type === 'Button') node.text = 'Pular';
+            if (node.directionMode === undefined) node.directionMode = 'all';
+            if (node.cameraMode === undefined) node.cameraMode = 'follow';
+            if (node.shapeType === undefined) node.shapeType = 'rectangle';
+            if (node.x === undefined) node.x = node.type === 'Camera2D' ? 0 : 100;
+            if (node.y === undefined) node.y = node.type === 'Camera2D' ? 0 : 100;
+            if (node.children && Array.isArray(node.children)) {
+                node.children.forEach(c => enrichNode(c));
+            }
+        }
+
+        class EditorManager {
+            switchTab(tab) {
+                ['2d', 'script', 'globals'].forEach(t => {
+                    const view = document.getElementById('view-' + t);
+                    const btn = document.getElementById('tab-btn-' + t);
+                    if (view) view.classList.add('hidden');
+                    if (btn) btn.className = "px-3 py-1.5 text-gray-400 hover:text-white rounded-t cursor-pointer";
+                });
+                document.getElementById('view-' + tab).classList.remove('hidden');
+                document.getElementById('tab-btn-' + tab).className = "px-3 py-1.5 bg-[#21252b] text-white rounded-t border-t border-x border-[#2c313a] font-medium cursor-pointer";
+
+                const leftPanel = document.getElementById('left-panel');
+                const rightPanel = document.getElementById('right-panel');
+                const consolePanel = document.getElementById('bottom-console');
+
+                if (tab === 'script' || tab === 'globals') {
+                    leftPanel.classList.add('hidden');
+                    rightPanel.classList.add('hidden');
+                    consolePanel.classList.add('hidden');
+                    if (tab === 'globals') globalsManager.render();
+                } else {
+                    leftPanel.classList.remove('hidden');
+                    rightPanel.classList.remove('hidden');
+                    consolePanel.classList.remove('hidden');
+                    setTimeout(() => { editor2D.resize(); editor2D.draw(); }, 50);
+                }
+            }
+        }
+        const editorManager = new EditorManager();
+
+        class AppManager {
+            constructor() { this.storage = new StorageManager(); this.currentProject = null; this.projects = []; }
+            async init() {
+                try {
+                    await this.storage.init();
+                    await this.loadProjectList();
+                } catch (err) { consoleWindow.log("Erro fatal ao iniciar IndexedDB.", "error"); }
+            }
+            async autoSave() {
+                if (!this.currentProject) return;
+                try { await this.storage.saveProject(this.currentProject); } catch (err) {}
+            }
+            async loadProjectList() {
+                try {
+                    this.projects = await this.storage.getProjects();
+                    if (!this.projects || this.projects.length === 0) {
+                        const defaultProj = {
+                            id: 'proj_' + Date.now(),
+                            name: 'Meu Jogo 2D',
+                            globals: { vida: 3, pontos: 0 },
+                            scene: {
+                                name: 'Root',
+                                type: 'Node2D',
+                                children: [
+                                    { 
+                                        id: 'node_player', 
+                                        name: 'Player', 
+                                        type: 'Player', 
+                                        x: 150, y: 100, width: 40, height: 40, color: '#3d8ec9', 
+                                        gravity: 0.5, opacity: 1, animation: 'none', frames: [], animSpeed: 10,
+                                        script: 'joystick "Joystick", 4\n\nse toca "Plataforma1" {\n    // Ação ao tocar na plataforma\n}\n\nse y > 450 {\n    vida = vida - 1\n    y = 50\n    vy = 0\n}\n\nse botao "BotaoPulo" e no_chao {\n    vy = -10\n    no_chao = false\n}' 
+                                    },
+                                    {
+                                        id: 'node_plat',
+                                        name: 'Plataforma1',
+                                        type: 'Platform',
+                                        x: 50, y: 260, width: 260, height: 25, color: '#4b5263',
+                                        gravity: 0, opacity: 1, animation: 'none', frames: [], animSpeed: 10,
+                                        script: ''
+                                    },
+                                    {
+                                        id: 'node_btn',
+                                        name: 'BotaoPulo',
+                                        type: 'Button',
+                                        text: 'Pular',
+                                        x: 230, y: 310, width: 60, height: 60, color: '#e5c07b',
+                                        opacity: 0.9, locked: true, script: ''
+                                    },
+                                    { 
+                                        id: 'node_joystick', 
+                                        name: 'Joystick', 
+                                        type: 'VirtualJoystick', 
+                                        x: 30, y: 300, width: 100, height: 100, color: '#abb2bf',
+                                        opacity: 0.8, directionMode: 'all', locked: true, script: '' 
+                                    },
+                                    {
+                                        id: 'node_cam',
+                                        name: 'CameraPrincipal',
+                                        type: 'Camera2D',
+                                        cameraMode: 'follow',
+                                        x: 0, y: 0, script: ''
+                                    }
+                                ]
+                            }
+                        };
+                        await this.storage.saveProject(defaultProj);
+                        this.projects = [defaultProj];
+                    }
+                    this.projects.forEach(p => {
+                        if (!p.globals) p.globals = { vida: 3, pontos: 0 };
+                        enrichNode(p.scene);
+                    });
+                    this.renderProjectList();
+                } catch (err) { consoleWindow.log("Erro ao carregar projetos.", "error"); }
+            }
+            renderProjectList(filter = '') {
+                const listEl = document.getElementById('project-list');
+                listEl.innerHTML = '';
+                this.projects.filter(p => p.name.toLowerCase().includes(filter.toLowerCase())).forEach(p => {
+                    const card = document.createElement('div');
+                    card.className = "godot-panel border border-[#2c313a] rounded-xl p-4 flex flex-col justify-between hover:border-[#3d8ec9] transition cursor-pointer shadow";
+                    card.onclick = () => this.openProject(p.id);
+                    card.innerHTML = `
+                        <div>
+                            <div class="w-full h-24 bg-[#181a1f] rounded-lg mb-3 flex items-center justify-center border border-[#2c313a]">
+                                <i class="fa-solid fa-gamepad text-3xl text-[#3d8ec9]"></i>
+                            </div>
+                            <h3 class="font-bold text-white text-sm truncate">${p.name}</h3>
+                            <p class="text-[10px] text-gray-400 mt-1">Modificado: ${new Date(p.updatedAt || Date.now()).toLocaleDateString()}</p>
+                        </div>
+                        <div class="flex justify-end space-x-2 mt-4 pt-2 border-t border-[#2c313a]" onclick="event.stopPropagation()">
+                            <button onclick="app.deleteProject('${p.id}')" class="text-red-400 hover:text-red-300 text-xs p-1 cursor-pointer"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     `;
-                    this.updateBreadcrumbs();
+                    listEl.appendChild(card);
+                });
+            }
+            filterProjects(val) { this.renderProjectList(val); }
+            showNewProjectModal() { document.getElementById('modal-new-project').classList.remove('hidden'); }
+            closeNewProjectModal() { document.getElementById('modal-new-project').classList.add('hidden'); }
+            
+            async createProject() {
+                try {
+                    const nameInput = document.getElementById('new-project-name').value || 'Novo Jogo';
+                    const newProj = {
+                        id: 'proj_' + Date.now(),
+                        name: nameInput,
+                        globals: { vida: 3, pontos: 0 },
+                        scene: {
+                            name: 'Root',
+                            type: 'Node2D',
+                            children: [
+                                { id: 'node_pl_' + Date.now(), name: 'Player', type: 'Player', x: 150, y: 150, width: 40, height: 40, color: '#98c379', gravity: 0.5, opacity: 1, animation: 'none', frames: [], animSpeed: 10, script: 'joystick "Joystick", 4' },
+                                { id: 'node_pt_' + Date.now(), name: 'Plataforma', type: 'Platform', x: 50, y: 240, width: 200, height: 25, color: '#4b5263', gravity: 0, opacity: 1, animation: 'none', frames: [], animSpeed: 10, script: '' },
+                                { id: 'node_btn_' + Date.now(), name: 'BotaoPulo', type: 'Button', text: 'Pular', x: 220, y: 280, width: 60, height: 60, color: '#e5c07b', opacity: 0.9, locked: true, script: '' },
+                                { id: 'node_joy_' + Date.now(), name: 'Joystick', type: 'VirtualJoystick', x: 30, y: 280, width: 100, height: 100, color: '#abb2bf', opacity: 0.8, directionMode: 'all', locked: true, script: '' },
+                                { id: 'node_cam_' + Date.now(), name: 'Camera', type: 'Camera2D', cameraMode: 'follow', x: 0, y: 0, script: '' }
+                            ]
+                        }
+                    };
+                    await this.storage.saveProject(newProj);
+                    enrichNode(newProj.scene);
+                    this.closeNewProjectModal();
+                    this.openProject(newProj.id);
+                } catch (err) {}
+            }
+            async deleteProject(id) {
+                if (confirm("Deseja excluir permanentemente este projeto?")) {
+                    await this.storage.deleteProject(id);
+                    await this.loadProjectList();
+                }
+            }
+            async openProject(id) {
+                this.currentProject = this.projects.find(p => p.id === id);
+                if (!this.currentProject) return;
+                if (!this.currentProject.globals) this.currentProject.globals = { vida: 3, pontos: 0 };
+                enrichNode(this.currentProject.scene);
+                document.getElementById('project-manager').classList.add('hidden');
+                document.getElementById('editor-view').classList.remove('hidden');
+                document.getElementById('current-project-title').innerText = this.currentProject.name;
+                sceneTree.init(this.currentProject.scene);
+                editor2D.init();
+            }
+            openProjectManager() {
+                document.getElementById('editor-view').classList.add('hidden');
+                document.getElementById('project-manager').classList.remove('hidden');
+                this.loadProjectList();
+            }
+            toggleFullscreen() {
+                if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+                else if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+        const app = new AppManager();
+
+        class SceneTreeManager {
+            constructor() { this.scene = null; this.selectedNode = null; }
+            init(sceneData) {
+                this.scene = sceneData;
+                enrichNode(this.scene);
+                this.selectedNode = this.scene.children[0] || this.scene;
+                this.render();
+                inspector.inspect(this.selectedNode);
+                scriptEditor.loadScript(this.selectedNode);
+            }
+            render() {
+                const container = document.getElementById('node-tree-container');
+                container.innerHTML = '';
+                this.renderNodeRecursive(this.scene, container, 0);
+            }
+            renderNodeRecursive(node, parentEl, depth) {
+                const el = document.createElement('div');
+                const isSelected = this.selectedNode === node;
+                el.className = `flex items-center justify-between px-2 py-1.5 rounded cursor-pointer text-xs ${isSelected ? 'bg-[#3d8ec9]/30 border border-[#3d8ec9]' : 'hover:bg-[#2c313a]'}`;
+                el.style.paddingLeft = `${depth * 12 + 8}px`;
+                
+                let icon = 'fa-shapes text-[#3d8ec9]';
+                if (node.type === 'VirtualJoystick') icon = 'fa-circle-dot text-[#98c379]';
+                else if (node.type === 'Player') icon = 'fa-user text-[#e5c07b]';
+                else if (node.type === 'Platform') icon = 'fa-layer-group text-[#61afef]';
+                else if (node.type === 'Collision') icon = 'fa-vector-square text-[#e06c75]';
+                else if (node.type === 'Button') icon = 'fa-circle-dot text-[#d19a66]';
+                else if (node.type === 'Camera2D') icon = 'fa-camera text-[#c678dd]';
+
+                const canDelete = node !== this.scene;
+
+                el.innerHTML = `
+                    <div class="flex items-center space-x-2 truncate flex-1">
+                        <i class="fa-solid ${icon}"></i>
+                        <span class="text-white truncate">${node.name}</span>
+                        ${node.locked ? '<i class="fa-solid fa-lock text-yellow-400 text-[10px]" title="Bloqueado"></i>' : ''}
+                        <span class="text-[10px] text-gray-500">(${node.type})</span>
+                    </div>
+                    ${canDelete ? `<button class="text-gray-400 hover:text-red-400 p-1 delete-node-btn" title="Excluir Nó"><i class="fa-solid fa-trash-can text-[10px]"></i></button>` : ''}
+                `;
+
+                el.onclick = (e) => {
+                    if (e.target.closest('.delete-node-btn')) {
+                        e.stopPropagation();
+                        this.deleteNode(node);
+                        return;
+                    }
+                    this.selectedNode = node;
+                    this.render();
+                    inspector.inspect(node);
+                    scriptEditor.loadScript(node);
+                };
+                parentEl.appendChild(el);
+                if (node.children) node.children.forEach(child => this.renderNodeRecursive(child, parentEl, depth + 1));
+            }
+            deleteNode(node) {
+                if (node === this.scene) return;
+                if (confirm(`Deseja excluir o nó "${node.name}"?`)) {
+                    this.scene.children = this.scene.children.filter(c => c !== node);
+                    if (this.selectedNode === node) {
+                        this.selectedNode = this.scene.children[0] || this.scene;
+                        inspector.inspect(this.selectedNode);
+                        scriptEditor.loadScript(this.selectedNode);
+                    }
+                    this.render();
+                    app.autoSave();
+                    editor2D.draw();
+                }
+            }
+            showAddNodeModal() {
+                const list = document.getElementById('node-type-list');
+                list.innerHTML = '';
+                const types = [
+                    { type: 'Player', desc: 'Personagem principal com suporte a movimento e gravidade' },
+                    { type: 'Platform', desc: 'Plataforma sólida e opaca para apoio de personagens' },
+                    { type: 'Collision', desc: 'Área de colisão / barreira sólida para delimitar o cenário' },
+                    { type: 'Sprite2D', desc: 'Objeto visual com suporte a imagem e texturas' },
+                    { type: 'Button', desc: 'Botão redondo acionável via script (ex: Pular)' },
+                    { type: 'VirtualJoystick', desc: 'Controle analógico direcional touch customizável' },
+                    { type: 'Camera2D', desc: 'Câmera seguidora ou fixa do jogo' }
+                ];
+                types.forEach(t => {
+                    const item = document.createElement('div');
+                    item.className = "p-2.5 bg-[#181a1f] hover:bg-[#2c313a] rounded cursor-pointer border border-[#2c313a]";
+                    item.innerHTML = `<div class="font-bold text-white text-xs">${t.type}</div><div class="text-[10px] text-gray-400 mt-0.5">${t.desc}</div>`;
+                    item.onclick = () => this.addNode(t.type);
+                    list.appendChild(item);
+                });
+                document.getElementById('modal-add-node').classList.remove('hidden');
+            }
+            closeAddNodeModal() { document.getElementById('modal-add-node').classList.add('hidden'); }
+            addNode(type) {
+                const isCam = type === 'Camera2D';
+                const isJoy = type === 'VirtualJoystick';
+                const isBtn = type === 'Button';
+                const isCol = type === 'Collision';
+                const newNode = {
+                    id: 'node_' + Date.now(),
+                    name: type + '_' + Math.floor(Math.random()*100),
+                    type: type,
+                    x: 120, y: 120, 
+                    width: isJoy ? 100 : (isBtn ? 60 : 40), 
+                    height: isJoy ? 100 : (isBtn ? 60 : 40), 
+                    color: isCol ? '#e06c75' : (isBtn ? '#e5c07b' : (type === 'Platform' ? '#4b5263' : (type === 'Player' ? '#3d8ec9' : '#98c379'))),
+                    gravity: 0,
+                    opacity: isCol ? 0.6 : 1,
+                    animation: 'none',
+                    frames: [],
+                    animSpeed: 10,
+                    text: isBtn ? 'Pular' : undefined,
+                    directionMode: isJoy ? 'all' : undefined,
+                    cameraMode: isCam ? 'follow' : undefined,
+                    locked: (isJoy || isBtn) ? true : false,
+                    script: ''
+                };
+                if (!this.scene.children) this.scene.children = [];
+                this.scene.children.push(newNode);
+                this.closeAddNodeModal();
+                this.selectedNode = newNode;
+                this.render();
+                inspector.inspect(newNode);
+                scriptEditor.loadScript(newNode);
+                app.autoSave();
+                editor2D.draw();
+            }
+        }
+        const sceneTree = new SceneTreeManager();
+
+        class InspectorManager {
+            constructor() { this.currentNode = null; }
+            inspect(node) {
+                this.currentNode = node;
+                const container = document.getElementById('inspector-content');
+                container.innerHTML = '';
+                if (!node) {
+                    container.innerHTML = '<p class="text-gray-500 italic text-center mt-6">Nenhum nó selecionado.</p>';
                     return;
                 }
 
-                const container = document.createElement('div');
-                container.className = this.currentViewMode === 'grid' ? 'file-grid' : 'file-list';
+                const fields = [];
+                fields.push({ label: 'Nome', key: 'name', type: 'text' });
+                
+                if (node.type === 'Camera2D') {
+                    fields.push({ label: 'Modo da Câmera', key: 'cameraMode', type: 'select', options: [
+                        { val: 'follow', text: 'Seguir o Player' },
+                        { val: 'fixed', text: 'Fixa' }
+                    ]});
+                    fields.push({ label: 'Posição X', key: 'x', type: 'number' });
+                    fields.push({ label: 'Posição Y', key: 'y', type: 'number' });
+                } else if (node.x !== undefined) {
+                    fields.push({ label: 'Posição X', key: 'x', type: 'number' });
+                    fields.push({ label: 'Posição Y', key: 'y', type: 'number' });
+                    fields.push({ label: 'Largura', key: 'width', type: 'number' });
+                    fields.push({ label: 'Altura', key: 'height', type: 'number' });
+                    fields.push({ label: 'Cor', key: 'color', type: 'color' });
+                    fields.push({ label: 'Opacidade (0 a 1)', key: 'opacity', type: 'number' });
+                    
+                    if (node.type === 'Button') {
+                        fields.push({ label: 'Texto do Botão', key: 'text', type: 'text' });
+                    }
 
-                displayedFiles.forEach(file => {
-                    const item = document.createElement('div');
-                    item.className = this.currentViewMode === 'grid' ? 'file-card' : 'file-row';
-                    if (this.selectedIds.has(file.id)) item.classList.add('selected');
+                    if (node.type !== 'VirtualJoystick' && node.type !== 'Button' && node.type !== 'Collision') {
+                        fields.push({ label: 'Gravidade (Força Queda)', key: 'gravity', type: 'number' });
+                        fields.push({ label: 'Modo de Animação', key: 'animation', type: 'select', options: [
+                            { val: 'none', text: 'Nenhuma' },
+                            { val: 'float', text: 'Flutuar (Vertical)' },
+                            { val: 'pulse', text: 'Pulsação (Escala)' },
+                            { val: 'patrol', text: 'Patrulha (Horizontal)' },
+                            { val: 'spritesheet', text: 'Animação por Frames (Sprite)' }
+                        ]});
+                        fields.push({ label: 'Velocidade dos Frames (FPS)', key: 'animSpeed', type: 'number' });
+                    }
+                }
 
-                    item.dataset.id = file.id;
+                if (node.type === 'VirtualJoystick') {
+                    fields.push({ label: 'Direções Aceitas', key: 'directionMode', type: 'select', options: [
+                        { val: 'all', text: 'Todos os lados (360°)' },
+                        { val: 'horizontal', text: 'Apenas Lados' },
+                        { val: 'vertical', text: 'Apenas Cima/Baixo' }
+                    ]});
+                    fields.push({ label: 'Cor do Joystick', key: 'color', type: 'color' });
+                    fields.push({ label: 'Opacidade', key: 'opacity', type: 'number' });
+                }
 
-                    const icon = this.getFileIcon(file);
-                    const sizeStr = file.type === 'folder' ? '' : this.formatSize(file.size);
-                    const dateStr = new Date(file.modifiedAt).toLocaleDateString();
+                if (node.x !== undefined && node.type !== 'Camera2D') {
+                    fields.push({ label: 'Bloqueado na Tela', key: 'locked', type: 'checkbox' });
+                }
 
-                    if (this.currentViewMode === 'grid') {
-                        item.innerHTML = `
-                            <div class="file-icon">${icon}</div>
-                            <div class="file-name" title="${file.name}">${file.name}</div>
-                            <div class="file-meta">${sizeStr || dateStr}</div>
-                        `;
-                    } else {
-                        item.innerHTML = `
-                            <div class="file-icon">${icon}</div>
-                            <div class="file-info-main">
-                                <div class="file-name">${file.name}</div>
-                                <div class="file-details">
-                                    <span>${sizeStr}</span>
-                                    <span>${dateStr}</span>
-                                </div>
+                fields.forEach(f => {
+                    const div = document.createElement('div');
+                    div.className = "space-y-1";
+                    if (f.type === 'checkbox') {
+                        div.innerHTML = `
+                            <div class="flex items-center space-x-2 pt-1">
+                                <input type="checkbox" id="chk-locked" ${node.locked ? 'checked' : ''} onchange="inspector.updateProperty('locked', this.checked)" class="w-4 h-4 accent-[#3d8ec9] cursor-pointer">
+                                <label for="chk-locked" class="text-[10px] text-gray-300 uppercase font-semibold cursor-pointer">${f.label}</label>
                             </div>
                         `;
-                    }
-
-                    item.addEventListener('click', (e) => {
-                        if (e.ctrlKey || e.shiftKey) {
-                            this.toggleSelect(file.id);
-                        } else {
-                            this.selectedIds.clear();
-                            this.selectedIds.add(file.id);
-                            this.render();
-                            this.updateDetailsPanel(file);
-                        }
-                    });
-
-                    item.addEventListener('dblclick', () => {
-                        this.openFileOrFolder(file);
-                    });
-
-                    item.addEventListener('contextmenu', (e) => {
-                        e.preventDefault();
-                        this.selectedIds.clear();
-                        this.selectedIds.add(file.id);
-                        this.render();
-                        this.showContextMenu(e.clientX, e.clientY, file);
-                    });
-
-                    container.appendChild(item);
-                });
-
-                viewport.appendChild(container);
-                this.updateBreadcrumbs();
-            }
-
-            async openFileOrFolder(file) {
-                if (file.type === 'folder') {
-                    this.currentFolderId = file.id;
-                    this.currentCategory = 'root';
-                    this.currentSearchQuery = '';
-                    this.selectedIds.clear();
-                    this.render();
-                } else {
-                    this.openEditorModal(file);
-                }
-            }
-
-            updateBreadcrumbs() {
-                const bc = document.getElementById('breadcrumbs');
-                bc.innerHTML = '';
-
-                if (this.currentCategory !== 'root' && !this.currentSearchQuery) {
-                    bc.innerHTML = `<span class="breadcrumb-item" style="color:var(--accent-color)">Categoria: ${this.currentCategory.toUpperCase()}</span>`;
-                    return;
-                }
-                if (this.currentSearchQuery) {
-                    bc.innerHTML = `<span class="breadcrumb-item" style="color:var(--accent-color)">Pesquisa: "${this.currentSearchQuery}"</span>`;
-                    return;
-                }
-
-                let path = [];
-                let currId = this.currentFolderId;
-                while (currId !== 'root' && currId) {
-                    const folder = this.files.find(f => f.id === currId);
-                    if (folder) {
-                        path.unshift(folder);
-                        currId = folder.parentId;
+                    } else if (f.type === 'select') {
+                        let optsHtml = f.options.map(o => `<option value="${o.val}" ${node[f.key] === o.val ? 'selected' : ''}>${o.text}</option>`).join('');
+                        div.innerHTML = `
+                            <label class="text-[10px] text-gray-400 uppercase font-semibold">${f.label}</label>
+                            <select onchange="inspector.updateProperty('${f.key}', this.value)" class="w-full bg-[#181a1f] border border-[#3a3f4b] rounded p-1.5 text-xs text-white">${optsHtml}</select>
+                        `;
                     } else {
-                        break;
+                        div.innerHTML = `
+                            <label class="text-[10px] text-gray-400 uppercase font-semibold">${f.label}</label>
+                            <input type="${f.type}" value="${node[f.key] !== undefined ? node[f.key] : ''}" oninput="inspector.updateProperty('${f.key}', this.value)" class="w-full bg-[#181a1f] border border-[#3a3f4b] rounded p-1.5 text-xs text-white">
+                        `;
                     }
-                }
-
-                const rootItem = document.createElement('span');
-                rootItem.className = 'breadcrumb-item';
-                rootItem.innerText = 'Raiz';
-                rootItem.onclick = () => {
-                    this.currentFolderId = 'root';
-                    this.currentCategory = 'root';
-                    this.render();
-                };
-                bc.appendChild(rootItem);
-
-                path.forEach(folder => {
-                    const item = document.createElement('span');
-                    item.className = 'breadcrumb-item';
-                    item.innerText = folder.name;
-                    item.onclick = () => {
-                        this.currentFolderId = folder.id;
-                        this.currentCategory = 'root';
-                        this.render();
-                    };
-                    bc.appendChild(item);
+                    container.appendChild(div);
                 });
-            }
 
-            toggleSelect(id) {
-                if (this.selectedIds.has(id)) {
-                    this.selectedIds.delete(id);
-                } else {
-                    this.selectedIds.add(id);
+                if (node.x !== undefined && node.type !== 'VirtualJoystick' && node.type !== 'Camera2D' && node.type !== 'Button' && node.type !== 'Collision') {
+                    const imgSection = document.createElement('div');
+                    imgSection.className = "mt-4 pt-3 border-t border-[#2c313a] space-y-2";
+                    imgSection.innerHTML = `
+                        <label class="text-[10px] text-gray-400 uppercase font-semibold">Importar Imagens / Sprites (Dispositivo)</label>
+                        <input type="file" accept="image/*" multiple onchange="inspector.handleImageUpload(event)" class="w-full text-xs text-gray-400 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-[#3d8ec9] file:text-white hover:file:bg-[#327bb5] cursor-pointer">
+                        <div id="sprites-preview" class="grid grid-cols-4 gap-2 mt-2"></div>
+                    `;
+                    container.appendChild(imgSection);
+                    this.renderSpritesPreview();
                 }
-                this.render();
             }
-
-            updateDetailsPanel(file) {
-                const content = document.getElementById('detailsContent');
-                content.innerHTML = `
-                    <div style="text-align: center; font-size: 3rem; margin-bottom: 10px;">${this.getFileIcon(file)}</div>
-                    <div class="detail-group"><span class="detail-label">Nome</span><span class="detail-value">${file.name}</span></div>
-                    <div class="detail-group"><span class="detail-label">Tipo</span><span class="detail-value">${file.type.toUpperCase()}</span></div>
-                    <div class="detail-group"><span class="detail-label">Categoria</span><span class="detail-value">${file.category || '-'}</span></div>
-                    <div class="detail-group"><span class="detail-label">Tamanho</span><span class="detail-value">${file.type === 'folder' ? '-' : this.formatSize(file.size)}</span></div>
-                    <div class="detail-group"><span class="detail-label">Modificado em</span><span class="detail-value">${new Date(file.modifiedAt).toLocaleString()}</span></div>
-                `;
-                document.getElementById('detailsPanel').classList.add('open');
-            }
-
-            showContextMenu(x, y, file) {
-                const menu = document.getElementById('contextMenu');
-                const restoreBtn = document.getElementById('ctxRestore');
-                const pasteBtn = document.getElementById('ctxPaste');
-
-                if (file.isTrash) {
-                    restoreBtn.style.display = 'flex';
+            updateProperty(key, val) {
+                if (!this.currentNode) return;
+                if (key === 'locked') {
+                    this.currentNode.locked = Boolean(val);
+                } else if (['x', 'y', 'width', 'height', 'gravity', 'opacity', 'animSpeed'].includes(key)) {
+                    this.currentNode[key] = parseFloat(val) || 0;
                 } else {
-                    restoreBtn.style.display = 'none';
+                    this.currentNode[key] = val;
                 }
-
-                if (this.clipboard.items.length > 0 && file.type === 'folder') {
-                    pasteBtn.style.display = 'flex';
-                } else {
-                    pasteBtn.style.display = 'none';
-                }
-
-                menu.style.left = `${x}px`;
-                menu.style.top = `${y}px`;
-                menu.style.display = 'flex';
-
-                const closeHandler = () => {
-                    menu.style.display = 'none';
-                    document.removeEventListener('click', closeHandler);
-                };
-                setTimeout(() => document.addEventListener('click', closeHandler), 10);
+                sceneTree.render();
+                if (window.editor2D) window.editor2D.draw();
+                app.autoSave();
             }
-
-            openEditorModal(file) {
-                const modal = document.getElementById('editorModal');
-                const title = document.getElementById('editorTitle');
-                const textarea = document.getElementById('editorTextarea');
-                const mediaContainer = document.getElementById('mediaViewerContainer');
-                const saveBtn = document.getElementById('editorSave');
-
-                title.innerText = file.name;
-                textarea.style.display = 'none';
-                mediaContainer.style.display = 'none';
-                saveBtn.style.display = 'none';
-                mediaContainer.innerHTML = '';
-
-                const ext = file.name.split('.').pop().toLowerCase();
-
-                if (['txt', 'json', 'html', 'css', 'js', 'md'].includes(ext) || file.mime?.startsWith('text/')) {
-                    textarea.value = file.content || '';
-                    textarea.style.display = 'block';
-                    saveBtn.style.display = 'block';
-                    saveBtn.onclick = async () => {
-                        file.content = textarea.value;
-                        file.size = new Blob([file.content]).size;
-                        file.modifiedAt = Date.now();
-                        await this.storage.saveFile(file);
-                        this.showToast('Alterações salvas com sucesso.');
-                        this.loadFiles();
-                    };
-                } else if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) {
-                    mediaContainer.style.display = 'flex';
-                    mediaContainer.innerHTML = `<img src="${file.content}" style="max-width:100%; max-height:100%; object-fit:contain; border-radius:8px;">`;
-                } else if (['mp4', 'webm'].includes(ext)) {
-                    mediaContainer.style.display = 'flex';
-                    mediaContainer.innerHTML = `<video src="${file.content}" controls style="max-width:100%; max-height:100%; border-radius:8px;"></video>`;
-                } else if (['mp3', 'wav', 'ogg'].includes(ext)) {
-                    mediaContainer.style.display = 'flex';
-                    mediaContainer.innerHTML = `<audio src="${file.content}" controls></audio>`;
-                } else {
-                    mediaContainer.style.display = 'flex';
-                    mediaContainer.innerHTML = `<p style="color:var(--text-secondary)">Visualização não suportada. Utilize o botão de baixar.</p>`;
-                }
-
-                document.getElementById('editorDownload').onclick = () => {
-                    this.downloadFile(file);
-                };
-
-                modal.classList.add('open');
-            }
-
-            downloadFile(file) {
-                const a = document.createElement('a');
-                a.href = file.content || '#';
-                a.download = file.name;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                this.showToast('Download iniciado.');
-            }
-
-            async createFolder(name) {
-                if (!name) return;
-                const newFolder = {
-                    id: 'folder_' + Date.now() + Math.random().toString(36).substring(2, 9),
-                    name: name,
-                    type: 'folder',
-                    parentId: this.currentFolderId,
-                    category: 'folders',
-                    size: 0,
-                    createdAt: Date.now(),
-                    modifiedAt: Date.now(),
-                    isFavorite: false,
-                    isTrash: false
-                };
-                await this.storage.saveFile(newFolder);
-                await this.loadFiles();
-                this.render();
-                this.showToast('Pasta criada com sucesso.');
-            }
-
-            async createTextFile(name, content = '') {
-                if (!name) return;
-                const newFile = {
-                    id: 'file_' + Date.now() + Math.random().toString(36).substring(2, 9),
-                    name: name,
-                    type: 'file',
-                    mime: 'text/plain',
-                    parentId: this.currentFolderId,
-                    category: this.getFileCategory(name, 'text/plain'),
-                    size: new Blob([content]).size,
-                    content: content,
-                    createdAt: Date.now(),
-                    modifiedAt: Date.now(),
-                    isFavorite: false,
-                    isTrash: false
-                };
-                await this.storage.saveFile(newFile);
-                await this.loadFiles();
-                this.render();
-                this.showToast('Arquivo criado com sucesso.');
-            }
-
-            async importFiles(fileList) {
-                for (let file of fileList) {
+            handleImageUpload(e) {
+                if (!this.currentNode) return;
+                const files = e.target.files;
+                if (!files || files.length === 0) return;
+                if (!this.currentNode.frames) this.currentNode.frames = [];
+                for (let file of files) {
                     const reader = new FileReader();
-                    reader.onload = async (e) => {
-                        const fileObj = {
-                            id: 'file_' + Date.now() + Math.random().toString(36).substring(2, 9),
-                            name: file.name,
-                            type: 'file',
-                            mime: file.type,
-                            parentId: this.currentFolderId,
-                            category: this.getFileCategory(file.name, file.type),
-                            size: file.size,
-                            content: e.target.result,
-                            createdAt: Date.now(),
-                            modifiedAt: Date.now(),
-                            isFavorite: false,
-                            isTrash: false
-                        };
-                        await this.storage.saveFile(fileObj);
-                        await this.loadFiles();
-                        this.render();
-                        this.showToast(`Arquivo ${file.name} importado.`);
+                    reader.onload = (event) => {
+                        this.currentNode.frames.push(event.target.result);
+                        if (this.currentNode.frames.length === 1) this.currentNode.sprite = event.target.result;
+                        this.renderSpritesPreview();
+                        app.autoSave();
+                        editor2D.draw();
                     };
                     reader.readAsDataURL(file);
                 }
             }
-
-            setupEventListeners() {
-                document.querySelectorAll('.nav-item').forEach(item => {
-                    item.addEventListener('click', (e) => {
-                        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-                        item.classList.add('active');
-                        const view = item.dataset.view;
-                        const category = item.dataset.category;
-
-                        if (view === 'category') {
-                            this.currentCategory = category;
-                            this.currentSearchQuery = '';
-                        } else if (view === 'all') {
-                            this.currentFolderId = 'root';
-                            this.currentCategory = 'root';
-                            this.currentSearchQuery = '';
-                        } else if (view === 'settings') {
-                            this.openSettingsModal();
-                            return;
-                        }
-                        this.render();
-                        if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
-                    });
-                });
-
-                document.getElementById('menuToggle').onclick = () => {
-                    document.getElementById('sidebar').classList.toggle('open');
-                };
-
-                document.getElementById('btnNewFolder').onclick = () => {
-                    this.promptModal('Criar Pasta', 'Nome da nova pasta:', async (name) => {
-                        await this.createFolder(name);
-                    });
-                };
-
-                document.getElementById('btnNewFile').onclick = () => {
-                    this.promptModal('Criar Arquivo de Texto', 'Nome do arquivo (ex: notas.txt):', async (name) => {
-                        await this.createTextFile(name);
-                    });
-                };
-
-                document.getElementById('btnUpload').onclick = () => {
-                    document.getElementById('fileInput').click();
-                };
-
-                document.getElementById('fileInput').onchange = (e) => {
-                    this.importFiles(e.target.files);
-                };
-
-                document.getElementById('searchInput').oninput = (e) => {
-                    this.currentSearchQuery = e.target.value.trim();
-                    this.render();
-                };
-
-                document.getElementById('btnViewMode').onclick = () => {
-                    this.currentViewMode = this.currentViewMode === 'grid' ? 'list' : 'grid';
-                    this.render();
-                };
-
-                // Eventos adicionados aos botões antes mortos
-                document.getElementById('btnSelectAll').onclick = () => {
-                    const viewport = document.getElementById('fileViewport');
-                    const cards = viewport.querySelectorAll('[data-id]');
-                    if (this.selectedIds.size === cards.length) {
-                        this.selectedIds.clear();
-                    } else {
-                        cards.forEach(c => this.selectedIds.add(c.dataset.id));
-                    }
-                    this.render();
-                };
-
-                document.getElementById('btnSort').onclick = () => {
-                    if (this.sortBy === 'name') this.sortBy = 'size';
-                    else if (this.sortBy === 'size') this.sortBy = 'date';
-                    else this.sortBy = 'name';
-                    this.showToast(`Ordenando por: ${this.sortBy.toUpperCase()}`);
-                    this.render();
-                };
-
-                document.getElementById('btnInfoPanel').onclick = () => {
-                    const panel = document.getElementById('detailsPanel');
-                    panel.classList.toggle('open');
-                };
-
-                document.getElementById('closeDetails').onclick = () => {
-                    document.getElementById('detailsPanel').classList.remove('open');
-                };
-
-                // Ações do Menu Contextual (Corrigidas e implementadas)
-                document.querySelectorAll('.context-menu-item').forEach(item => {
-                    item.onclick = async () => {
-                        const action = item.dataset.action;
-                        const id = Array.from(this.selectedIds)[0];
-                        const file = this.files.find(f => f.id === id);
-                        if (!file && action !== 'paste') return;
-
-                        if (action === 'open') {
-                            this.openFileOrFolder(file);
-                        } else if (action === 'edit') {
-                            this.openEditorModal(file);
-                        } else if (action === 'rename') {
-                            this.promptModal('Renomear', 'Novo nome:', async (newName) => {
-                                if (newName) {
-                                    file.name = newName;
-                                    file.modifiedAt = Date.now();
-                                    await this.storage.saveFile(file);
-                                    await this.loadFiles();
-                                    this.render();
-                                    this.showToast('Renomeado com sucesso.');
-                                }, file.name);
-                            });
-                        } else if (action === 'copy') {
-                            this.clipboard = { action: 'copy', items: Array.from(this.selectedIds) };
-                            this.showToast('Itens copiados para a área de transferência.');
-                        } else if (action === 'cut') {
-                            this.clipboard = { action: 'cut', items: Array.from(this.selectedIds) };
-                            this.showToast('Itens recortados.');
-                        } else if (action === 'paste') {
-                            if (file && file.type === 'folder') {
-                                for (let itemId of this.clipboard.items) {
-                                    const itemToMove = this.files.find(f => f.id === itemId);
-                                    if (itemToMove) {
-                                        itemToMove.parentId = file.id;
-                                        await this.storage.saveFile(itemToMove);
-                                    }
-                                }
-                                await this.loadFiles();
-                                this.render();
-                                this.showToast('Itens colados com sucesso.');
-                            }
-                        } else if (action === 'favorite') {
-                            file.isFavorite = !file.isFavorite;
-                            await this.storage.saveFile(file);
-                            await this.loadFiles();
-                            this.render();
-                            this.showToast(file.isFavorite ? 'Adicionado aos favoritos.' : 'Removido dos favoritos.');
-                        } else if (action === 'download') {
-                            this.downloadFile(file);
-                        } else if (action === 'restore') {
-                            file.isTrash = false;
-                            await this.storage.saveFile(file);
-                            await this.loadFiles();
-                            this.render();
-                            this.showToast('Arquivo restaurado.');
-                        } else if (action === 'delete') {
-                            if (file.isTrash) {
-                                await this.storage.deleteFile(file.id);
-                                this.showToast('Excluído permanentemente.');
-                            } else {
-                                file.isTrash = true;
-                                await this.storage.saveFile(file);
-                                this.showToast('Movido para a lixeira.');
-                            }
-                            await this.loadFiles();
-                            this.render();
-                        }
-                    };
-                });
-
-                document.getElementById('editorClose').onclick = () => {
-                    document.getElementById('editorModal').classList.remove('open');
-                };
-
-                document.querySelectorAll('.mobile-nav-item').forEach(btn => {
-                    btn.onclick = () => {
-                        document.querySelectorAll('.mobile-nav-item').forEach(b => b.classList.remove('active'));
-                        btn.classList.add('active');
-                        const nav = btn.dataset.nav;
-                        if (nav === 'home') {
-                            this.currentFolderId = 'root';
-                            this.currentCategory = 'root';
-                            this.currentSearchQuery = '';
-                            this.render();
-                        } else if (nav === 'search') {
-                            document.getElementById('searchInput').focus();
-                        } else if (nav === 'upload') {
-                            document.getElementById('fileInput').click();
-                        } else if (nav === 'favorites') {
-                            this.currentCategory = 'favorites';
-                            this.render();
-                        } else if (nav === 'settings') {
-                            this.openSettingsModal();
-                        }
-                    };
+            renderSpritesPreview() {
+                const previewEl = document.getElementById('sprites-preview');
+                if (!previewEl || !this.currentNode || !this.currentNode.frames) return;
+                previewEl.innerHTML = '';
+                this.currentNode.frames.forEach((frame, idx) => {
+                    const thumb = document.createElement('div');
+                    thumb.className = "relative w-12 h-12 bg-[#181a1f] border border-[#3a3f4b] rounded overflow-hidden flex items-center justify-center";
+                    thumb.innerHTML = `
+                        <img src="${frame}" class="w-full h-full object-cover">
+                        <button onclick="inspector.removeFrame(${idx})" class="absolute top-0 right-0 bg-red-600 text-white w-4 h-4 text-[9px] flex items-center justify-center cursor-pointer">&times;</button>
+                    `;
+                    previewEl.appendChild(thumb);
                 });
             }
-
-            promptModal(title, label, callback, initialValue = '') {
-                const modal = document.getElementById('inputModal');
-                document.getElementById('inputModalTitle').innerText = title;
-                document.getElementById('inputModalLabel').innerText = label;
-                const input = document.getElementById('modalInputText');
-                input.value = initialValue;
-
-                modal.classList.add('open');
-                input.focus();
-
-                const confirmBtn = document.getElementById('modalConfirm');
-                const cancelBtn = document.getElementById('modalCancel');
-
-                const cleanup = () => {
-                    modal.classList.remove('open');
-                    confirmBtn.onclick = null;
-                    cancelBtn.onclick = null;
-                };
-
-                confirmBtn.onclick = () => {
-                    const val = input.value.trim();
-                    cleanup();
-                    if (callback) callback(val);
-                };
-
-                cancelBtn.onclick = () => {
-                    cleanup();
-                };
-            }
-
-            openSettingsModal() {
-                this.promptModal('Configurações', 'Tema (digite "dark" ou "light"):', async (theme) => {
-                    if (theme === 'dark' || theme === 'light') {
-                        this.applyTheme(theme);
-                        this.showToast('Tema alterado com sucesso.');
-                    }
-                }, this.settings.theme);
-            }
-
-            checkMobile() {
-                if (window.innerWidth <= 768) {
-                    document.getElementById('menuToggle').style.display = 'inline-flex';
-                }
+            removeFrame(idx) {
+                if (!this.currentNode || !this.currentNode.frames) return;
+                this.currentNode.frames.splice(idx, 1);
+                this.currentNode.sprite = this.currentNode.frames.length > 0 ? this.currentNode.frames[0] : '';
+                this.renderSpritesPreview();
+                app.autoSave();
+                editor2D.draw();
             }
         }
+        const inspector = new InspectorManager();
 
-        window.addEventListener('DOMContentLoaded', () => {
-            const app = new FilesProApp();
-            app.init();
-        });
+        class ScriptEditor {
+            constructor() { this.currentNode = null; }
+            loadScript(node) {
+                this.currentNode = node;
+                const ta = document.getElementById('script-textarea');
+                const nameEl = document.getElementById('script-owner-name');
+                const typeEl = document.getElementById('script-owner-type');
+                if (node && node.script !== undefined) {
+                    ta.value = node.script;
+                    if (nameEl) nameEl.innerText = node.name;
+                    if (typeEl) typeEl.innerText = node.type;
+                }
+            }
+            onInput(val) {
+                if (!this.currentNode) return;
+                this.currentNode.script = val;
+                app.autoSave();
+            }
+        }
+        const scriptEditor = new ScriptEditor();
+
+        // ================= TRANSLATOR / COMPILADOR DO GODOT SCRIPT SIMPLES =================
+        function transpileGodotScript(code) {
+            if (!code || code.trim() === '') return '';
+            let lines = code.split('\n');
+            let jsLines = [];
+
+            for (let line of lines) {
+                let l = line.trim();
+                if (l === '' || l.startsWith('//')) {
+                    jsLines.push(l);
+                    continue;
+                }
+
+                // 1. Comando joystick "Nome", velocidade
+                if (l.startsWith('joystick')) {
+                    let match = l.match(/joystick\s+"([^"]+)",\s*([\d.]+)/);
+                    if (match) {
+                        let name = match[1];
+                        let speed = match[2];
+                        jsLines.push(`const joy_${name} = window.joysticks && window.joysticks["${name}"]; if (joy_${name}) { this.x += joy_${name}.x * ${speed}; }`);
+                        continue;
+                    }
+                }
+
+                // 2. Atalhos de Colisão e Botões
+                l = l.replace(/toca\s+"([^"]+)"/g, 'this.collidesWith("$1")');
+                l = l.replace(/colide\s+"([^"]+)"/g, 'this.collidesWith("$1")');
+                l = l.replace(/botao\s+"([^"]+)"/g, '(window.buttons && window.buttons["$1"])');
+                l = l.replace(/\bno_chao\b/g, 'this.onGround');
+
+                // 3. Propriedades físicas do nó (x, y, vy, width, height)
+                l = l.replace(/\b(vy|vx|x|y|width|height)\b(?!\s*\()/g, 'this.$1');
+
+                // 4. Mapeamento de Variáveis Globais (ex: vida, pontos)
+                if (window.Globals) {
+                    for (let gKey in window.Globals) {
+                        let regex = new RegExp(`\\b${gKey}\\b`, 'g');
+                        l = l.replace(regex, `window.Globals.${gKey}`);
+                    }
+                }
+
+                jsLines.push(l);
+            }
+            return jsLines.join('\n');
+        }
+
+        class Editor2D {
+            constructor() { 
+                this.canvas = null; this.ctx = null; this.tool = 'select'; 
+                this.isDragging = false; this.isResizing = false; this.dragNode = null;
+                this.dragPointerId = null; this.cameraX = 0; this.cameraY = 0;
+                this.lastMousePos = { x: 0, y: 0 }; this.activeJoysticks = {}; 
+                this.activeButtons = {}; this.imageCache = {};
+            }
+            init() {
+                this.canvas = document.getElementById('canvas-2d');
+                this.ctx = this.canvas.getContext('2d');
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                
+                this.canvas.onpointerdown = (e) => {
+                    const r = this.canvas.getBoundingClientRect();
+                    const x = e.clientX - r.left; const y = e.clientY - r.top;
+                    try { this.canvas.setPointerCapture(e.pointerId); } catch (err) {}
+
+                    if (!window.gameIsRunning) {
+                        if (this.dragPointerId === null) {
+                            this.dragPointerId = e.pointerId;
+                            this.lastMousePos = { x, y };
+                            this.onDown(x, y);
+                        }
+                    } else {
+                        this.onTouchDown(e.pointerId, x, y);
+                    }
+                    e.preventDefault();
+                };
+
+                this.canvas.onpointermove = (e) => {
+                    const r = this.canvas.getBoundingClientRect();
+                    const x = e.clientX - r.left; const y = e.clientY - r.top;
+                    if (!window.gameIsRunning) {
+                        if (this.dragPointerId === e.pointerId) this.onMove(x, y);
+                    } else {
+                        if (this.activeJoysticks[e.pointerId]) this.updateJoystickTouch(e.pointerId, x, y);
+                    }
+                    e.preventDefault();
+                };
+
+                this.canvas.onpointerup = (e) => {
+                    if (!window.gameIsRunning) {
+                        if (this.dragPointerId === e.pointerId) { this.dragPointerId = null; this.onUp(); }
+                    } else {
+                        this.onTouchUp(e.pointerId);
+                    }
+                    try { this.canvas.releasePointerCapture(e.pointerId); } catch (err) {}
+                    e.preventDefault();
+                };
+
+                this.canvas.onpointercancel = (e) => {
+                    if (!window.gameIsRunning && this.dragPointerId === e.pointerId) {
+                        this.dragPointerId = null; this.onUp();
+                    } else if (window.gameIsRunning) { this.onTouchUp(e.pointerId); }
+                    try { this.canvas.releasePointerCapture(e.pointerId); } catch (err) {}
+                    e.preventDefault();
+                };
+                this.draw();
+            }
+            resize() {
+                if (!this.canvas) return;
+                const parent = this.canvas.parentElement;
+                if (!parent) return;
+                this.canvas.width = parent.clientWidth;
+                this.canvas.height = parent.clientHeight;
+                this.draw();
+            }
+            setTool(t) {
+                this.tool = t;
+                const btnSelect = document.getElementById('tool-select');
+                const btnMove = document.getElementById('tool-move');
+                if (t === 'select') {
+                    btnSelect.className = "p-1.5 bg-[#3d8ec9] text-white rounded cursor-pointer transition";
+                    btnMove.className = "p-1.5 text-gray-300 hover:bg-[#2c313a] rounded cursor-pointer transition";
+                    this.canvas.style.cursor = 'crosshair';
+                } else {
+                    btnMove.className = "p-1.5 bg-[#3d8ec9] text-white rounded cursor-pointer transition";
+                    btnSelect.className = "p-1.5 text-gray-300 hover:bg-[#2c313a] rounded cursor-pointer transition";
+                    this.canvas.style.cursor = 'grab';
+                }
+            }
+            toggleMaximize() {
+                const panels = ['left-panel', 'right-panel', 'bottom-console', 'editor-header', 'editor-tabs'];
+                const isHidden = document.getElementById('left-panel').classList.contains('hidden');
+                panels.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) { if (!isHidden) el.classList.add('hidden'); else el.classList.remove('hidden'); }
+                });
+                setTimeout(() => this.resize(), 50);
+            }
+            onDown(x, y) {
+                this.lastMousePos = { x, y };
+                if (window.gameIsRunning) return;
+                if (this.tool === 'move') { this.isDragging = true; this.canvas.style.cursor = 'grabbing'; return; }
+
+                if (!sceneTree.scene) return;
+                const worldX = x - this.cameraX; const worldY = y - this.cameraY;
+                const nodes = [sceneTree.scene, ...(sceneTree.scene.children || [])];
+
+                for (let i = nodes.length - 1; i >= 0; i--) {
+                    let n = nodes[i];
+                    if (n.x !== undefined && n.locked) {
+                        if (n.type === 'Button') {
+                            const cx = n.x + n.width / 2; const cy = n.y + n.height / 2;
+                            const radius = Math.min(n.width, n.height) / 2;
+                            if (Math.hypot(x - cx, y - cy) <= radius) {
+                                this.dragNode = n; this.isDragging = true;
+                                sceneTree.selectedNode = n; sceneTree.render(); inspector.inspect(n); scriptEditor.loadScript(n);
+                                return;
+                            }
+                        } else if (x >= n.x && x <= n.x + n.width && y >= n.y && y <= n.y + n.height) {
+                            this.dragNode = n; this.isDragging = true;
+                            sceneTree.selectedNode = n; sceneTree.render(); inspector.inspect(n); scriptEditor.loadScript(n);
+                            return;
+                        }
+                    }
+                }
+                for (let i = nodes.length - 1; i >= 0; i--) {
+                    let n = nodes[i];
+                    if (n.x !== undefined && !n.locked) {
+                        if (worldX >= n.x && worldX <= n.x + n.width && worldY >= n.y && worldY <= n.y + n.height) {
+                            this.dragNode = n; this.isDragging = true;
+                            sceneTree.selectedNode = n; sceneTree.render(); inspector.inspect(n); scriptEditor.loadScript(n);
+                            break;
+                        }
+                    }
+                }
+            }
+            onMove(x, y) {
+                const dx = x - this.lastMousePos.x; const dy = y - this.lastMousePos.y;
+                this.lastMousePos = { x, y };
+                if (window.gameIsRunning || (!this.isDragging)) return;
+
+                if (this.tool === 'move') {
+                    this.cameraX += dx; this.cameraY += dy; this.draw();
+                } else if (this.dragNode) {
+                    if (this.dragNode.locked) return;
+                    this.dragNode.x += dx; this.dragNode.y += dy;
+                    inspector.inspect(this.dragNode); this.draw(); app.autoSave();
+                }
+            }
+            onUp() { 
+                this.isDragging = false; this.dragNode = null; 
+                if (this.tool === 'move') this.canvas.style.cursor = 'grab';
+            }
+            onTouchDown(id, x, y) {
+                const nodes = [sceneTree.scene, ...(sceneTree.scene.children || [])];
+                for (let n of nodes) {
+                    if (n.type === 'VirtualJoystick') {
+                        const cx = n.x + (n.width / 2); const cy = n.y + (n.height / 2);
+                        if (Math.hypot(x - cx, y - cy) <= n.width * 1.5) {
+                            this.activeJoysticks[id] = { nodeName: n.name, center: { x: cx, y: cy }, stick: { x: cx, y: cy } };
+                            this.updateJoystickTouch(id, x, y);
+                            break;
+                        }
+                    } else if (n.type === 'Button') {
+                        const cx = n.x + (n.width / 2); const cy = n.y + (n.height / 2);
+                        const radius = Math.min(n.width, n.height) / 2;
+                        if (Math.hypot(x - cx, y - cy) <= radius) {
+                            this.activeButtons[id] = n.name;
+                            if (!window.buttons) window.buttons = {};
+                            window.buttons[n.name] = true;
+                        }
+                    }
+                }
+            }
+            onTouchUp(id) {
+                if (this.activeJoysticks[id]) {
+                    const joy = this.activeJoysticks[id];
+                    delete this.activeJoysticks[id];
+                    if (!window.joysticks) window.joysticks = {};
+                    window.joysticks[joy.nodeName] = { x: 0, y: 0 };
+                }
+                if (this.activeButtons[id]) {
+                    const btnName = this.activeButtons[id];
+                    delete this.activeButtons[id];
+                    if (!window.buttons) window.buttons = {};
+                    window.buttons[btnName] = false;
+                }
+            }
+            updateJoystickTouch(id, x, y) {
+                const joy = this.activeJoysticks[id];
+                if (!joy) return;
+                const nodes = [sceneTree.scene, ...(sceneTree.scene.children || [])];
+                const joyNode = nodes.find(n => n.name === joy.nodeName);
+                const mode = joyNode ? joyNode.directionMode : 'all';
+                let dx = x - joy.center.x; let dy = y - joy.center.y;
+                if (mode === 'horizontal') dy = 0; if (mode === 'vertical') dx = 0;
+                const dist = Math.hypot(dx, dy); const maxRadius = 40;
+                let nx = dx, ny = dy;
+                if (dist > maxRadius) { nx = (dx / dist) * maxRadius; ny = (dy / dist) * maxRadius; }
+                joy.stick = { x: joy.center.x + nx, y: joy.center.y + ny };
+                if (!window.joysticks) window.joysticks = {};
+                window.joysticks[joy.nodeName] = { 
+                    x: mode === 'vertical' ? 0 : (nx / maxRadius), 
+                    y: mode === 'horizontal' ? 0 : (ny / maxRadius) 
+                };
+            }
+            draw() {
+                if (!this.ctx || !this.canvas) return;
+                const w = this.canvas.width; const h = this.canvas.height;
+                this.ctx.clearRect(0, 0, w, h);
+
+                this.ctx.save();
+                this.ctx.translate(this.cameraX, this.cameraY);
+
+                if (!window.gameIsRunning) {
+                    this.ctx.strokeStyle = '#22262d'; this.ctx.lineWidth = 1;
+                    const startX = -this.cameraX % 32; const startY = -this.cameraY % 32;
+                    for (let x = startX; x < w; x += 32) {
+                        this.ctx.beginPath(); this.ctx.moveTo(x, -this.cameraY); this.ctx.lineTo(x, h - this.cameraY); this.ctx.stroke();
+                    }
+                    for (let y = startY; y < h; y += 32) {
+                        this.ctx.beginPath(); this.ctx.moveTo(-this.cameraX, y); this.ctx.lineTo(w - this.cameraX, y); this.ctx.stroke();
+                    }
+                }
+
+                if (sceneTree.scene) {
+                    const allNodes = [sceneTree.scene, ...(sceneTree.scene.children || [])];
+                    allNodes.forEach(n => {
+                        if (n.x !== undefined && n.type !== 'VirtualJoystick' && n.type !== 'Button') this.drawNode(n);
+                    });
+                }
+                this.ctx.restore();
+
+                if (sceneTree.scene) {
+                    const allNodes = [sceneTree.scene, ...(sceneTree.scene.children || [])];
+                    allNodes.forEach(n => {
+                        if (n.x !== undefined && (n.type === 'VirtualJoystick' || n.type === 'Button')) this.drawNode(n);
+                    });
+                }
+            }
+            drawNode(n) {
+                if (n.type === 'Node2D' || n.type === 'Camera2D') return;
+                this.ctx.save();
+                this.ctx.globalAlpha = n.opacity !== undefined ? n.opacity : 1;
+
+                if (n.type === 'VirtualJoystick') {
+                    const cx = n.x + (n.width / 2); const cy = n.y + (n.height / 2);
+                    this.ctx.beginPath(); this.ctx.arc(cx, cy, n.width / 2, 0, Math.PI * 2);
+                    this.ctx.fillStyle = 'rgba(40, 45, 55, 0.7)'; this.ctx.fill();
+                    this.ctx.lineWidth = 2; this.ctx.strokeStyle = n.color || '#3d8ec9'; this.ctx.stroke();
+
+                    let sx = cx, sy = cy;
+                    for (let id in this.activeJoysticks) {
+                        if (this.activeJoysticks[id].nodeName === n.name) {
+                            sx = this.activeJoysticks[id].stick.x; sy = this.activeJoysticks[id].stick.y;
+                        }
+                    }
+                    this.ctx.beginPath(); this.ctx.arc(sx, sy, 22, 0, Math.PI * 2);
+                    this.ctx.fillStyle = n.color || '#3d8ec9'; this.ctx.fill();
+                } else if (n.type === 'Button') {
+                    const cx = n.x + n.width / 2;
+                    const cy = n.y + n.height / 2;
+                    const radius = Math.min(n.width, n.height) / 2;
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                    this.ctx.fillStyle = n.color || '#e5c07b';
+                    this.ctx.fill();
+                    this.ctx.lineWidth = 2;
+                    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                    this.ctx.stroke();
+
+                    this.ctx.fillStyle = '#fff';
+                    this.ctx.font = 'bold 12px sans-serif';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.textBaseline = 'middle';
+                    this.ctx.fillText(n.text || 'Pular', cx, cy);
+                } else if (n.type === 'Collision') {
+                    this.ctx.fillStyle = n.color || '#e06c75';
+                    this.ctx.fillRect(n.x, n.y, n.width || 40, n.height || 40);
+                    this.ctx.strokeStyle = '#fff';
+                    this.ctx.lineWidth = 1;
+                    this.ctx.setLineDash([4, 4]);
+                    this.ctx.strokeRect(n.x, n.y, n.width || 40, n.height || 40);
+                    this.ctx.setLineDash([]);
+                } else {
+                    let drawnImage = false;
+                    let activeSprite = n.sprite;
+
+                    if (n.animation === 'spritesheet' && n.frames && n.frames.length > 0) {
+                        if (window.gameIsRunning) {
+                            n._frameCounter = (n._frameCounter || 0) + 1;
+                            const speed = Math.max(1, Math.floor(60 / (n.animSpeed || 10)));
+                            if (n._frameCounter >= speed) {
+                                n._frameCounter = 0;
+                                n._currentFrameIdx = ((n._currentFrameIdx || 0) + 1) % n.frames.length;
+                            }
+                        }
+                        activeSprite = n.frames[n._currentFrameIdx || 0];
+                    }
+
+                    if (activeSprite && activeSprite.trim() !== '') {
+                        if (!this.imageCache[activeSprite]) {
+                            const img = new Image();
+                            img.src = activeSprite;
+                            this.imageCache[activeSprite] = img;
+                        }
+                        const cachedImg = this.imageCache[activeSprite];
+                        if (cachedImg.complete && cachedImg.naturalWidth !== 0) {
+                            this.ctx.drawImage(cachedImg, n.x, n.y, n.width || 40, n.height || 40);
+                            drawnImage = true;
+                        }
+                    }
+                    if (!drawnImage) {
+                        this.ctx.fillStyle = n.color || '#3d8ec9';
+                        this.ctx.fillRect(n.x, n.y, n.width || 40, n.height || 40);
+                    }
+                }
+
+                if (!window.gameIsRunning && sceneTree.selectedNode === n && n.x !== undefined) {
+                    this.ctx.strokeStyle = '#fff'; this.ctx.lineWidth = 2;
+                    if (n.type === 'Button') {
+                        const cx = n.x + n.width / 2; const cy = n.y + n.height / 2;
+                        this.ctx.beginPath();
+                        this.ctx.arc(cx, cy, (Math.min(n.width, n.height) / 2) + 3, 0, Math.PI * 2);
+                        this.ctx.stroke();
+                    } else {
+                        this.ctx.strokeRect(n.x - 2, n.y - 2, (n.width || 40) + 4, (n.height || 40) + 4);
+                    }
+                }
+                this.ctx.restore();
+            }
+        }
+        const editor2D = new Editor2D();
+
+        function checkCollision(a, b) {
+            return (a.x < b.x + b.width && a.x + a.width > b.x &&
+                    a.y < b.y + b.height && a.y + a.height > b.y);
+        }
+
+        class GameRunner {
+            constructor() { this.isRunning = false; this.animFrame = null; }
+            playGame() {
+                if (this.isRunning) return;
+                
+                editorManager.switchTab('2d');
+
+                this.isRunning = true; window.gameIsRunning = true;
+                window.joysticks = {}; window.buttons = {};
+
+                // 1. LIMPA E RECRIA AS VARIÁVEIS GLOBAIS DO ZERO A CADA PLAY
+                window.Globals = {};
+                if (app.currentProject && app.currentProject.globals) {
+                    window.Globals = JSON.parse(JSON.stringify(app.currentProject.globals));
+                }
+
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen().catch(() => {});
+                }
+
+                ['left-panel', 'right-panel', 'bottom-console', 'editor-tabs', 'canvas-tools-hud', 'editor-header'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.classList.add('hidden');
+                });
+
+                document.getElementById('btn-header-pause').classList.add('hidden');
+                document.getElementById('btn-header-stop').classList.remove('hidden');
+                document.getElementById('game-runtime-hud').classList.remove('hidden');
+
+                const nodes = [sceneTree.scene, ...(sceneTree.scene.children || [])];
+                nodes.forEach(n => {
+                    enrichNode(n);
+                    if (n.x !== undefined) n._editorX = n.x;
+                    if (n.y !== undefined) n._editorY = n.y;
+                    n.vy = 0; n.onGround = false; n._animTimer = 0; n._currentFrameIdx = 0; n._frameCounter = 0;
+
+                    // Compila o GodotScript Simples para JavaScript executável
+                    if (n.script && n.script.trim() !== '') {
+                        try {
+                            const translatedJS = transpileGodotScript(n.script);
+                            n._compiledScript = new Function(translatedJS);
+                        } catch (err) {
+                            consoleWindow.log(`Erro ao compilar script de ${n.name}: ${err.message}`, "error");
+                        }
+                    }
+                });
+
+                editor2D.resize();
+                consoleWindow.log("Executando jogo (GodotScript limpo e reiniciado)...");
+
+                const platforms = nodes.filter(n => n.type === 'Platform' || n.type === 'Collision');
+                const camNode = nodes.find(n => n.type === 'Camera2D');
+                const playerNode = nodes.find(n => n.type === 'Player');
+
+                const loop = () => {
+                    if (!this.isRunning) return;
+
+                    const statsEl = document.getElementById('runtime-hud-stats');
+                    if (window.Globals.vida !== undefined) {
+                        statsEl.innerText = `Vida: ${window.Globals.vida}`;
+                        statsEl.classList.remove('hidden');
+                    } else {
+                        statsEl.classList.add('hidden');
+                    }
+
+                    nodes.forEach(n => {
+                        n._animTimer = (n._animTimer || 0) + 0.05;
+                        if (n.animation === 'float') {
+                            n.y += Math.sin(n._animTimer) * 0.5;
+                        } else if (n.animation === 'patrol') {
+                            n.x += Math.cos(n._animTimer) * 1.5;
+                        }
+
+                        if (n.gravity > 0 && n.type !== 'VirtualJoystick' && n.type !== 'Button' && n.type !== 'Collision') {
+                            n.vy += n.gravity;
+                            n.y += n.vy;
+                        }
+
+                        // Função auxiliar interna para detecção de colisão via script
+                        n.collidesWith = function(targetName) {
+                            const target = nodes.find(node => (node.name === targetName || node.type === targetName) && node !== this);
+                            if (!target) return false;
+                            return checkCollision(this, target);
+                        };
+
+                        if (n._compiledScript) {
+                            try { n._compiledScript.call(n); } catch (err) {}
+                        }
+
+                        // SISTEMA DE COLISÃO FISICA COM PLATAFORMAS
+                        if (n.type === 'Player' || n.gravity > 0 || (n.script && n.script.trim() !== '')) {
+                            n.onGround = false;
+                            for (let plat of platforms) {
+                                if (n === plat) continue;
+                                if (checkCollision(n, plat)) {
+                                    const overlapX = Math.min(n.x + n.width, plat.x + plat.width) - Math.max(n.x, plat.x);
+                                    const overlapY = Math.min(n.y + n.height, plat.y + plat.height) - Math.max(n.y, plat.y);
+
+                                    if (overlapX < overlapY) {
+                                        if (n.x < plat.x) n.x -= overlapX;
+                                        else n.x += overlapX;
+                                    } else {
+                                        if (n.y < plat.y) {
+                                            n.y -= overlapY;
+                                            if (n.vy > 0) n.vy = 0;
+                                            n.onGround = true;
+                                        } else {
+                                            n.y += overlapY;
+                                            if (n.vy < 0) n.vy = 0;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    if (camNode) {
+                        if (camNode.cameraMode === 'follow' && playerNode) {
+                            editor2D.cameraX = (editor2D.canvas.width / 2) - (playerNode.x + playerNode.width / 2);
+                            editor2D.cameraY = (editor2D.canvas.height / 2) - (playerNode.y + playerNode.height / 2);
+                        } else if (camNode.cameraMode === 'fixed') {
+                            editor2D.cameraX = -camNode.x; editor2D.cameraY = -camNode.y;
+                        }
+                    }
+
+                    editor2D.draw();
+                    this.animFrame = requestAnimationFrame(loop);
+                };
+                loop();
+            }
+            pauseGame() {
+                this.isRunning = false; window.gameIsRunning = false;
+                if (this.animFrame) cancelAnimationFrame(this.animFrame);
+                
+                const nodes = [sceneTree.scene, ...(sceneTree.scene.children || [])];
+                nodes.forEach(n => {
+                    if (n._editorX !== undefined) n.x = n._editorX;
+                    if (n._editorY !== undefined) n.y = n._editorY;
+                });
+
+                editor2D.cameraX = 0; editor2D.cameraY = 0;
+                
+                ['left-panel', 'right-panel', 'canvas-tools-hud', 'bottom-console', 'editor-tabs', 'editor-header'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.classList.remove('hidden');
+                });
+
+                document.getElementById('btn-header-pause').classList.add('hidden');
+                document.getElementById('btn-header-stop').classList.add('hidden');
+                document.getElementById('game-runtime-hud').classList.add('hidden');
+
+                if (sceneTree.selectedNode) inspector.inspect(sceneTree.selectedNode);
+                editor2D.resize(); editor2D.draw();
+                consoleWindow.log("Jogo pausado.", "warning");
+            }
+            stopGame() { this.pauseGame(); }
+        }
+        const gameRunner = new GameRunner();
+
+        window.onload = () => { app.init(); };
     </script>
 </body>
 </html>
