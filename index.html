@@ -1,1591 +1,892 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="h-full">
+<html lang="pt-BR" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Godot Engine Mobile - MultiCena</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EngineCode - IDE Profissional</title>
     <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- FontAwesome para Ícones -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            900: '#0f172a',
+                            800: '#1e293b',
+                            700: '#334155',
+                            600: '#475569',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- JSZip for Import/Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- Monaco Editor Loader -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
     <style>
-        :root {
-            --godot-bg: #181a1f;
-            --godot-panel: #21252b;
-            --godot-border: #181a1f;
-            --godot-accent: #3d8ec9;
-            --godot-text: #abb2bf;
-        }
-        body {
-            background-color: var(--godot-bg);
-            color: var(--godot-text);
-            font-family: system-ui, -apple-system, sans-serif;
-            touch-action: none;
-            overflow: hidden;
-        }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #1e2229; }
-        ::-webkit-scrollbar-thumb { background: #3a3f4b; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--godot-accent); }
-        .godot-panel { background-color: var(--godot-panel); border-color: #2c313a; }
-        .tab-active { border-bottom: 2px solid var(--godot-accent); color: #fff; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        .resizer-x { cursor: col-resize; }
+        .resizer-y { cursor: row-resize; }
     </style>
 </head>
-<body class="h-full flex flex-col select-none">
+<body class="bg-dark-900 text-slate-100 h-screen w-screen overflow-hidden flex flex-col font-sans select-none">
 
-    <!-- ================= 1. GERENCIADOR DE PROJETOS ================= -->
-    <div id="project-manager" class="absolute inset-0 z-50 flex flex-col bg-[#181a1f] p-4 overflow-y-auto">
-        <header class="flex justify-between items-center pb-4 border-b border-[#2c313a] mb-4">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-[#3d8ec9] rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg">G</div>
-                <div>
-                    <h1 class="text-xl font-bold text-white tracking-wide">Godot Engine Mobile</h1>
-                    <p class="text-xs text-gray-400">Gerenciador de Projetos v4.1 (MultiCena)</p>
-                </div>
+    <!-- Top Navbar -->
+    <header class="h-12 bg-dark-800 border-b border-dark-700 flex items-center justify-between px-4 shrink-0 z-20">
+        <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-2 text-cyan-400 font-bold text-lg tracking-wide">
+                <i data-lucide="terminal" class="w-6 h-6"></i>
+                <span>Engine<span class="text-white">Code</span></span>
             </div>
-            <div class="flex space-x-2">
-                <button onclick="app.showNewProjectModal()" class="bg-[#3d8ec9] hover:bg-[#327bb5] text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center shadow transition cursor-pointer">
-                    <i class="fa-solid fa-plus mr-2"></i> Novo Projeto
-                </button>
-            </div>
-        </header>
-
-        <div class="mb-4 flex space-x-2">
-            <div class="relative flex-1">
-                <i class="fa-solid fa-search absolute left-3 top-3 text-gray-500"></i>
-                <input type="text" id="project-search" placeholder="Pesquisar projetos..." oninput="app.filterProjects(this.value)" class="w-full bg-[#21252b] border border-[#3a3f4b] rounded-lg pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-[#3d8ec9]">
+            <div class="h-4 w-[1px] bg-dark-600"></div>
+            <div class="flex items-center space-x-2 text-sm text-slate-300">
+                <span id="current-project-name" class="font-medium text-white px-2 py-0.5 bg-dark-700 rounded">Meu Projeto</span>
+                <span id="save-status" class="text-xs text-slate-400 flex items-center gap-1"><i data-lucide="check" class="w-3 h-3 text-emerald-400"></i> Salvo</span>
             </div>
         </div>
 
-        <div class="flex-1 overflow-y-auto">
-            <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Projetos Recentes</h2>
-            <div id="project-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-12"></div>
+        <!-- Toolbar -->
+        <div class="flex items-center space-x-1 sm:space-x-2">
+            <button onclick="app.runCode()" title="Executar (Ctrl+Enter)" class="flex items-center space-x-1.5 bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded text-xs font-semibold transition shadow">
+                <i data-lucide="play" class="w-3.5 h-3.5"></i>
+                <span class="hidden sm:inline">Executar</span>
+            </button>
+            <button onclick="app.stopExecution()" title="Parar" class="flex items-center space-x-1.5 bg-rose-600/80 hover:bg-rose-600 text-white px-2.5 py-1.5 rounded text-xs transition">
+                <i data-lucide="square" class="w-3.5 h-3.5"></i>
+            </button>
+            <div class="h-4 w-[1px] bg-dark-600 mx-1"></div>
+            <button onclick="app.saveProject()" title="Salvar Projeto (Ctrl+S)" class="p-1.5 hover:bg-dark-700 text-slate-300 hover:text-white rounded transition">
+                <i data-lucide="save" class="w-4 h-4"></i>
+            </button>
+            <button onclick="app.undo()" title="Desfazer (Ctrl+Z)" class="p-1.5 hover:bg-dark-700 text-slate-300 hover:text-white rounded transition">
+                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+            </button>
+            <button onclick="app.redo()" title="Refazer (Ctrl+Y)" class="p-1.5 hover:bg-dark-700 text-slate-300 hover:text-white rounded transition">
+                <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+            </button>
+            <div class="h-4 w-[1px] bg-dark-600 mx-1"></div>
+            <button onclick="app.newFileDialog()" title="Novo Arquivo (Ctrl+N)" class="p-1.5 hover:bg-dark-700 text-slate-300 hover:text-white rounded transition">
+                <i data-lucide="file-plus" class="w-4 h-4"></i>
+            </button>
+            <button onclick="app.newFolderDialog()" title="Nova Pasta" class="p-1.5 hover:bg-dark-700 text-slate-300 hover:text-white rounded transition">
+                <i data-lucide="folder-plus" class="w-4 h-4"></i>
+            </button>
+            <button onclick="app.exportZip()" title="Exportar Projeto ZIP" class="p-1.5 hover:bg-dark-700 text-slate-300 hover:text-white rounded transition">
+                <i data-lucide="download" class="w-4 h-4"></i>
+            </button>
+            <div class="h-4 w-[1px] bg-dark-600 mx-1"></div>
+            <button onclick="app.toggleFullscreen()" title="Tela Cheia (F11)" class="p-1.5 hover:bg-dark-700 text-slate-300 hover:text-white rounded transition">
+                <i data-lucide="maximize" class="w-4 h-4"></i>
+            </button>
+            <button onclick="app.openSettings()" title="Configurações" class="p-1.5 hover:bg-dark-700 text-slate-300 hover:text-white rounded transition">
+                <i data-lucide="settings" class="w-4 h-4"></i>
+            </button>
         </div>
-    </div>
+    </header>
 
-    <!-- ================= 2. EDITOR PRINCIPAL ================= -->
-    <div id="editor-view" class="absolute inset-0 flex flex-col hidden bg-[#181a1f]">
-        <!-- Barra Superior -->
-        <header id="editor-header" class="h-11 bg-[#21252b] border-b border-[#2c313a] flex items-center justify-between px-3 text-xs z-30 transition-all duration-200">
-            <div class="flex items-center space-x-4">
-                <div class="flex items-center space-x-2">
-                    <div class="w-6 h-6 bg-[#3d8ec9] rounded flex items-center justify-center text-white font-bold text-xs">G</div>
-                    <span id="current-project-title" class="font-bold text-white">MeuProjeto</span>
-                </div>
-                <nav class="hidden md:flex space-x-3 text-gray-300">
-                    <button onclick="app.openProjectManager()" class="hover:text-white cursor-pointer"><i class="fa-solid fa-folder-open mr-1"></i> Projetos</button>
-                    <span id="autosave-status" class="text-green-400 text-[10px] flex items-center"><i class="fa-solid fa-check mr-1"></i> Salvamento Automático Ativo</span>
-                </nav>
-            </div>
+    <!-- Main Workspace -->
+    <div class="flex-1 flex overflow-hidden relative">
 
-            <!-- Botões de Execução -->
-            <div class="flex items-center space-x-2 bg-[#181a1f] px-3 py-1 rounded-lg border border-[#2c313a]">
-                <button onclick="gameRunner.playGame()" class="text-green-400 hover:text-green-300 px-2 py-1 cursor-pointer" title="Executar Jogo"><i class="fa-solid fa-play text-sm"></i></button>
-                <button id="btn-header-pause" onclick="gameRunner.pauseGame()" class="text-yellow-400 hover:text-yellow-300 px-2 py-1 cursor-pointer hidden" title="Pausar"><i class="fa-solid fa-pause text-sm"></i></button>
-                <button id="btn-header-stop" onclick="gameRunner.stopGame()" class="text-red-400 hover:text-red-300 px-2 py-1 cursor-pointer hidden" title="Parar"><i class="fa-solid fa-stop text-sm"></i></button>
-            </div>
-
-            <div class="flex items-center space-x-3">
-                <button onclick="app.toggleFullscreen()" class="text-gray-300 hover:text-white cursor-pointer" title="Tela Cheia"><i class="fa-solid fa-expand"></i></button>
-            </div>
-        </header>
-
-        <!-- Barra de Controle Flutuante para o Modo Jogo -->
-        <div id="game-runtime-hud" class="absolute top-3 right-3 z-50 hidden bg-[#21252b]/90 border border-[#3a3f4b] px-3 py-1.5 rounded-lg shadow-2xl flex items-center space-x-3">
-            <span id="runtime-hud-stats" class="text-xs font-bold text-yellow-400">Vida: 3</span>
-            <span class="text-xs font-bold text-green-400 flex items-center"><span class="w-2 h-2 rounded-full bg-green-500 animate-ping mr-2"></span> Rodando</span>
-            <button onclick="gameRunner.stopGame()" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded text-xs font-bold cursor-pointer flex items-center shadow"><i class="fa-solid fa-stop mr-1.5"></i> Parar</button>
-        </div>
-
-        <!-- Área de Trabalho Principal -->
-        <div class="flex-1 flex relative overflow-hidden">
-            
-            <!-- Painel Esquerdo: Gerenciador de Cenas / Árvore de Nós -->
-            <div id="left-panel" class="w-64 godot-panel border-r border-[#2c313a] flex flex-col z-20 transition-all duration-200">
-                <!-- Seletor de Cenas -->
-                <div class="bg-[#1e2229] p-2 border-b border-[#2c313a] flex items-center justify-between">
-                    <div class="flex items-center space-x-1.5 truncate flex-1 mr-1">
-                        <i class="fa-solid fa-film text-[#3d8ec9] text-xs"></i>
-                        <select id="scene-selector" onchange="sceneManager.switchScene(this.value)" class="w-full bg-[#181a1f] border border-[#3a3f4b] rounded px-1.5 py-1 text-xs text-white truncate cursor-pointer"></select>
-                    </div>
-                    <div class="flex space-x-1 shrink-0">
-                        <button onclick="sceneManager.showEditSceneModal()" class="bg-[#2c313a] hover:bg-[#3a3f4b] text-white w-6 h-6 rounded flex items-center justify-center text-xs shadow cursor-pointer" title="Editar Cena Atual"><i class="fa-solid fa-pen"></i></button>
-                        <button onclick="sceneManager.showNewSceneModal()" class="bg-[#3d8ec9] hover:bg-[#327bb5] text-white w-6 h-6 rounded flex items-center justify-center text-xs shadow cursor-pointer" title="Nova Cena"><i class="fa-solid fa-plus"></i></button>
-                    </div>
-                </div>
-
-                <div class="flex border-b border-[#2c313a] text-xs bg-[#1e2229]">
-                    <span id="scene-type-indicator" class="flex-1 py-2 text-center tab-active font-medium uppercase text-[10px] text-gray-300">Cena: Jogo</span>
-                </div>
-                <div class="flex-1 flex flex-col overflow-hidden p-2">
-                    <div class="flex justify-between items-center mb-2 px-1">
-                        <span class="text-xs font-bold uppercase text-gray-400">Árvore de Nós</span>
-                        <button onclick="sceneTree.showAddNodeModal()" class="bg-[#3d8ec9] text-white w-6 h-6 rounded flex items-center justify-center text-xs shadow cursor-pointer"><i class="fa-solid fa-plus"></i></button>
-                    </div>
-                    <div id="node-tree-container" class="flex-1 overflow-y-auto font-mono text-xs space-y-1"></div>
+        <!-- Sidebar / File Explorer -->
+        <aside id="sidebar" class="w-64 bg-dark-800 border-r border-dark-700 flex flex-col shrink-0 transition-all duration-200">
+            <div class="p-3 border-b border-dark-700 flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Explorador</span>
+                <div class="flex items-center space-x-1">
+                    <button onclick="app.newFileDialog()" title="Novo Arquivo" class="p-1 hover:bg-dark-700 rounded text-slate-400 hover:text-white"><i data-lucide="file-plus" class="w-3.5 h-3.5"></i></button>
+                    <button onclick="app.openProjectModal()" title="Gerenciar Projetos" class="p-1 hover:bg-dark-700 rounded text-slate-400 hover:text-white"><i data-lucide="folder-kanban" class="w-3.5 h-3.5"></i></button>
                 </div>
             </div>
+            <!-- File Tree -->
+            <div id="file-tree" class="flex-1 overflow-y-auto p-2 space-y-1 text-sm select-none"></div>
+            <!-- Language Selector Footer -->
+            <div class="p-3 border-t border-dark-700 bg-dark-900/50">
+                <label class="block text-xs text-slate-400 mb-1">Linguagem do Arquivo</label>
+                <select id="language-select" onchange="app.changeLanguage(this.value)" class="w-full bg-dark-700 border border-dark-600 rounded px-2 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-500">
+                    <optgroup label="Frontend">
+                        <option value="html">HTML</option>
+                        <option value="css">CSS</option>
+                        <option value="javascript">JavaScript</option>
+                        <option value="typescript">TypeScript</option>
+                    </optgroup>
+                    <optgroup label="Backend & Compiladas">
+                        <option value="python">Python</option>
+                        <option value="java">Java</option>
+                        <option value="c">C</option>
+                        <option value="cpp">C++</option>
+                        <option value="csharp">C#</option>
+                        <option value="php">PHP</option>
+                        <option value="go">Go</option>
+                        <option value="rust">Rust</option>
+                        <option value="ruby">Ruby</option>
+                        <option value="kotlin">Kotlin</option>
+                        <option value="swift">Swift</option>
+                        <option value="bash">Bash</option>
+                    </optgroup>
+                </select>
+            </div>
+        </aside>
 
-            <!-- Área Central: Visualização / Editores -->
-            <div class="flex-1 flex flex-col relative overflow-hidden bg-[#15171b]">
-                <div id="editor-tabs" class="h-9 bg-[#1e2229] border-b border-[#2c313a] flex items-center px-2 space-x-1 text-xs z-10 overflow-x-auto transition-all duration-200">
-                    <button onclick="editorManager.switchTab('2d')" id="tab-btn-2d" class="px-3 py-1.5 bg-[#21252b] text-white rounded-t border-t border-x border-[#2c313a] font-medium cursor-pointer"><i class="fa-solid fa-shapes mr-1 text-[#3d8ec9]"></i> 2D / Visual</button>
-                    <button onclick="editorManager.switchTab('script')" id="tab-btn-script" class="px-3 py-1.5 text-gray-400 hover:text-white rounded-t cursor-pointer"><i class="fa-solid fa-code mr-1 text-[#98c379]"></i> JavaScript</button>
-                    <button onclick="editorManager.switchTab('globals')" id="tab-btn-globals" class="px-3 py-1.5 text-gray-400 hover:text-white rounded-t cursor-pointer"><i class="fa-solid fa-globe mr-1 text-[#e5c07b]"></i> Globais</button>
-                </div>
+        <!-- Editor & Terminal Area -->
+        <div class="flex-1 flex flex-col min-w-0 bg-dark-900">
+            <!-- Tabs Bar -->
+            <div id="editor-tabs" class="h-9 bg-dark-800/80 border-b border-dark-700 flex items-center overflow-x-auto shrink-0 space-x-1 px-2"></div>
 
-                <div class="flex-1 relative overflow-hidden flex flex-col">
-                    <!-- Editor 2D / Visual -->
-                    <div id="view-2d" class="absolute inset-0 flex flex-col">
-                        <div id="canvas-tools-hud" class="absolute top-2 left-2 z-10 bg-[#21252b]/90 border border-[#3a3f4b] p-1.5 rounded flex space-x-2 text-xs shadow">
-                            <button onclick="editor2D.setTool('select')" id="tool-select" class="p-1.5 bg-[#3d8ec9] text-white rounded cursor-pointer transition" title="Selecionar / Mover Objeto"><i class="fa-solid fa-arrow-pointer"></i></button>
-                            <button onclick="editor2D.setTool('move')" id="tool-move" class="p-1.5 text-gray-300 hover:bg-[#2c313a] rounded cursor-pointer transition" title="Mover Câmera"><i class="fa-solid fa-up-down-left-right"></i></button>
-                            <button onclick="editor2D.toggleMaximize()" id="tool-maximize" class="p-1.5 text-gray-300 hover:bg-[#2c313a] rounded cursor-pointer transition" title="Tela Cheia do Editor"><i class="fa-solid fa-expand"></i></button>
+            <!-- Central Split: Editor & Output/Preview -->
+            <div class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+                <!-- Editor Container -->
+                <div id="editor-container" class="flex-1 h-full relative"></div>
+
+                <!-- Resizer X -->
+                <div id="resizer-x" class="hidden lg:block w-1 bg-dark-700 hover:bg-cyan-500 resizer-x transition"></div>
+
+                <!-- Right / Bottom Panel (Terminal & Preview) -->
+                <div id="output-panel" class="w-full lg:w-[45%] h-1/2 lg:h-full flex flex-col bg-dark-800 border-t lg:border-t-0 lg:border-l border-dark-700">
+                    <!-- Panel Tabs -->
+                    <div class="h-9 bg-dark-800 border-b border-dark-700 flex items-center justify-between px-3 shrink-0">
+                        <div class="flex space-x-4 text-xs font-medium">
+                            <button onclick="app.switchOutputTab('preview')" id="tab-btn-preview" class="text-cyan-400 border-b-2 border-cyan-400 pb-2 pt-2 flex items-center gap-1.5 transition">
+                                <i data-lucide="eye" class="w-3.5 h-3.5"></i> Preview
+                            </button>
+                            <button onclick="app.switchOutputTab('terminal')" id="tab-btn-terminal" class="text-slate-400 hover:text-white pb-2 pt-2 flex items-center gap-1.5 transition">
+                                <i data-lucide="terminal" class="w-3.5 h-3.5"></i> Terminal / Logs
+                            </button>
                         </div>
-                        <canvas id="canvas-2d" class="w-full h-full cursor-crosshair"></canvas>
-                    </div>
-
-                    <!-- Editor de Scripts JavaScript -->
-                    <div id="view-script" class="absolute inset-0 hidden flex flex-col bg-[#181a1f] z-30">
-                        <div class="bg-[#21252b] border-b border-[#2c313a] px-4 py-3 flex items-center justify-between shrink-0">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 rounded bg-[#98c379]/20 border border-[#98c379] flex items-center justify-center text-[#98c379]">
-                                    <i class="fa-solid fa-code"></i>
-                                </div>
-                                <div>
-                                    <div class="flex items-center space-x-2">
-                                        <span class="text-xs text-gray-400">Script JS de:</span>
-                                        <span id="script-owner-name" class="font-bold text-white text-sm">Player</span>
-                                        <span id="script-owner-type" class="text-[10px] bg-[#2c313a] text-gray-300 px-1.5 py-0.5 rounded">Player</span>
-                                    </div>
-                                    <p class="text-[10px] text-gray-400">Ex. mudar cena: <code class="text-yellow-400">changeScene("Fase2");</code> | Ex. exibir variável em Label: <code class="text-yellow-400">this.text = "Pontos: " + window.Globals.pontos;</code></p>
-                                </div>
-                            </div>
-                            <div class="flex items-center space-x-3">
-                                <button onclick="editorManager.switchTab('2d')" class="bg-[#3d8ec9] hover:bg-[#327bb5] text-white px-3 py-1.5 rounded text-xs font-medium cursor-pointer flex items-center shadow">
-                                    <i class="fa-solid fa-arrow-left mr-1.5"></i> Voltar ao 2D
-                                </button>
-                            </div>
-                        </div>
-                        <div class="flex-1 p-4 pb-44 overflow-y-auto flex flex-col">
-                            <textarea id="script-textarea" oninput="scriptEditor.onInput(this.value)" class="w-full flex-1 bg-[#1e2229] border border-[#2c313a] rounded-lg text-[#abb2bf] font-mono p-4 text-sm resize-none focus:outline-none focus:border-[#3d8ec9] shadow-inner min-h-[250px]" spellcheck="false" placeholder="// Escreva seu código JavaScript aqui..."></textarea>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="app.refreshPreview()" title="Atualizar Preview" class="p-1 hover:bg-dark-700 rounded text-slate-400 hover:text-white"><i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i></button>
+                            <button onclick="app.togglePreviewFullscreen()" title="Tela Cheia" class="p-1 hover:bg-dark-700 rounded text-slate-400 hover:text-white"><i data-lucide="maximize-2" class="w-3.5 h-3.5"></i></button>
                         </div>
                     </div>
 
-                    <!-- Aba de Variáveis Globais -->
-                    <div id="view-globals" class="absolute inset-0 hidden flex flex-col bg-[#181a1f] z-30">
-                        <div class="bg-[#21252b] border-b border-[#2c313a] px-4 py-3 flex items-center justify-between shrink-0">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 rounded bg-[#e5c07b]/20 border border-[#e5c07b] flex items-center justify-center text-[#e5c07b]">
-                                    <i class="fa-solid fa-globe"></i>
-                                </div>
-                                <div>
-                                    <h2 class="font-bold text-white text-sm">Variáveis Globais do Projeto</h2>
-                                    <p class="text-[10px] text-gray-400">Acesse ou modifique nos scripts usando <code class="text-yellow-400">window.Globals.sua_variavel</code></p>
-                                </div>
-                            </div>
-                            <div class="flex items-center space-x-3">
-                                <button onclick="globalsManager.addGlobal()" class="bg-[#3d8ec9] hover:bg-[#327bb5] text-white px-3 py-1.5 rounded text-xs font-medium cursor-pointer flex items-center shadow">
-                                    <i class="fa-solid fa-plus mr-1.5"></i> Nova Variável
-                                </button>
-                                <button onclick="editorManager.switchTab('2d')" class="bg-[#2c313a] hover:bg-[#3a3f4b] text-white px-3 py-1.5 rounded text-xs font-medium cursor-pointer flex items-center shadow">
-                                    <i class="fa-solid fa-arrow-left mr-1.5"></i> Voltar ao 2D
-                                </button>
-                            </div>
+                    <!-- Preview Content -->
+                    <div id="panel-preview" class="flex-1 bg-white relative overflow-hidden flex flex-col">
+                        <iframe id="preview-frame" class="w-full h-full border-0" sandbox="allow-scripts allow-modals"></iframe>
+                    </div>
+
+                    <!-- Terminal Content -->
+                    <div id="panel-terminal" class="flex-1 bg-dark-900 p-3 font-mono text-xs overflow-y-auto hidden flex flex-col justify-between">
+                        <div id="terminal-output" class="space-y-1 text-slate-300 flex-1">
+                            <div class="text-slate-500">// EngineCode Terminal v1.0.0 - Pronto para execução.</div>
                         </div>
-                        <div class="flex-1 p-4 overflow-y-auto space-y-3" id="globals-list-container"></div>
-                    </div>
-                </div>
-
-                <!-- Painel Inferior: Console -->
-                <div id="bottom-console" class="h-28 godot-panel border-t border-[#2c313a] flex flex-col transition-all duration-200">
-                    <div class="h-7 bg-[#1e2229] border-b border-[#2c313a] flex items-center px-3 justify-between text-xs">
-                        <span class="font-bold text-white uppercase text-[10px]">Console de Saída</span>
-                        <button onclick="consoleWindow.clear()" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-trash-can"></i> Limpar</button>
-                    </div>
-                    <div id="console-output" class="flex-1 p-2 font-mono text-[11px] overflow-y-auto space-y-1 text-gray-300">
-                        <div class="text-blue-400">[Godot Engine Mobile v4.1] Suporte a MultiCena, troca de cena via script e variáveis na tela ativo.</div>
+                        <div class="mt-2 pt-2 border-t border-dark-700 flex items-center justify-between text-slate-400">
+                            <span id="execution-status">Sistema ocioso</span>
+                            <button onclick="app.clearTerminal()" class="hover:text-white px-2 py-1 bg-dark-800 rounded border border-dark-700">Limpar Terminal</button>
+                        </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Painel Direito: Inspetor -->
-            <div id="right-panel" class="w-72 godot-panel border-l border-[#2c313a] flex flex-col z-20 transition-all duration-200">
-                <div class="h-8 bg-[#1e2229] border-b border-[#2c313a] flex items-center px-3 text-xs font-bold uppercase text-gray-400">
-                    Inspetor de Propriedades
-                </div>
-                <div id="inspector-content" class="flex-1 p-3 overflow-y-auto space-y-3 text-xs">
-                    <p class="text-gray-500 italic text-center mt-6">Nenhum nó selecionado.</p>
-                </div>
-            </div>
         </div>
-    </div>
+    </main>
 
-    <!-- ================= MODAIS ================= -->
-    <div id="modal-new-project" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
-        <div class="godot-panel border border-[#3a3f4b] rounded-xl w-full max-w-md p-5 shadow-2xl">
-            <h2 class="text-base font-bold text-white mb-4">Criar Novo Projeto</h2>
-            <div class="space-y-3 mb-5">
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1">Nome do Projeto</label>
-                    <input type="text" id="new-project-name" value="JogoPlataforma" class="w-full bg-[#181a1f] border border-[#3a3f4b] rounded p-2 text-xs text-white">
-                </div>
-            </div>
-            <div class="flex justify-end space-x-2">
-                <button onclick="app.closeNewProjectModal()" class="px-4 py-2 bg-[#2c313a] hover:bg-[#3a3f4b] text-white rounded text-xs cursor-pointer">Cancelar</button>
-                <button onclick="app.createProject()" class="px-4 py-2 bg-[#3d8ec9] hover:bg-[#327bb5] text-white rounded text-xs font-bold cursor-pointer">Criar e Editar</button>
-            </div>
-        </div>
-    </div>
+    <!-- Modals & Dialogs Container -->
+    <div id="modal-container" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4"></div>
 
-    <!-- Modal Criar Nova Cena -->
-    <div id="modal-new-scene" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
-        <div class="godot-panel border border-[#3a3f4b] rounded-xl w-full max-w-sm p-5 shadow-2xl">
-            <h2 class="text-base font-bold text-white mb-4">Criar Nova Cena</h2>
-            <div class="space-y-3 mb-5">
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1">Nome da Cena</label>
-                    <input type="text" id="new-scene-name" value="MenuPrincipal" class="w-full bg-[#181a1f] border border-[#3a3f4b] rounded p-2 text-xs text-white">
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1">Tipo de Cena</label>
-                    <select id="new-scene-type" class="w-full bg-[#181a1f] border border-[#3a3f4b] rounded p-2 text-xs text-white cursor-pointer">
-                        <option value="game">🎮 Cena de Jogo (Gameplay, Física, Câmera)</option>
-                        <option value="visual">🎨 Cena Visual (Menus, Pause, HUD)</option>
-                    </select>
-                </div>
-            </div>
-            <div class="flex justify-end space-x-2">
-                <button onclick="sceneManager.closeNewSceneModal()" class="px-4 py-2 bg-[#2c313a] hover:bg-[#3a3f4b] text-white rounded text-xs cursor-pointer">Cancelar</button>
-                <button onclick="sceneManager.createScene()" class="px-4 py-2 bg-[#3d8ec9] hover:bg-[#327bb5] text-white rounded text-xs font-bold cursor-pointer">Criar Cena</button>
-            </div>
-        </div>
-    </div>
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
 
-    <!-- Modal Editar Cena Atual -->
-    <div id="modal-edit-scene" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
-        <div class="godot-panel border border-[#3a3f4b] rounded-xl w-full max-w-sm p-5 shadow-2xl">
-            <h2 class="text-base font-bold text-white mb-4">Editar Cena Atual</h2>
-            <div class="space-y-3 mb-5">
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1">Nome da Cena</label>
-                    <input type="text" id="edit-scene-name" class="w-full bg-[#181a1f] border border-[#3a3f4b] rounded p-2 text-xs text-white">
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1">Tipo de Cena</label>
-                    <select id="edit-scene-type" class="w-full bg-[#181a1f] border border-[#3a3f4b] rounded p-2 text-xs text-white cursor-pointer">
-                        <option value="game">🎮 Cena de Jogo (Gameplay, Física, Câmera)</option>
-                        <option value="visual">🎨 Cena Visual (Menus, Pause, HUD)</option>
-                    </select>
-                </div>
-            </div>
-            <div class="flex justify-end space-x-2">
-                <button onclick="sceneManager.closeEditSceneModal()" class="px-4 py-2 bg-[#2c313a] hover:bg-[#3a3f4b] text-white rounded text-xs cursor-pointer">Cancelar</button>
-                <button onclick="sceneManager.updateScene()" class="px-4 py-2 bg-[#3d8ec9] hover:bg-[#327bb5] text-white rounded text-xs font-bold cursor-pointer">Salvar Alterações</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-add-node" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
-        <div class="godot-panel border border-[#3a3f4b] rounded-xl w-full max-w-sm p-4 shadow-2xl flex flex-col h-96">
-            <h2 class="text-sm font-bold text-white mb-3">Criar Novo Nó</h2>
-            <div id="node-type-list" class="flex-1 overflow-y-auto space-y-1.5 pr-1"></div>
-            <div class="flex justify-end space-x-2 mt-3 pt-2 border-t border-[#2c313a]">
-                <button onclick="sceneTree.closeAddNodeModal()" class="px-3 py-1.5 bg-[#2c313a] text-white rounded text-xs cursor-pointer">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ================= SCRIPT PRINCIPAL ================= -->
+    <!-- Application Script -->
     <script>
-        class ConsoleWindow {
-            log(msg, type = 'info') {
-                const box = document.getElementById('console-output');
-                if (!box) return;
-                const div = document.createElement('div');
-                div.className = type === 'error' ? 'text-red-400' : type === 'warning' ? 'text-yellow-400' : 'text-gray-300';
-                div.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
-                box.appendChild(div);
-                box.scrollTop = box.scrollHeight;
-            }
-            clear() { document.getElementById('console-output').innerHTML = ''; }
-        }
-        const consoleWindow = new ConsoleWindow();
-
-        function sanitizeNodeForSave(node) {
-            if (!node) return null;
-            const clean = {};
-            for (let key in node) {
-                if (key.startsWith('_') || key === 'vy' || key === 'onGround') continue;
-                if (key === 'children' && Array.isArray(node.children)) {
-                    clean.children = node.children.map(c => sanitizeNodeForSave(c));
-                } else {
-                    clean[key] = node[key];
-                }
-            }
-            if (clean.frames && Array.isArray(clean.frames)) {
-                clean.frames = [...clean.frames];
-            }
-            return clean;
-        }
-
+        // --- STORAGE MANAGER (IndexedDB) ---
         class StorageManager {
-            constructor() { this.dbName = "GodotMobileDB_v15"; this.db = null; }
-            init() {
-                return new Promise((resolve, reject) => {
-                    if (this.db) { resolve(this.db); return; }
-                    const req = indexedDB.open(this.dbName, 1);
-                    req.onupgradeneeded = (e) => {
-                        const db = e.target.result;
-                        if (!db.objectStoreNames.contains("projects")) {
-                            db.createObjectStore("projects", { keyPath: "id" });
-                        }
-                    };
-                    req.onsuccess = (e) => { 
-                        this.db = e.target.result; 
-                        resolve(this.db); 
-                    };
-                    req.onerror = (e) => { reject(e.target.error); };
-                });
+            constructor() {
+                this.dbName = 'EngineCodeDB';
+                this.storeName = 'projects';
+                this.db = null;
             }
-            async saveProject(proj) {
-                if (!this.db) await this.init();
-                return new Promise((resolve, reject) => {
-                    const tx = this.db.transaction("projects", "readwrite");
-                    const cleanProj = {
-                        id: proj.id,
-                        name: proj.name,
-                        updatedAt: new Date().toISOString(),
-                        globals: proj.globals || {},
-                        currentSceneId: proj.currentSceneId,
-                        scenes: (proj.scenes || []).map(s => ({
-                            id: s.id,
-                            name: s.name,
-                            type: s.type || 'game',
-                            root: sanitizeNodeForSave(s.root)
-                        }))
-                    };
-                    const req = tx.objectStore("projects").put(cleanProj);
-                    req.onsuccess = () => resolve(true);
-                    req.onerror = (e) => reject(req.error);
-                });
-            }
-            async getProjects() {
-                if (!this.db) await this.init();
-                return new Promise((resolve, reject) => {
-                    const tx = this.db.transaction("projects", "readonly");
-                    const req = tx.objectStore("projects").getAll();
-                    req.onsuccess = () => resolve(req.result || []);
-                    req.onerror = (e) => reject(req.error);
-                });
-            }
-            async deleteProject(id) {
-                if (!this.db) await this.init();
-                return new Promise((resolve, reject) => {
-                    const tx = this.db.transaction("projects", "readwrite");
-                    const req = tx.objectStore("projects").delete(id);
-                    req.onsuccess = () => resolve(true);
-                    req.onerror = (e) => reject(req.error);
-                });
-            }
-        }
-
-        class GlobalsManager {
-            render() {
-                const container = document.getElementById('globals-list-container');
-                if (!container || !app.currentProject) return;
-                if (!app.currentProject.globals) app.currentProject.globals = { vida: 3, pontos: 0 };
-                
-                container.innerHTML = '';
-                const globals = app.currentProject.globals;
-                
-                if (Object.keys(globals).length === 0) {
-                    container.innerHTML = '<p class="text-gray-500 italic text-center mt-6">Nenhuma variável global definida. Clique em "Nova Variável".</p>';
-                    return;
-                }
-
-                for (let key in globals) {
-                    const val = globals[key];
-                    const div = document.createElement('div');
-                    div.className = "flex items-center space-x-3 bg-[#1e2229] p-3 rounded-lg border border-[#2c313a]";
-                    div.innerHTML = `
-                        <div class="flex-1">
-                            <label class="text-[10px] text-gray-400 uppercase font-semibold">Nome da Variável</label>
-                            <input type="text" value="${key}" onchange="globalsManager.renameKey('${key}', this.value)" class="w-full bg-[#181a1f] border border-[#3a3f4b] rounded p-1.5 text-xs text-white mt-1">
-                        </div>
-                        <div class="flex-1">
-                            <label class="text-[10px] text-gray-400 uppercase font-semibold">Valor</label>
-                            <input type="text" value="${val}" onchange="globalsManager.updateValue('${key}', this.value)" class="w-full bg-[#181a1f] border border-[#3a3f4b] rounded p-1.5 text-xs text-white mt-1">
-                        </div>
-                        <button onclick="globalsManager.deleteKey('${key}')" class="text-red-400 hover:text-red-300 p-2 mt-4 cursor-pointer" title="Excluir"><i class="fa-solid fa-trash-can"></i></button>
-                    `;
-                    container.appendChild(div);
-                }
-            }
-            addGlobal() {
-                if (!app.currentProject) return;
-                if (!app.currentProject.globals) app.currentProject.globals = {};
-                let baseName = 'variavel';
-                let count = 1;
-                let name = baseName;
-                while (app.currentProject.globals[name] !== undefined) {
-                    name = baseName + '_' + count++;
-                }
-                app.currentProject.globals[name] = 0;
-                this.render();
-                app.autoSave();
-            }
-            renameKey(oldKey, newKey) {
-                newKey = newKey.trim();
-                if (!newKey || oldKey === newKey || !app.currentProject.globals) return;
-                if (app.currentProject.globals[newKey] !== undefined) {
-                    alert("Já existe uma variável com esse nome!");
-                    this.render();
-                    return;
-                }
-                const val = app.currentProject.globals[oldKey];
-                delete app.currentProject.globals[oldKey];
-                app.currentProject.globals[newKey] = val;
-                this.render();
-                app.autoSave();
-            }
-            updateValue(key, val) {
-                if (!app.currentProject.globals) return;
-                if (!isNaN(val) && val.trim() !== '') {
-                    app.currentProject.globals[key] = Number(val);
-                } else if (val === 'true') {
-                    app.currentProject.globals[key] = true;
-                } else if (val === 'false') {
-                    app.currentProject.globals[key] = false;
-                } else {
-                    app.currentProject.globals[key] = val;
-                }
-                app.autoSave();
-            }
-            deleteKey(key) {
-                if (!app.currentProject.globals) return;
-                delete app.currentProject.globals[key];
-                this.render();
-                app.autoSave();
-            }
-        }
-        const globalsManager = new GlobalsManager();
-
-        function enrichNode(node) {
-            if (node.locked === undefined && node.type !== 'Camera2D') node.locked = false;
-            if (node.gravity === undefined) node.gravity = (node.type === 'Player' ? 0.5 : 0);
-            if (node.opacity === undefined) node.opacity = 1;
-            if (node.sprite === undefined) node.sprite = '';
-            if (node.frames === undefined) node.frames = [];
-            if (node.animSpeed === undefined) node.animSpeed = 10;
-            if (node.animation === undefined) node.animation = 'none';
-            if (node.text === undefined && (node.type === 'Button' || node.type === 'Label')) node.text = node.type === 'Label' ? 'Texto' : 'Pular';
-            if (node.directionMode === undefined) node.directionMode = 'all';
-            if (node.cameraMode === undefined) node.cameraMode = 'follow';
-            if (node.shapeType === undefined) node.shapeType = 'rectangle';
-            if (node.x === undefined) node.x = node.type === 'Camera2D' ? 0 : 100;
-            if (node.y === undefined) node.y = node.type === 'Camera2D' ? 0 : 100;
-            if (node.children && Array.isArray(node.children)) {
-                node.children.forEach(c => enrichNode(c));
-            }
-        }
-
-        class SceneManager {
-            initScenes(project) {
-                if (!project.scenes || project.scenes.length === 0) {
-                    if (project.scene) {
-                        project.scenes = [{ id: 'scene_main', name: 'Principal', type: 'game', root: project.scene }];
-                        delete project.scene;
-                    } else {
-                        project.scenes = [{
-                            id: 'scene_main',
-                            name: 'GameScene',
-                            type: 'game',
-                            root: {
-                                name: 'Root',
-                                type: 'Node2D',
-                                children: [
-                                    { id: 'node_player', name: 'Player', type: 'Player', x: 150, y: 100, width: 40, height: 40, color: '#3d8ec9', gravity: 0.5, script: '' },
-                                    { id: 'node_plat', name: 'Plataforma', type: 'Platform', x: 50, y: 260, width: 260, height: 25, color: '#4b5263', script: '' }
-                                ]
-                            }
-                        }];
-                    }
-                }
-                if (!project.currentSceneId || !project.scenes.find(s => s.id === project.currentSceneId)) {
-                    project.currentSceneId = project.scenes[0].id;
-                }
-                project.scenes.forEach(s => enrichNode(s.root));
-                this.renderSelector();
-                this.loadActiveScene();
-            }
-            getCurrentScene() {
-                if (!app.currentProject) return null;
-                return app.currentProject.scenes.find(s => s.id === app.currentProject.currentSceneId) || app.currentProject.scenes[0];
-            }
-            renderSelector() {
-                const sel = document.getElementById('scene-selector');
-                if (!sel || !app.currentProject) return;
-                sel.innerHTML = '';
-                app.currentProject.scenes.forEach(s => {
-                    const opt = document.createElement('option');
-                    opt.value = s.id;
-                    opt.innerText = `${s.name} (${s.type === 'game' ? 'Jogo' : 'Visual'})`;
-                    if (s.id === app.currentProject.currentSceneId) opt.selected = true;
-                    sel.appendChild(opt);
-                });
-            }
-            switchScene(id) {
-                if (!app.currentProject) return;
-                const target = app.currentProject.scenes.find(s => s.id === id || s.name.toLowerCase() === id.toLowerCase());
-                if (!target) return;
-                app.currentProject.currentSceneId = target.id;
-                this.renderSelector();
-                this.loadActiveScene();
-                app.autoSave();
-
-                if (window.gameIsRunning) {
-                    gameRunner.stopGame();
-                    setTimeout(() => gameRunner.playGame(), 50);
-                }
-            }
-            showNewSceneModal() {
-                document.getElementById('modal-new-scene').classList.remove('hidden');
-            }
-            closeNewSceneModal() {
-                document.getElementById('modal-new-scene').classList.add('hidden');
-            }
-            showEditSceneModal() {
-                const scene = this.getCurrentScene();
-                if (!scene) return;
-                document.getElementById('edit-scene-name').value = scene.name;
-                document.getElementById('edit-scene-type').value = scene.type || 'game';
-                document.getElementById('modal-edit-scene').classList.remove('hidden');
-            }
-            closeEditSceneModal() {
-                document.getElementById('modal-edit-scene').classList.add('hidden');
-            }
-            updateScene() {
-                const scene = this.getCurrentScene();
-                if (!scene) return;
-                scene.name = document.getElementById('edit-scene-name').value.trim() || scene.name;
-                scene.type = document.getElementById('edit-scene-type').value || 'game';
-                this.closeEditSceneModal();
-                this.renderSelector();
-                this.loadActiveScene();
-                app.autoSave();
-            }
-            loadActiveScene() {
-                const scene = this.getCurrentScene();
-                if (!scene) return;
-                const typeInd = document.getElementById('scene-type-indicator');
-                if (typeInd) {
-                    typeInd.innerText = `Cena: ${scene.type === 'game' ? 'Jogo (Gameplay)' : 'Visual (Menu/HUD)'}`;
-                }
-                sceneTree.init(scene.root);
-            }
-            createScene() {
-                const nameInput = document.getElementById('new-scene-name').value.trim() || 'NovaCena';
-                const typeInput = document.getElementById('new-scene-type').value || 'game';
-                
-                let defaultChildren = [];
-                if (typeInput === 'game') {
-                    defaultChildren = [
-                        { id: 'node_pl_' + Date.now(), name: 'Player', type: 'Player', x: 150, y: 150, width: 40, height: 40, color: '#3d8ec9', gravity: 0.5, script: '' },
-                        { id: 'node_pt_' + Date.now(), name: 'Plataforma', type: 'Platform', x: 50, y: 240, width: 200, height: 25, color: '#4b5263', script: '' },
-                        { id: 'node_cam_' + Date.now(), name: 'Camera', type: 'Camera2D', cameraMode: 'follow', x: 0, y: 0, script: '' }
-                    ];
-                } else {
-                    defaultChildren = [
-                        { id: 'node_bg_' + Date.now(), name: 'FundoPainel', type: 'Platform', x: 0, y: 0, width: 360, height: 640, color: '#21252b', script: '' },
-                        { id: 'node_lbl_' + Date.now(), name: 'Titulo', type: 'Button', text: 'MENU PRINCIPAL', x: 80, y: 100, width: 200, height: 50, color: '#3d8ec9', script: '' },
-                        { id: 'node_btn_' + Date.now(), name: 'BotaoJogar', type: 'Button', text: 'JOGAR', x: 100, y: 250, width: 160, height: 50, color: '#98c379', script: 'changeScene("GameScene");' }
-                    ];
-                }
-
-                const newScene = {
-                    id: 'scene_' + Date.now(),
-                    name: nameInput,
-                    type: typeInput,
-                    root: {
-                        name: 'Root',
-                        type: 'Node2D',
-                        children: defaultChildren
-                    }
-                };
-
-                app.currentProject.scenes.push(newScene);
-                app.currentProject.currentSceneId = newScene.id;
-                enrichNode(newScene.root);
-                this.closeNewSceneModal();
-                this.renderSelector();
-                this.loadActiveScene();
-                app.autoSave();
-            }
-        }
-        const sceneManager = new SceneManager();
-
-        // Função global de atalho para scripts abrirem outras cenas por ID ou Nome
-        window.changeScene = (sceneNameOrId) => {
-            sceneManager.switchScene(sceneNameOrId);
-        };
-
-        class EditorManager {
-            switchTab(tab) {
-                ['2d', 'script', 'globals'].forEach(t => {
-                    const view = document.getElementById('view-' + t);
-                    const btn = document.getElementById('tab-btn-' + t);
-                    if (view) view.classList.add('hidden');
-                    if (btn) btn.className = "px-3 py-1.5 text-gray-400 hover:text-white rounded-t cursor-pointer";
-                });
-                document.getElementById('view-' + tab).classList.remove('hidden');
-                document.getElementById('tab-btn-' + tab).className = "px-3 py-1.5 bg-[#21252b] text-white rounded-t border-t border-x border-[#2c313a] font-medium cursor-pointer";
-
-                const leftPanel = document.getElementById('left-panel');
-                const rightPanel = document.getElementById('right-panel');
-                const consolePanel = document.getElementById('bottom-console');
-
-                if (tab === 'script' || tab === 'globals') {
-                    leftPanel.classList.add('hidden');
-                    rightPanel.classList.add('hidden');
-                    consolePanel.classList.add('hidden');
-                    if (tab === 'globals') globalsManager.render();
-                } else {
-                    leftPanel.classList.remove('hidden');
-                    rightPanel.classList.remove('hidden');
-                    consolePanel.classList.remove('hidden');
-                    setTimeout(() => { editor2D.resize(); editor2D.draw(); }, 50);
-                }
-            }
-        }
-        const editorManager = new EditorManager();
-
-        class AppManager {
-            constructor() { this.storage = new StorageManager(); this.currentProject = null; this.projects = []; }
             async init() {
-                try {
-                    await this.storage.init();
-                    await this.loadProjectList();
-                } catch (err) { consoleWindow.log("Erro fatal ao iniciar IndexedDB.", "error"); }
-            }
-            async autoSave() {
-                if (!this.currentProject) return;
-                try { await this.storage.saveProject(this.currentProject); } catch (err) {}
-            }
-            async loadProjectList() {
-                try {
-                    this.projects = await this.storage.getProjects();
-                    if (!this.projects || this.projects.length === 0) {
-                        const defaultProj = {
-                            id: 'proj_' + Date.now(),
-                            name: 'Meu Jogo 2D (MultiCena)',
-                            globals: { vida: 3, pontos: 0 },
-                            currentSceneId: 'scene_main',
-                            scenes: [
-                                {
-                                    id: 'scene_main',
-                                    name: 'Fase1',
-                                    type: 'game',
-                                    root: {
-                                        name: 'Root',
-                                        type: 'Node2D',
-                                        children: [
-                                            { 
-                                                id: 'node_player', name: 'Player', type: 'Player', 
-                                                x: 150, y: 100, width: 40, height: 40, color: '#3d8ec9', 
-                                                gravity: 0.5, script: 'const joy = window.joysticks && window.joysticks["Joystick"];\nif (joy) this.x += joy.x * 4;\nif (window.buttons && window.buttons["BotaoPulo"] && this.onGround) {\n    this.vy = -10;\n    this.onGround = false;\n}' 
-                                            },
-                                            { id: 'node_plat', name: 'Plataforma1', type: 'Platform', x: 50, y: 260, width: 260, height: 25, color: '#4b5263', script: '' },
-                                            { id: 'node_lbl', name: 'Placar', type: 'Label', text: 'Pontos: 0', x: 20, y: 20, width: 120, height: 30, color: '#ffffff', script: 'this.text = "Pontos: " + window.Globals.pontos;' },
-                                            { id: 'node_btn', name: 'BotaoPulo', type: 'Button', text: 'Pular', x: 230, y: 310, width: 60, height: 60, color: '#e5c07b', locked: true, script: '' },
-                                            { id: 'node_joy', name: 'Joystick', type: 'VirtualJoystick', x: 30, y: 300, width: 100, height: 100, color: '#abb2bf', locked: true, script: '' },
-                                            { id: 'node_cam', name: 'CameraPrincipal', type: 'Camera2D', cameraMode: 'follow', x: 0, y: 0, script: '' }
-                                        ]
-                                    }
-                                }
-                            ]
-                        };
-                        await this.storage.saveProject(defaultProj);
-                        this.projects = [defaultProj];
-                    }
-                    this.projects.forEach(p => {
-                        if (!p.globals) p.globals = { vida: 3, pontos: 0 };
-                        if (p.scene && !p.scenes) {
-                            p.scenes = [{ id: 'scene_default', name: 'Principal', type: 'game', root: p.scene }];
-                            p.currentSceneId = 'scene_default';
-                            delete p.scene;
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(this.dbName, 1);
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => {
+                        this.db = request.result;
+                        resolve(this.db);
+                    };
+                    request.onupgradeneeded = (e) => {
+                        const db = e.target.result;
+                        if (!db.objectStoreNames.contains(this.storeName)) {
+                            db.createObjectStore(this.storeName, { keyPath: 'id' });
                         }
-                    });
-                    this.renderProjectList();
-                } catch (err) { consoleWindow.log("Erro ao carregar projetos.", "error"); }
-            }
-            renderProjectList(filter = '') {
-                const listEl = document.getElementById('project-list');
-                listEl.innerHTML = '';
-                this.projects.filter(p => p.name.toLowerCase().includes(filter.toLowerCase())).forEach(p => {
-                    const card = document.createElement('div');
-                    card.className = "godot-panel border border-[#2c313a] rounded-xl p-4 flex flex-col justify-between hover:border-[#3d8ec9] transition cursor-pointer shadow";
-                    card.onclick = () => this.openProject(p.id);
-                    card.innerHTML = `
-                        <div>
-                            <div class="w-full h-24 bg-[#181a1f] rounded-lg mb-3 flex items-center justify-center border border-[#2c313a]">
-                                <i class="fa-solid fa-gamepad text-3xl text-[#3d8ec9]"></i>
-                            </div>
-                            <h3 class="font-bold text-white text-sm truncate">${p.name}</h3>
-                            <p class="text-[10px] text-gray-400 mt-1">Cenas: ${(p.scenes || []).length} | Modificado: ${new Date(p.updatedAt || Date.now()).toLocaleDateString()}</p>
-                        </div>
-                        <div class="flex justify-end space-x-2 mt-4 pt-2 border-t border-[#2c313a]" onclick="event.stopPropagation()">
-                            <button onclick="app.deleteProject('${p.id}')" class="text-red-400 hover:text-red-300 text-xs p-1 cursor-pointer"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    `;
-                    listEl.appendChild(card);
+                        if (!db.objectStoreNames.contains('settings')) {
+                            db.createObjectStore('settings', { keyPath: 'id' });
+                        }
+                    };
                 });
             }
-            filterProjects(val) { this.renderProjectList(val); }
-            showNewProjectModal() { document.getElementById('modal-new-project').classList.remove('hidden'); }
-            closeNewProjectModal() { document.getElementById('modal-new-project').classList.add('hidden'); }
-            
-            async createProject() {
-                try {
-                    const nameInput = document.getElementById('new-project-name').value.trim() || 'Novo Jogo';
-                    const newProj = {
-                        id: 'proj_' + Date.now(),
-                        name: nameInput,
-                        globals: { vida: 3, pontos: 0 },
-                        currentSceneId: 'scene_main',
-                        scenes: [
-                            {
-                                id: 'scene_main',
-                                name: 'GameScene',
-                                type: 'game',
-                                root: {
-                                    name: 'Root',
-                                    type: 'Node2D',
-                                    children: [
-                                        { id: 'node_pl_' + Date.now(), name: 'Player', type: 'Player', x: 150, y: 150, width: 40, height: 40, color: '#98c379', gravity: 0.5, script: '' },
-                                        { id: 'node_pt_' + Date.now(), name: 'Plataforma', type: 'Platform', x: 50, y: 240, width: 200, height: 25, color: '#4b5263', script: '' },
-                                        { id: 'node_cam_' + Date.now(), name: 'Camera', type: 'Camera2D', cameraMode: 'follow', x: 0, y: 0, script: '' }
-                                    ]
-                                }
-                            }
-                        ]
-                    };
-                    await this.storage.saveProject(newProj);
-                    this.closeNewProjectModal();
-                    this.openProject(newProj.id);
-                } catch (err) {}
+            async saveProject(project) {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction(this.storeName, 'readwrite');
+                    const store = tx.objectStore(this.storeName);
+                    const req = store.put(project);
+                    req.onsuccess = () => resolve(true);
+                    req.onerror = () => reject(req.error);
+                });
+            }
+            async getProject(id) {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction(this.storeName, 'readonly');
+                    const store = tx.objectStore(this.storeName);
+                    const req = store.get(id);
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = () => reject(req.error);
+                });
+            }
+            async getAllProjects() {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction(this.storeName, 'readonly');
+                    const store = tx.objectStore(this.storeName);
+                    const req = store.getAll();
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = () => reject(req.error);
+                });
             }
             async deleteProject(id) {
-                if (confirm("Deseja excluir permanentemente este projeto?")) {
-                    await this.storage.deleteProject(id);
-                    await this.loadProjectList();
-                }
-            }
-            async openProject(id) {
-                this.currentProject = this.projects.find(p => p.id === id);
-                if (!this.currentProject) return;
-                if (!this.currentProject.globals) this.currentProject.globals = { vida: 3, pontos: 0 };
-                
-                document.getElementById('project-manager').classList.add('hidden');
-                document.getElementById('editor-view').classList.remove('hidden');
-                document.getElementById('current-project-title').innerText = this.currentProject.name;
-                
-                sceneManager.initScenes(this.currentProject);
-                editor2D.init();
-            }
-            openProjectManager() {
-                document.getElementById('editor-view').classList.add('hidden');
-                document.getElementById('project-manager').classList.remove('hidden');
-                this.loadProjectList();
-            }
-            toggleFullscreen() {
-                if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-                else if (document.exitFullscreen) document.exitFullscreen();
-            }
-        }
-        const app = new AppManager();
-
-        class SceneTreeManager {
-            constructor() { this.scene = null; this.selectedNode = null; }
-            init(sceneRoot) {
-                this.scene = sceneRoot;
-                enrichNode(this.scene);
-                this.selectedNode = this.scene.children[0] || this.scene;
-                this.render();
-                inspector.inspect(this.selectedNode);
-                scriptEditor.loadScript(this.selectedNode);
-                editor2D.draw();
-            }
-            render() {
-                const container = document.getElementById('node-tree-container');
-                container.innerHTML = '';
-                this.renderNodeRecursive(this.scene, container, 0);
-            }
-            renderNodeRecursive(node, parentEl, depth) {
-                const el = document.createElement('div');
-                const isSelected = this.selectedNode === node;
-                el.className = `flex items-center justify-between px-2 py-1.5 rounded cursor-pointer text-xs ${isSelected ? 'bg-[#3d8ec9]/30 border border-[#3d8ec9]' : 'hover:bg-[#2c313a]'}`;
-                el.style.paddingLeft = `${depth * 12 + 8}px`;
-                
-                let icon = 'fa-shapes text-[#3d8ec9]';
-                if (node.type === 'VirtualJoystick') icon = 'fa-circle-dot text-[#98c379]';
-                else if (node.type === 'Player') icon = 'fa-user text-[#e5c07b]';
-                else if (node.type === 'Platform') icon = 'fa-layer-group text-[#61afef]';
-                else if (node.type === 'Collision') icon = 'fa-vector-square text-[#e06c75]';
-                else if (node.type === 'Button' || node.type === 'Label') icon = 'fa-circle-dot text-[#d19a66]';
-                else if (node.type === 'Camera2D') icon = 'fa-camera text-[#c678dd]';
-
-                const canDelete = node !== this.scene;
-
-                el.innerHTML = `
-                    <div class="flex items-center space-x-2 truncate flex-1">
-                        <i class="fa-solid ${icon}"></i>
-                        <span class="text-white truncate">${node.name}</span>
-                        ${node.locked ? '<i class="fa-solid fa-lock text-yellow-400 text-[10px]" title="Bloqueado"></i>' : ''}
-                        <span class="text-[10px] text-gray-500">(${node.type})</span>
-                    </div>
-                    ${canDelete ? `<button class="text-gray-400 hover:text-red-400 p-1 delete-node-btn" title="Excluir Nó"><i class="fa-solid fa-trash-can text-[10px]"></i></button>` : ''}
-                `;
-
-                el.onclick = (e) => {
-                    if (e.target.closest('.delete-node-btn')) {
-                        e.stopPropagation();
-                        this.deleteNode(node);
-                        return;
-                    }
-                    this.selectedNode = node;
-                    this.render();
-                    inspector.inspect(node);
-                    scriptEditor.loadScript(node);
-                };
-                parentEl.appendChild(el);
-                if (node.children) node.children.forEach(child => this.renderNodeRecursive(child, parentEl, depth + 1));
-            }
-            deleteNode(node) {
-                if (node === this.scene) return;
-                if (confirm(`Deseja excluir o nó "${node.name}"?`)) {
-                    this.scene.children = this.scene.children.filter(c => c !== node);
-                    if (this.selectedNode === node) {
-                        this.selectedNode = this.scene.children[0] || this.scene;
-                        inspector.inspect(this.selectedNode);
-                        scriptEditor.loadScript(this.selectedNode);
-                    }
-                    this.render();
-                    app.autoSave();
-                    editor2D.draw();
-                }
-            }
-            showAddNodeModal() {
-                const list = document.getElementById('node-type-list');
-                list.innerHTML = '';
-                const types = [
-                    { type: 'Player', desc: 'Personagem principal com suporte a movimento e gravidade' },
-                    { type: 'Platform', desc: 'Plataforma sólida e opaca para apoio de personagens' },
-                    { type: 'Collision', desc: 'Área de colisão / barreira sólida para delimitar o cenário' },
-                    { type: 'Sprite2D', desc: 'Objeto visual com suporte a imagem e texturas' },
-                    { type: 'Button', desc: 'Botão clicável / acionável para menus e ações' },
-                    { type: 'Label', desc: 'Texto estático ou rótulo visual (Ex: Placar)' },
-                    { type: 'VirtualJoystick', desc: 'Controle analógico direcional touch customizável' },
-                    { type: 'Camera2D', desc: 'Câmera seguidora ou fixa do jogo' }
-                ];
-                types.forEach(t => {
-                    const item = document.createElement('div');
-                    item.className = "p-2.5 bg-[#181a1f] hover:bg-[#2c313a] rounded cursor-pointer border border-[#2c313a]";
-                    item.innerHTML = `<div class="font-bold text-white text-xs">${t.type}</div><div class="text-[10px] text-gray-400 mt-0.5">${t.desc}</div>`;
-                    item.onclick = () => this.addNode(t.type);
-                    list.appendChild(item);
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction(this.storeName, 'readwrite');
+                    const store = tx.objectStore(this.storeName);
+                    const req = store.delete(id);
+                    req.onsuccess = () => resolve(true);
+                    req.onerror = () => reject(req.error);
                 });
-                document.getElementById('modal-add-node').classList.remove('hidden');
             }
-            closeAddNodeModal() { document.getElementById('modal-add-node').classList.add('hidden'); }
-            addNode(type) {
-                const isCam = type === 'Camera2D';
-                const isJoy = type === 'VirtualJoystick';
-                const isBtnOrLbl = type === 'Button' || type === 'Label';
-                const isCol = type === 'Collision';
-                const newNode = {
-                    id: 'node_' + Date.now(),
-                    name: type + '_' + Math.floor(Math.random()*100),
-                    type: type,
-                    x: 120, y: 120, 
-                    width: isJoy ? 100 : (isBtnOrLbl ? 120 : 40), 
-                    height: isJoy ? 100 : (isBtnOrLbl ? 40 : 40), 
-                    color: isCol ? '#e06c75' : (isBtnOrLbl ? '#e5c07b' : (type === 'Platform' ? '#4b5263' : (type === 'Player' ? '#3d8ec9' : '#98c379'))),
-                    gravity: 0,
-                    opacity: isCol ? 0.6 : 1,
-                    animation: 'none',
-                    frames: [],
-                    animSpeed: 10,
-                    text: isBtnOrLbl ? (type === 'Label' ? 'Texto' : 'Botão') : undefined,
-                    directionMode: isJoy ? 'all' : undefined,
-                    cameraMode: isCam ? 'follow' : undefined,
-                    locked: (isJoy || isBtnOrLbl) ? true : false,
-                    script: ''
-                };
-                if (!this.scene.children) this.scene.children = [];
-                this.scene.children.push(newNode);
-                this.closeAddNodeModal();
-                this.selectedNode = newNode;
-                this.render();
-                inspector.inspect(newNode);
-                scriptEditor.loadScript(newNode);
-                app.autoSave();
-                editor2D.draw();
+            async saveSettings(settings) {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction('settings', 'readwrite');
+                    const store = tx.objectStore('settings');
+                    const req = store.put({ id: 'user_settings', ...settings });
+                    req.onsuccess = () => resolve(true);
+                    req.onerror = () => reject(req.error);
+                });
+            }
+            async getSettings() {
+                return new Promise((resolve) => {
+                    const tx = this.db.transaction('settings', 'readonly');
+                    const store = tx.objectStore('settings');
+                    const req = store.get('user_settings');
+                    req.onsuccess = () => resolve(req.result || {
+                        fontSize: 14,
+                        theme: 'dark',
+                        tabSize: 4,
+                        wordWrap: 'on',
+                        autoSave: true,
+                        autoPreview: true
+                    });
+                    req.onerror = () => resolve({});
+                });
             }
         }
-        const sceneTree = new SceneTreeManager();
 
-        class InspectorManager {
-            constructor() { this.currentNode = null; }
-            inspect(node) {
-                this.currentNode = node;
-                const container = document.getElementById('inspector-content');
-                container.innerHTML = '';
-                if (!node) {
-                    container.innerHTML = '<p class="text-gray-500 italic text-center mt-6">Nenhum nó selecionado.</p>';
-                    return;
-                }
+        // --- MAIN APP CONTROLLER ---
+        class EngineCodeIDE {
+            constructor() {
+                this.storage = new StorageManager();
+                this.project = null;
+                this.activeFileId = null;
+                this.openTabs = [];
+                this.editor = null;
+                this.settings = {};
+                this.executionTimeout = null;
+                this.autoSaveTimer = null;
+            }
 
-                const fields = [];
-                fields.push({ label: 'Nome', key: 'name', type: 'text' });
+            async init() {
+                await this.storage.init();
+                this.settings = await this.storage.getSettings();
                 
-                if (node.type === 'Camera2D') {
-                    fields.push({ label: 'Modo da Câmera', key: 'cameraMode', type: 'select', options: [
-                        { val: 'follow', text: 'Seguir o Player' },
-                        { val: 'fixed', text: 'Fixa' }
-                    ]});
-                    fields.push({ label: 'Posição X', key: 'x', type: 'number' });
-                    fields.push({ label: 'Posição Y', key: 'y', type: 'number' });
-                } else if (node.x !== undefined) {
-                    fields.push({ label: 'Posição X', key: 'x', type: 'number' });
-                    fields.push({ label: 'Posição Y', key: 'y', type: 'number' });
-                    fields.push({ label: 'Largura', key: 'width', type: 'number' });
-                    fields.push({ label: 'Altura', key: 'height', type: 'number' });
-                    fields.push({ label: 'Cor', key: 'color', type: 'color' });
-                    fields.push({ label: 'Opacidade (0 a 1)', key: 'opacity', type: 'number' });
-                    
-                    if (node.type === 'Button' || node.type === 'Label') {
-                        fields.push({ label: 'Texto', key: 'text', type: 'text' });
+                let projects = await this.storage.getAllProjects();
+                if (projects.length === 0) {
+                    this.project = this.createDefaultProject();
+                    await this.storage.saveProject(this.project);
+                } else {
+                    this.project = projects[0];
+                }
+
+                this.activeFileId = this.project.mainFileId || this.project.files[0].id;
+                this.openTabs = [this.activeFileId];
+
+                this.initMonaco();
+                this.initUIEvents();
+                lucide.createIcons();
+                this.renderAll();
+                this.setupAutoSave();
+            }
+
+            createDefaultProject() {
+                const fileHtmlId = 'file_' + Date.now() + '_1';
+                const fileCssId = 'file_' + Date.now() + '_2';
+                const fileJsId = 'file_' + Date.now() + '_3';
+                return {
+                    id: 'proj_' + Date.now(),
+                    name: 'Web App Exemplo',
+                    mainFileId: fileHtmlId,
+                    files: [
+                        { id: fileHtmlId, name: 'index.html', language: 'html', content: '<div class="container">\n  <h1>Olá, EngineCode!</h1>\n  <p>Edite e veja o resultado em tempo real.</p>\n  <button onclick="dizerOla()">Clique Aqui</button>\n</div>' },
+                        { id: fileCssId, name: 'style.css', language: 'css', content: 'body { font-family: system-ui; background: #f8fafc; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }\n.container { text-align: center; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }\nh1 { color: #0ea5e9; margin-bottom: 0.5rem; }\nbutton { background: #0ea5e9; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 1rem; }\nbutton:hover { background: #0284c7; }' },
+                        { id: fileJsId, name: 'script.js', language: 'javascript', content: 'function dizerOla() {\n  alert("EngineCode funcionando perfeitamente!");\n}' }
+                    ]
+                };
+            }
+
+            initMonaco() {
+                require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min' }});
+                require(['vs/editor/editor.main'], () => {
+                    const activeFile = this.getFile(this.activeFileId);
+                    this.editor = monaco.editor.create(document.getElementById('editor-container'), {
+                        value: activeFile ? activeFile.content : '',
+                        language: activeFile ? activeFile.language : 'html',
+                        theme: 'vs-dark',
+                        fontSize: this.settings.fontSize || 14,
+                        tabSize: this.settings.tabSize || 4,
+                        wordWrap: this.settings.wordWrap || 'on',
+                        automaticLayout: true,
+                        minimap: { enabled: true }
+                    });
+
+                    this.editor.onDidChangeModelContent(() => {
+                        const file = this.getFile(this.activeFileId);
+                        if (file) {
+                            file.content = this.editor.getValue();
+                            this.setSaveStatus(false);
+                            if (this.settings.autoPreview && (file.language === 'html' || file.language === 'css' || file.language === 'javascript')) {
+                                clearTimeout(this.executionTimeout);
+                                this.executionTimeout = setTimeout(() => this.runFrontendPreview(), 500);
+                            }
+                        }
+                    });
+
+                    // Keyboard shortcuts
+                    this.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => this.saveProject());
+                    this.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => this.runCode());
+                    this.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyN, () => this.newFileDialog());
+
+                    this.runFrontendPreview();
+                });
+            }
+
+            initUIEvents() {
+                // Resizer X
+                const resizer = document.getElementById('resizer-x');
+                const sidebar = document.getElementById('sidebar');
+                const outputPanel = document.getElementById('output-panel');
+                let isResizing = false;
+
+                resizer.addEventListener('mousedown', () => { isResizing = true; });
+                window.addEventListener('mousemove', (e) => {
+                    if (!isResizing) return;
+                    const containerWidth = window.innerWidth;
+                    const newWidth = containerWidth - e.clientX;
+                    if (newWidth > 200 && newWidth < containerWidth - 300) {
+                        outputPanel.style.width = newWidth + 'px';
                     }
+                });
+                window.addEventListener('mouseup', () => { isResizing = false; });
+            }
 
-                    if (node.type !== 'VirtualJoystick' && node.type !== 'Button' && node.type !== 'Label' && node.type !== 'Collision') {
-                        fields.push({ label: 'Gravidade (Força Queda)', key: 'gravity', type: 'number' });
-                        fields.push({ label: 'Modo de Animação', key: 'animation', type: 'select', options: [
-                            { val: 'none', text: 'Nenhuma' },
-                            { val: 'float', text: 'Flutuar (Vertical)' },
-                            { val: 'pulse', text: 'Pulsação (Escala)' },
-                            { val: 'patrol', text: 'Patrulha (Horizontal)' },
-                            { val: 'spritesheet', text: 'Animação por Frames (Sprite)' }
-                        ]});
-                        fields.push({ label: 'Velocidade dos Frames (FPS)', key: 'animSpeed', type: 'number' });
-                    }
+            renderAll() {
+                document.getElementById('current-project-name').innerText = this.project.name;
+                this.renderFileTree();
+                this.renderTabs();
+                const file = this.getFile(this.activeFileId);
+                if (file) {
+                    document.getElementById('language-select').value = file.language;
                 }
+                lucide.createIcons();
+            }
 
-                if (node.type === 'VirtualJoystick') {
-                    fields.push({ label: 'Direções Aceitas', key: 'directionMode', type: 'select', options: [
-                        { val: 'all', text: 'Todos os lados (360°)' },
-                        { val: 'horizontal', text: 'Apenas Lados' },
-                        { val: 'vertical', text: 'Apenas Cima/Baixo' }
-                    ]});
-                    fields.push({ label: 'Cor do Joystick', key: 'color', type: 'color' });
-                    fields.push({ label: 'Opacidade', key: 'opacity', type: 'number' });
-                }
-
-                if (node.x !== undefined && node.type !== 'Camera2D') {
-                    fields.push({ label: 'Bloqueado na Tela', key: 'locked', type: 'checkbox' });
-                }
-
-                fields.forEach(f => {
+            renderFileTree() {
+                const container = document.getElementById('file-tree');
+                container.innerHTML = '';
+                this.project.files.forEach(file => {
+                    const isSelected = file.id === this.activeFileId;
+                    const isMain = file.id === this.project.mainFileId;
                     const div = document.createElement('div');
-                    div.className = "space-y-1";
-                    if (f.type === 'checkbox') {
-                        div.innerHTML = `
-                            <div class="flex items-center space-x-2 pt-1">
-                                <input type="checkbox" id="chk-locked" ${node.locked ? 'checked' : ''} onchange="inspector.updateProperty('locked', this.checked)" class="w-4 h-4 accent-[#3d8ec9] cursor-pointer">
-                                <label for="chk-locked" class="text-[10px] text-gray-300 uppercase font-semibold cursor-pointer">${f.label}</label>
-                            </div>
-                        `;
-                    } else if (f.type === 'select') {
-                        let optsHtml = f.options.map(o => `<option value="${o.val}" ${node[f.key] === o.val ? 'selected' : ''}>${o.text}</option>`).join('');
-                        div.innerHTML = `
-                            <label class="text-[10px] text-gray-400 uppercase font-semibold">${f.label}</label>
-                            <select onchange="inspector.updateProperty('${f.key}', this.value)" class="w-full bg-[#181a1f] border border-[#3a3f4b] rounded p-1.5 text-xs text-white">${optsHtml}</select>
-                        `;
-                    } else {
-                        div.innerHTML = `
-                            <label class="text-[10px] text-gray-400 uppercase font-semibold">${f.label}</label>
-                            <input type="${f.type}" value="${node[f.key] !== undefined ? node[f.key] : ''}" oninput="inspector.updateProperty('${f.key}', this.value)" class="w-full bg-[#181a1f] border border-[#3a3f4b] rounded p-1.5 text-xs text-white">
-                        `;
-                    }
+                    div.className = `flex items-center justify-between px-2 py-1.5 rounded cursor-pointer group text-xs ${isSelected ? 'bg-cyan-500/15 text-cyan-400 font-medium' : 'text-slate-300 hover:bg-dark-700'}`;
+                    div.innerHTML = `
+                        <div class="flex items-center space-x-2 truncate" onclick="app.openFile('${file.id}')">
+                            <i data-lucide="${this.getFileIcon(file.language)}" class="w-4 h-4 shrink-0"></i>
+                            <span class="truncate">${file.name}</span>
+                            ${isMain ? '<span class="text-[10px] bg-cyan-500/20 text-cyan-300 px-1 rounded">main</span>' : ''}
+                        </div>
+                        <div class="hidden group-hover:flex items-center space-x-1">
+                            <button onclick="event.stopPropagation(); app.setMainFile('${file.id}')" title="Definir como Principal" class="p-1 hover:text-cyan-400"><i data-lucide="star" class="w-3 h-3"></i></button>
+                            <button onclick="event.stopPropagation(); app.deleteFileDialog('${file.id}')" title="Excluir" class="p-1 hover:text-rose-400"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+                        </div>
+                    `;
                     container.appendChild(div);
                 });
+            }
 
-                if (node.x !== undefined && node.type !== 'VirtualJoystick' && node.type !== 'Camera2D' && node.type !== 'Button' && node.type !== 'Label' && node.type !== 'Collision') {
-                    const imgSection = document.createElement('div');
-                    imgSection.className = "mt-4 pt-3 border-t border-[#2c313a] space-y-2";
-                    imgSection.innerHTML = `
-                        <label class="text-[10px] text-gray-400 uppercase font-semibold">Importar Imagens / Sprites (Dispositivo)</label>
-                        <input type="file" accept="image/*" multiple onchange="inspector.handleImageUpload(event)" class="w-full text-xs text-gray-400 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-[#3d8ec9] file:text-white hover:file:bg-[#327bb5] cursor-pointer">
-                        <div id="sprites-preview" class="grid grid-cols-4 gap-2 mt-2"></div>
+            renderTabs() {
+                const container = document.getElementById('editor-tabs');
+                container.innerHTML = '';
+                this.openTabs.forEach(fileId => {
+                    const file = this.getFile(fileId);
+                    if (!file) return;
+                    const isActive = fileId === this.activeFileId;
+                    const tab = document.createElement('div');
+                    tab.className = `flex items-center space-x-2 px-3 py-1.5 text-xs border-r border-dark-700 cursor-pointer ${isActive ? 'bg-dark-900 text-cyan-400 border-t-2 border-t-cyan-400 font-medium' : 'text-slate-400 hover:bg-dark-700/50'}`;
+                    tab.innerHTML = `
+                        <span onclick="app.switchTab('${file.id}')">${file.name}</span>
+                        <button onclick="event.stopPropagation(); app.closeTab('${file.id}')" class="hover:text-white p-0.5 rounded"><i data-lucide="x" class="w-3 h-3"></i></button>
                     `;
-                    container.appendChild(imgSection);
-                    this.renderSpritesPreview();
+                    container.appendChild(tab);
+                });
+            }
+
+            getFileIcon(lang) {
+                switch(lang) {
+                    case 'html': return 'file-code';
+                    case 'css': return 'file-text';
+                    case 'javascript': case 'typescript': return 'file-json';
+                    case 'python': return 'file-code';
+                    default: return 'file';
                 }
             }
-            updateProperty(key, val) {
-                if (!this.currentNode) return;
-                if (key === 'locked') {
-                    this.currentNode.locked = Boolean(val);
-                } else if (['x', 'y', 'width', 'height', 'gravity', 'opacity', 'animSpeed'].includes(key)) {
-                    this.currentNode[key] = parseFloat(val) || 0;
+
+            getFile(id) {
+                return this.project.files.find(f => f.id === id);
+            }
+
+            openFile(id) {
+                this.activeFileId = id;
+                if (!this.openTabs.includes(id)) {
+                    this.openTabs.push(id);
+                }
+                const file = this.getFile(id);
+                if (file && this.editor) {
+                    const model = this.editor.getModel();
+                    monaco.editor.setModelLanguage(model, file.language);
+                    model.setValue(file.content);
+                    document.getElementById('language-select').value = file.language;
+                }
+                this.renderAll();
+            }
+
+            switchTab(id) {
+                this.openFile(id);
+            }
+
+            closeTab(id) {
+                this.openTabs = this.openTabs.filter(t => t !== id);
+                if (this.activeFileId === id && this.openTabs.length > 0) {
+                    this.openFile(this.openTabs[this.openTabs.length - 1]);
+                } else if (this.openTabs.length === 0) {
+                    this.activeFileId = null;
+                    if (this.editor) this.editor.setValue('');
+                }
+                this.renderAll();
+            }
+
+            changeLanguage(lang) {
+                const file = this.getFile(this.activeFileId);
+                if (file) {
+                    file.language = lang;
+                    if (this.editor) {
+                        monaco.editor.setModelLanguage(this.editor.getModel(), lang);
+                    }
+                    this.renderAll();
+                    this.setSaveStatus(false);
+                }
+            }
+
+            setMainFile(id) {
+                this.project.mainFileId = id;
+                this.renderAll();
+                this.showToast('Arquivo principal definido!', 'success');
+            }
+
+            async saveProject() {
+                await this.storage.saveProject(this.project);
+                this.setSaveStatus(true);
+                this.showToast('Projeto salvo com sucesso!', 'success');
+            }
+
+            setSaveStatus(isSaved) {
+                const el = document.getElementById('save-status');
+                if (isSaved) {
+                    el.innerHTML = '<i data-lucide="check" class="w-3 h-3 text-emerald-400"></i> Salvo';
                 } else {
-                    this.currentNode[key] = val;
+                    el.innerHTML = '<i data-lucide="circle" class="w-3 h-3 text-amber-400 fill-amber-400"></i> Não salvo';
                 }
-                sceneTree.render();
-                if (window.editor2D) window.editor2D.draw();
-                app.autoSave();
+                lucide.createIcons();
             }
-            handleImageUpload(e) {
-                if (!this.currentNode) return;
-                const files = e.target.files;
-                if (!files || files.length === 0) return;
-                if (!this.currentNode.frames) this.currentNode.frames = [];
-                for (let file of files) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        this.currentNode.frames.push(event.target.result);
-                        if (this.currentNode.frames.length === 1) this.currentNode.sprite = event.target.result;
-                        this.renderSpritesPreview();
-                        app.autoSave();
-                        editor2D.draw();
-                    };
-                    reader.readAsDataURL(file);
+
+            setupAutoSave() {
+                setInterval(() => {
+                    if (this.settings.autoSave) {
+                        this.storage.saveProject(this.project);
+                    }
+                }, 10000);
+            }
+
+            newFileDialog() {
+                this.showModal('Criar Novo Arquivo', `
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Nome do Arquivo (ex: index.js, app.py)</label>
+                            <input id="new-file-name" type="text" class="w-full bg-dark-900 border border-dark-600 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500" placeholder="script.js">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Linguagem</label>
+                            <select id="new-file-lang" class="w-full bg-dark-900 border border-dark-600 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500">
+                                <option value="html">HTML</option>
+                                <option value="css">CSS</option>
+                                <option value="javascript" selected>JavaScript</option>
+                                <option value="python">Python</option>
+                                <option value="java">Java</option>
+                                <option value="cpp">C++</option>
+                            </select>
+                        </div>
+                        <div class="flex justify-end space-x-2 pt-2">
+                            <button onclick="app.closeModal()" class="px-4 py-2 bg-dark-700 hover:bg-dark-600 rounded text-sm">Cancelar</button>
+                            <button onclick="app.confirmCreateFile()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded text-sm font-medium">Criar</button>
+                        </div>
+                    </div>
+                `);
+            }
+
+            confirmCreateFile() {
+                const name = document.getElementById('new-file-name').value.trim();
+                const lang = document.getElementById('new-file-lang').value;
+                if (!name) return;
+                const newFile = {
+                    id: 'file_' + Date.now(),
+                    name: name,
+                    language: lang,
+                    content: `// ${name}\n`
+                };
+                this.project.files.push(newFile);
+                this.closeModal();
+                this.openFile(newFile.id);
+                this.showToast('Arquivo criado com sucesso!', 'success');
+            }
+
+            deleteFileDialog(id) {
+                if (this.project.files.length <= 1) {
+                    this.showToast('O projeto precisa ter pelo menos um arquivo.', 'error');
+                    return;
+                }
+                const file = this.getFile(id);
+                if (confirm(`Deseja realmente excluir ${file.name}?`)) {
+                    this.project.files = this.project.files.filter(f => f.id !== id);
+                    this.closeTab(id);
+                    this.renderAll();
+                    this.showToast('Arquivo excluído.', 'info');
                 }
             }
-            renderSpritesPreview() {
-                const previewEl = document.getElementById('sprites-preview');
-                if (!previewEl || !this.currentNode || !this.currentNode.frames) return;
-                previewEl.innerHTML = '';
-                this.currentNode.frames.forEach((frame, idx) => {
-                    const thumb = document.createElement('div');
-                    thumb.className = "relative w-12 h-12 bg-[#181a1f] border border-[#3a3f4b] rounded overflow-hidden flex items-center justify-center";
-                    thumb.innerHTML = `
-                        <img src="${frame}" class="w-full h-full object-cover">
-                        <button onclick="inspector.removeFrame(${idx})" class="absolute top-0 right-0 bg-red-600 text-white w-4 h-4 text-[9px] flex items-center justify-center cursor-pointer">&times;</button>
-                    `;
-                    previewEl.appendChild(thumb);
-                });
-            }
-            removeFrame(idx) {
-                if (!this.currentNode || !this.currentNode.frames) return;
-                this.currentNode.frames.splice(idx, 1);
-                this.currentNode.sprite = this.currentNode.frames.length > 0 ? this.currentNode.frames[0] : '';
-                this.renderSpritesPreview();
-                app.autoSave();
-                editor2D.draw();
-            }
-        }
-        const inspector = new InspectorManager();
 
-        class ScriptEditor {
-            constructor() { this.currentNode = null; }
-            loadScript(node) {
-                this.currentNode = node;
-                const ta = document.getElementById('script-textarea');
-                const nameEl = document.getElementById('script-owner-name');
-                const typeEl = document.getElementById('script-owner-type');
-                if (node && node.script !== undefined) {
-                    ta.value = node.script;
-                    if (nameEl) nameEl.innerText = node.name;
-                    if (typeEl) typeEl.innerText = node.type;
-                }
+            switchOutputTab(tab) {
+                const isPreview = tab === 'preview';
+                document.getElementById('panel-preview').classList.toggle('hidden', !isPreview);
+                document.getElementById('panel-terminal').classList.toggle('hidden', isPreview);
+                document.getElementById('tab-btn-preview').className = isPreview ? 'text-cyan-400 border-b-2 border-cyan-400 pb-2 pt-2 flex items-center gap-1.5 transition' : 'text-slate-400 hover:text-white pb-2 pt-2 flex items-center gap-1.5 transition';
+                document.getElementById('tab-btn-terminal').className = !isPreview ? 'text-cyan-400 border-b-2 border-cyan-400 pb-2 pt-2 flex items-center gap-1.5 transition' : 'text-slate-400 hover:text-white pb-2 pt-2 flex items-center gap-1.5 transition';
+                lucide.createIcons();
             }
-            onInput(val) {
-                if (!this.currentNode) return;
-                this.currentNode.script = val;
-                app.autoSave();
-            }
-        }
-        const scriptEditor = new ScriptEditor();
 
-        class Editor2D {
-            constructor() { 
-                this.canvas = null; this.ctx = null; this.tool = 'select'; 
-                this.isDragging = false; this.isResizing = false; this.dragNode = null;
-                this.dragPointerId = null; this.cameraX = 0; this.cameraY = 0;
-                this.lastMousePos = { x: 0, y: 0 }; this.activeJoysticks = {}; 
-                this.activeButtons = {}; this.imageCache = {};
-            }
-            init() {
-                this.canvas = document.getElementById('canvas-2d');
-                this.ctx = this.canvas.getContext('2d');
-                this.resize();
-                window.addEventListener('resize', () => this.resize());
-                
-                this.canvas.onpointerdown = (e) => {
-                    const r = this.canvas.getBoundingClientRect();
-                    const x = e.clientX - r.left; const y = e.clientY - r.top;
-                    try { this.canvas.setPointerCapture(e.pointerId); } catch (err) {}
+            async runCode() {
+                const file = this.getFile(this.activeFileId);
+                if (!file) return;
 
-                    if (!window.gameIsRunning) {
-                        if (this.dragPointerId === null) {
-                            this.dragPointerId = e.pointerId;
-                            this.lastMousePos = { x, y };
-                            this.onDown(x, y);
-                        }
-                    } else {
-                        this.onTouchDown(e.pointerId, x, y);
-                    }
-                    e.preventDefault();
-                };
-
-                this.canvas.onpointermove = (e) => {
-                    const r = this.canvas.getBoundingClientRect();
-                    const x = e.clientX - r.left; const y = e.clientY - r.top;
-                    if (!window.gameIsRunning) {
-                        if (this.dragPointerId === e.pointerId) this.onMove(x, y);
-                    } else {
-                        if (this.activeJoysticks[e.pointerId]) this.updateJoystickTouch(e.pointerId, x, y);
-                    }
-                    e.preventDefault();
-                };
-
-                this.canvas.onpointerup = (e) => {
-                    if (!window.gameIsRunning) {
-                        if (this.dragPointerId === e.pointerId) { this.dragPointerId = null; this.onUp(); }
-                    } else {
-                        this.onTouchUp(e.pointerId);
-                    }
-                    try { this.canvas.releasePointerCapture(e.pointerId); } catch (err) {}
-                    e.preventDefault();
-                };
-
-                this.canvas.onpointercancel = (e) => {
-                    if (!window.gameIsRunning && this.dragPointerId === e.pointerId) {
-                        this.dragPointerId = null; this.onUp();
-                    } else if (window.gameIsRunning) { this.onTouchUp(e.pointerId); }
-                    try { this.canvas.releasePointerCapture(e.pointerId); } catch (err) {}
-                    e.preventDefault();
-                };
-                this.draw();
-            }
-            resize() {
-                if (!this.canvas) return;
-                const parent = this.canvas.parentElement;
-                if (!parent) return;
-                this.canvas.width = parent.clientWidth;
-                this.canvas.height = parent.clientHeight;
-                this.draw();
-            }
-            setTool(t) {
-                this.tool = t;
-                const btnSelect = document.getElementById('tool-select');
-                const btnMove = document.getElementById('tool-move');
-                if (t === 'select') {
-                    btnSelect.className = "p-1.5 bg-[#3d8ec9] text-white rounded cursor-pointer transition";
-                    btnMove.className = "p-1.5 text-gray-300 hover:bg-[#2c313a] rounded cursor-pointer transition";
-                    this.canvas.style.cursor = 'crosshair';
+                if (['html', 'css', 'javascript'].includes(file.language)) {
+                    this.switchOutputTab('preview');
+                    this.runFrontendPreview();
+                    this.showToast('Preview atualizado!', 'success');
                 } else {
-                    btnMove.className = "p-1.5 bg-[#3d8ec9] text-white rounded cursor-pointer transition";
-                    btnSelect.className = "p-1.5 text-gray-300 hover:bg-[#2c313a] rounded cursor-pointer transition";
-                    this.canvas.style.cursor = 'grab';
+                    this.switchOutputTab('terminal');
+                    await this.runBackendCode(file);
                 }
             }
-            toggleMaximize() {
-                const panels = ['left-panel', 'right-panel', 'bottom-console', 'editor-header', 'editor-tabs'];
-                const isHidden = document.getElementById('left-panel').classList.contains('hidden');
-                panels.forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) { if (!isHidden) el.classList.add('hidden'); else el.classList.remove('hidden'); }
-                });
-                setTimeout(() => this.resize(), 50);
-            }
-            onDown(x, y) {
-                this.lastMousePos = { x, y };
-                if (window.gameIsRunning) return;
-                if (this.tool === 'move') { this.isDragging = true; this.canvas.style.cursor = 'grabbing'; return; }
 
-                if (!sceneTree.scene) return;
-                const worldX = x - this.cameraX; const worldY = y - this.cameraY;
-                const nodes = [sceneTree.scene, ...(sceneTree.scene.children || [])];
+            runFrontendPreview() {
+                const htmlFile = this.project.files.find(f => f.language === 'html') || this.project.files[0];
+                const cssFiles = this.project.files.filter(f => f.language === 'css');
+                const jsFiles = this.project.files.filter(f => f.language === 'javascript');
 
-                for (let i = nodes.length - 1; i >= 0; i--) {
-                    let n = nodes[i];
-                    if (n.x !== undefined && n.locked) {
-                        if (n.type === 'Button' || n.type === 'Label') {
-                            if (x >= n.x && x <= n.x + n.width && y >= n.y && y <= n.y + n.height) {
-                                this.dragNode = n; this.isDragging = true;
-                                sceneTree.selectedNode = n; sceneTree.render(); inspector.inspect(n); scriptEditor.loadScript(n);
-                                return;
-                            }
-                        } else if (x >= n.x && x <= n.x + n.width && y >= n.y && y <= n.y + n.height) {
-                            this.dragNode = n; this.isDragging = true;
-                            sceneTree.selectedNode = n; sceneTree.render(); inspector.inspect(n); scriptEditor.loadScript(n);
-                            return;
-                        }
-                    }
-                }
-                for (let i = nodes.length - 1; i >= 0; i--) {
-                    let n = nodes[i];
-                    if (n.x !== undefined && !n.locked) {
-                        if (worldX >= n.x && worldX <= n.x + n.width && worldY >= n.y && worldY <= n.y + n.height) {
-                            this.dragNode = n; this.isDragging = true;
-                            sceneTree.selectedNode = n; sceneTree.render(); inspector.inspect(n); scriptEditor.loadScript(n);
-                            break;
-                        }
-                    }
-                }
-            }
-            onMove(x, y) {
-                const dx = x - this.lastMousePos.x; const dy = y - this.lastMousePos.y;
-                this.lastMousePos = { x, y };
-                if (window.gameIsRunning || (!this.isDragging)) return;
+                let cssContent = cssFiles.map(f => `<style>${f.content}</style>`).join('\n');
+                let jsContent = jsFiles.map(f => `<script>${f.content}<\/script>`).join('\n');
 
-                if (this.tool === 'move') {
-                    this.cameraX += dx; this.cameraY += dy; this.draw();
-                } else if (this.dragNode) {
-                    if (this.dragNode.locked) return;
-                    this.dragNode.x += dx; this.dragNode.y += dy;
-                    inspector.inspect(this.dragNode); this.draw(); app.autoSave();
-                }
-            }
-            onUp() { 
-                this.isDragging = false; this.dragNode = null; 
-                if (this.tool === 'move') this.canvas.style.cursor = 'grab';
-            }
-            onTouchDown(id, x, y) {
-                const nodes = [sceneTree.scene, ...(sceneTree.scene.children || [])];
-                for (let n of nodes) {
-                    if (n.type === 'VirtualJoystick') {
-                        const cx = n.x + (n.width / 2); const cy = n.y + (n.height / 2);
-                        if (Math.hypot(x - cx, y - cy) <= n.width * 1.5) {
-                            this.activeJoysticks[id] = { nodeName: n.name, center: { x: cx, y: cy }, stick: { x: cx, y: cy } };
-                            this.updateJoystickTouch(id, x, y);
-                            break;
-                        }
-                    } else if (n.type === 'Button') {
-                        if (x >= n.x && x <= n.x + n.width && y >= n.y && y <= n.y + n.height) {
-                            this.activeButtons[id] = n.name;
-                            if (!window.buttons) window.buttons = {};
-                            window.buttons[n.name] = true;
-                        }
-                    }
-                }
-            }
-            onTouchUp(id) {
-                if (this.activeJoysticks[id]) {
-                    const joy = this.activeJoysticks[id];
-                    delete this.activeJoysticks[id];
-                    if (!window.joysticks) window.joysticks = {};
-                    window.joysticks[joy.nodeName] = { x: 0, y: 0 };
-                }
-                if (this.activeButtons[id]) {
-                    const btnName = this.activeButtons[id];
-                    delete this.activeButtons[id];
-                    if (!window.buttons) window.buttons = {};
-                    window.buttons[btnName] = false;
-                }
-            }
-            updateJoystickTouch(id, x, y) {
-                const joy = this.activeJoysticks[id];
-                if (!joy) return;
-                const nodes = [sceneTree.scene, ...(sceneTree.scene.children || [])];
-                const joyNode = nodes.find(n => n.name === joy.nodeName);
-                const mode = joyNode ? joyNode.directionMode : 'all';
-                let dx = x - joy.center.x; let dy = y - joy.center.y;
-                if (mode === 'horizontal') dy = 0; if (mode === 'vertical') dx = 0;
-                const dist = Math.hypot(dx, dy); const maxRadius = 40;
-                let nx = dx, ny = dy;
-                if (dist > maxRadius) { nx = (dx / dist) * maxRadius; ny = (dy / dist) * maxRadius; }
-                joy.stick = { x: joy.center.x + nx, y: joy.center.y + ny };
-                if (!window.joysticks) window.joysticks = {};
-                window.joysticks[joy.nodeName] = { 
-                    x: mode === 'vertical' ? 0 : (nx / maxRadius), 
-                    y: mode === 'horizontal' ? 0 : (ny / maxRadius) 
-                };
-            }
-            draw() {
-                if (!this.ctx || !this.canvas) return;
-                const w = this.canvas.width; const h = this.canvas.height;
-                this.ctx.clearRect(0, 0, w, h);
-
-                this.ctx.save();
-                this.ctx.translate(this.cameraX, this.cameraY);
-
-                if (!window.gameIsRunning) {
-                    this.ctx.strokeStyle = '#22262d'; this.ctx.lineWidth = 1;
-                    const startX = -this.cameraX % 32; const startY = -this.cameraY % 32;
-                    for (let x = startX; x < w; x += 32) {
-                        this.ctx.beginPath(); this.ctx.moveTo(x, -this.cameraY); this.ctx.lineTo(x, h - this.cameraY); this.ctx.stroke();
-                    }
-                    for (let y = startY; y < h; y += 32) {
-                        this.ctx.beginPath(); this.ctx.moveTo(-this.cameraX, y); this.ctx.lineTo(w - this.cameraX, y); this.ctx.stroke();
-                    }
-                }
-
-                if (sceneTree.scene) {
-                    const allNodes = [sceneTree.scene, ...(sceneTree.scene.children || [])];
-                    allNodes.forEach(n => {
-                        if (n.x !== undefined && n.type !== 'VirtualJoystick' && n.type !== 'Button' && n.type !== 'Label') this.drawNode(n);
-                    });
-                }
-                this.ctx.restore();
-
-                if (sceneTree.scene) {
-                    const allNodes = [sceneTree.scene, ...(sceneTree.scene.children || [])];
-                    allNodes.forEach(n => {
-                        if (n.x !== undefined && (n.type === 'VirtualJoystick' || n.type === 'Button' || n.type === 'Label')) this.drawNode(n);
-                    });
-                }
-            }
-            drawNode(n) {
-                if (n.type === 'Node2D' || n.type === 'Camera2D') return;
-                this.ctx.save();
-                this.ctx.globalAlpha = n.opacity !== undefined ? n.opacity : 1;
-
-                if (n.type === 'VirtualJoystick') {
-                    const cx = n.x + (n.width / 2); const cy = n.y + (n.height / 2);
-                    this.ctx.beginPath(); this.ctx.arc(cx, cy, n.width / 2, 0, Math.PI * 2);
-                    this.ctx.fillStyle = 'rgba(40, 45, 55, 0.7)'; this.ctx.fill();
-                    this.ctx.lineWidth = 2; this.ctx.strokeStyle = n.color || '#3d8ec9'; this.ctx.stroke();
-
-                    let sx = cx, sy = cy;
-                    for (let id in this.activeJoysticks) {
-                        if (this.activeJoysticks[id].nodeName === n.name) {
-                            sx = this.activeJoysticks[id].stick.x; sy = this.activeJoysticks[id].stick.y;
-                        }
-                    }
-                    this.ctx.beginPath(); this.ctx.arc(sx, sy, 22, 0, Math.PI * 2);
-                    this.ctx.fillStyle = n.color || '#3d8ec9'; this.ctx.fill();
-                } else if (n.type === 'Button') {
-                    this.ctx.fillStyle = n.color || '#e5c07b';
-                    this.ctx.fillRect(n.x, n.y, n.width || 120, n.height || 40);
-                    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-                    this.ctx.lineWidth = 1;
-                    this.ctx.strokeRect(n.x, n.y, n.width || 120, n.height || 40);
-
-                    this.ctx.fillStyle = '#fff';
-                    this.ctx.font = 'bold 12px sans-serif';
-                    this.ctx.textAlign = 'center';
-                    this.ctx.textBaseline = 'middle';
-                    this.ctx.fillText(n.text || 'Botão', n.x + (n.width || 120) / 2, n.y + (n.height || 40) / 2);
-                } else if (n.type === 'Label') {
-                    this.ctx.fillStyle = n.color || '#fff';
-                    this.ctx.font = 'bold 14px sans-serif';
-                    this.ctx.textAlign = 'left';
-                    this.ctx.textBaseline = 'middle';
-                    this.ctx.fillText(n.text || 'Texto', n.x, n.y + (n.height || 30) / 2);
-                } else if (n.type === 'Collision') {
-                    this.ctx.fillStyle = n.color || '#e06c75';
-                    this.ctx.fillRect(n.x, n.y, n.width || 40, n.height || 40);
-                    this.ctx.strokeStyle = '#fff';
-                    this.ctx.lineWidth = 1;
-                    this.ctx.setLineDash([4, 4]);
-                    this.ctx.strokeRect(n.x, n.y, n.width || 40, n.height || 40);
-                    this.ctx.setLineDash([]);
+                let fullHtml = htmlFile.content;
+                if (!fullHtml.includes('<head>')) {
+                    fullHtml = `<!DOCTYPE html><html><head>${cssContent}</head><body>${fullHtml}${jsContent}</body></html>`;
                 } else {
-                    let drawnImage = false;
-                    let activeSprite = n.sprite;
-
-                    if (n.animation === 'spritesheet' && n.frames && n.frames.length > 0) {
-                        if (window.gameIsRunning) {
-                            n._frameCounter = (n._frameCounter || 0) + 1;
-                            const speed = Math.max(1, Math.floor(60 / (n.animSpeed || 10)));
-                            if (n._frameCounter >= speed) {
-                                n._frameCounter = 0;
-                                n._currentFrameIdx = ((n._currentFrameIdx || 0) + 1) % n.frames.length;
-                            }
-                        }
-                        activeSprite = n.frames[n._currentFrameIdx || 0];
-                    }
-
-                    if (activeSprite && activeSprite.trim() !== '') {
-                        if (!this.imageCache[activeSprite]) {
-                            const img = new Image();
-                            img.src = activeSprite;
-                            this.imageCache[activeSprite] = img;
-                        }
-                        const cachedImg = this.imageCache[activeSprite];
-                        if (cachedImg.complete && cachedImg.naturalWidth !== 0) {
-                            this.ctx.drawImage(cachedImg, n.x, n.y, n.width || 40, n.height || 40);
-                            drawnImage = true;
-                        }
-                    }
-                    if (!drawnImage) {
-                        this.ctx.fillStyle = n.color || '#3d8ec9';
-                        this.ctx.fillRect(n.x, n.y, n.width || 40, n.height || 40);
-                    }
+                    fullHtml = fullHtml.replace('</head>', `${cssContent}</head>`).replace('</body>', `${jsContent}</body>`);
                 }
 
-                if (!window.gameIsRunning && sceneTree.selectedNode === n && n.x !== undefined) {
-                    this.ctx.strokeStyle = '#fff'; this.ctx.lineWidth = 2;
-                    this.ctx.strokeRect(n.x - 2, n.y - 2, (n.width || 40) + 4, (n.height || 40) + 4);
-                }
-                this.ctx.restore();
+                const iframe = document.getElementById('preview-frame');
+                const blob = new Blob([fullHtml], { type: 'text/html' });
+                iframe.src = URL.createObjectURL(blob);
             }
-        }
-        const editor2D = new Editor2D();
 
-        function checkCollision(a, b) {
-            return (a.x < b.x + b.width && a.x + a.width > b.x &&
-                    a.y < b.y + b.height && a.y + a.height > b.y);
-        }
-
-        class GameRunner {
-            constructor() { this.isRunning = false; this.animFrame = null; }
-            playGame() {
-                if (this.isRunning) return;
+            async runBackendCode(file) {
+                const terminal = document.getElementById('terminal-output');
+                const status = document.getElementById('execution-status');
                 
-                editorManager.switchTab('2d');
+                terminal.innerHTML += `<div class="text-cyan-400">$ Executando ${file.name} (${file.language})...</div>`;
+                status.innerText = 'Executando na API Piston...';
 
-                this.isRunning = true; window.gameIsRunning = true;
-                window.joysticks = {}; window.buttons = {};
-
-                window.Globals = {};
-                if (app.currentProject && app.currentProject.globals) {
-                    window.Globals = JSON.parse(JSON.stringify(app.currentProject.globals));
-                }
-
-                if (document.documentElement.requestFullscreen) {
-                    document.documentElement.requestFullscreen().catch(() => {});
-                }
-
-                ['left-panel', 'right-panel', 'bottom-console', 'editor-tabs', 'canvas-tools-hud', 'editor-header'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.classList.add('hidden');
-                });
-
-                document.getElementById('btn-header-pause').classList.add('hidden');
-                document.getElementById('btn-header-stop').classList.remove('hidden');
-                document.getElementById('game-runtime-hud').classList.remove('hidden');
-
-                const nodes = [sceneTree.scene, ...(sceneTree.scene.children || [])];
-                nodes.forEach(n => {
-                    enrichNode(n);
-                    if (n.x !== undefined) n._editorX = n.x;
-                    if (n.y !== undefined) n._editorY = n.y;
-                    n.vy = 0; n.onGround = false; n._animTimer = 0; n._currentFrameIdx = 0; n._frameCounter = 0;
-
-                    if (n.script && n.script.trim() !== '') {
-                        try {
-                            n._compiledScript = new Function(n.script);
-                        } catch (err) {
-                            consoleWindow.log(`Erro ao compilar script JS de ${n.name}: ${err.message}`, "error");
-                        }
-                    }
-                });
-
-                editor2D.resize();
-                consoleWindow.log("Executando cena ativa...");
-
-                const platforms = nodes.filter(n => n.type === 'Platform' || n.type === 'Collision');
-                const camNode = nodes.find(n => n.type === 'Camera2D');
-                const playerNode = nodes.find(n => n.type === 'Player');
-
-                const loop = () => {
-                    if (!this.isRunning) return;
-
-                    const statsEl = document.getElementById('runtime-hud-stats');
-                    if (window.Globals.vida !== undefined) {
-                        statsEl.innerText = `Vida: ${window.Globals.vida}`;
-                        statsEl.classList.remove('hidden');
-                    } else {
-                        statsEl.classList.add('hidden');
-                    }
-
-                    nodes.forEach(n => {
-                        n._animTimer = (n._animTimer || 0) + 0.05;
-                        if (n.animation === 'float') {
-                            n.y += Math.sin(n._animTimer) * 0.5;
-                        } else if (n.animation === 'patrol') {
-                            n.x += Math.cos(n._animTimer) * 1.5;
-                        }
-
-                        if (n.gravity > 0 && n.type !== 'VirtualJoystick' && n.type !== 'Button' && n.type !== 'Label' && n.type !== 'Collision') {
-                            n.vy += n.gravity;
-                            n.y += n.vy;
-                        }
-
-                        n.collidesWith = function(targetName) {
-                            const target = nodes.find(node => (node.name === targetName || node.type === targetName) && node !== this);
-                            if (!target) return false;
-                            return checkCollision(this, target);
-                        };
-
-                        if (n._compiledScript) {
-                            try { n._compiledScript.call(n); } catch (err) {}
-                        }
-
-                        if (n.type === 'Player' || n.gravity > 0) {
-                            n.onGround = false;
-                            for (let plat of platforms) {
-                                if (n === plat) continue;
-                                if (checkCollision(n, plat)) {
-                                    const overlapX = Math.min(n.x + n.width, plat.x + plat.width) - Math.max(n.x, plat.x);
-                                    const overlapY = Math.min(n.y + n.height, plat.y + plat.height) - Math.max(n.y, plat.y);
-
-                                    if (overlapX < overlapY) {
-                                        if (n.x < plat.x) n.x -= overlapX;
-                                        else n.x += overlapX;
-                                    } else {
-                                        if (n.y < plat.y) {
-                                            n.y -= overlapY;
-                                            if (n.vy > 0) n.vy = 0;
-                                            n.onGround = true;
-                                        } else {
-                                            n.y += overlapY;
-                                            if (n.vy < 0) n.vy = 0;
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                try {
+                    const response = await fetch('https://emkc.org/api/v2/piston/execute', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            language: file.language,
+                            version: '*',
+                            files: [{ name: file.name, content: file.content }]
+                        })
                     });
-
-                    if (camNode) {
-                        if (camNode.cameraMode === 'follow' && playerNode) {
-                            editor2D.cameraX = (editor2D.canvas.width / 2) - (playerNode.x + playerNode.width / 2);
-                            editor2D.cameraY = (editor2D.canvas.height / 2) - (playerNode.y + playerNode.height / 2);
-                        } else if (camNode.cameraMode === 'fixed') {
-                            editor2D.cameraX = -camNode.x; editor2D.cameraY = -camNode.y;
+                    const result = await response.json();
+                    if (result.run) {
+                        if (result.run.stdout) {
+                            terminal.innerHTML += `<div class="text-slate-200 whitespace-pre-wrap">${result.run.stdout}</div>`;
                         }
+                        if (result.run.stderr) {
+                            terminal.innerHTML += `<div class="text-rose-400 whitespace-pre-wrap">${result.run.stderr}</div>`;
+                        }
+                        status.innerText = `Concluído em ${result.run.time || 0}ms (Código: ${result.run.code})`;
+                    } else {
+                        terminal.innerHTML += `<div class="text-rose-400">Erro na resposta da API Piston.</div>`;
+                        status.innerText = 'Erro na execução';
                     }
+                } catch (err) {
+                    terminal.innerHTML += `<div class="text-rose-400">Falha de conexão com a API Piston: ${err.message}</div>`;
+                    status.innerText = 'Erro de rede';
+                }
+                terminal.scrollTop = terminal.scrollHeight;
+            }
 
-                    editor2D.draw();
-                    this.animFrame = requestAnimationFrame(loop);
+            stopExecution() {
+                const iframe = document.getElementById('preview-frame');
+                iframe.src = 'about:blank';
+                document.getElementById('execution-status').innerText = 'Execução interrompida';
+                this.showToast('Execução interrompida.', 'info');
+            }
+
+            refreshPreview() {
+                this.runFrontendPreview();
+                this.showToast('Preview reiniciado.', 'success');
+            }
+
+            clearTerminal() {
+                document.getElementById('terminal-output').innerHTML = '<div class="text-slate-500">// Terminal limpo.</div>';
+            }
+
+            async openProjectModal() {
+                const projects = await this.storage.getAllProjects();
+                let html = `<div class="bg-dark-800 border border-dark-700 w-full max-w-md rounded-xl p-5 space-y-4 shadow-2xl">
+                    <h3 class="text-lg font-bold text-white">Gerenciar Projetos</h3>
+                    <div class="space-y-2 max-h-60 overflow-y-auto">`;
+                
+                projects.forEach(p => {
+                    html += `<div class="flex items-center justify-between p-3 bg-dark-900 rounded border border-dark-700">
+                        <div>
+                            <div class="font-medium text-white">${p.name}</div>
+                            <div class="text-xs text-slate-400">${p.files.length} arquivos</div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="app.switchProject('${p.id}')" class="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 text-white text-xs rounded">Abrir</button>
+                            <button onclick="app.deleteProject('${p.id}')" class="p-1 hover:text-rose-400 text-slate-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>`;
+                });
+
+                html += `</div>
+                    <div class="flex justify-between pt-2">
+                        <button onclick="app.newProjectDialog()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded text-sm font-medium">Novo Projeto</button>
+                        <button onclick="app.closeModal()" class="px-4 py-2 bg-dark-700 hover:bg-dark-600 rounded text-sm">Fechar</button>
+                    </div>
+                </div>`;
+                this.showCustomModal(html);
+                lucide.createIcons();
+            }
+
+            async switchProject(id) {
+                this.project = await this.storage.getProject(id);
+                this.activeFileId = this.project.mainFileId || this.project.files[0].id;
+                this.openTabs = [this.activeFileId];
+                this.closeModal();
+                this.initMonaco();
+                this.renderAll();
+                this.showToast('Projeto aberto com sucesso!', 'success');
+            }
+
+            newProjectDialog() {
+                this.showModal('Criar Novo Projeto', `
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Nome do Projeto</label>
+                            <input id="new-proj-name" type="text" class="w-full bg-dark-900 border border-dark-600 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500" placeholder="Meu App Incrível">
+                        </div>
+                        <div class="flex justify-end space-x-2 pt-2">
+                            <button onclick="app.closeModal()" class="px-4 py-2 bg-dark-700 hover:bg-dark-600 rounded text-sm">Cancelar</button>
+                            <button onclick="app.confirmCreateProject()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded text-sm font-medium">Criar</button>
+                        </div>
+                    </div>
+                `);
+            }
+
+            async confirmCreateProject() {
+                const name = document.getElementById('new-proj-name').value.trim();
+                if (!name) return;
+                const newProj = {
+                    id: 'proj_' + Date.now(),
+                    name: name,
+                    files: [
+                        { id: 'f_' + Date.now(), name: 'main.js', language: 'javascript', content: 'console.log("Olá do projeto ' + name + '");' }
+                    ]
                 };
-                loop();
+                newProj.mainFileId = newProj.files[0].id;
+                await this.storage.saveProject(newProj);
+                this.project = newProj;
+                this.activeFileId = newProj.mainFileId;
+                this.openTabs = [this.activeFileId];
+                this.closeModal();
+                this.initMonaco();
+                this.renderAll();
+                this.showToast('Novo projeto criado!', 'success');
             }
-            pauseGame() {
-                this.isRunning = false; window.gameIsRunning = false;
-                if (this.animFrame) cancelAnimationFrame(this.animFrame);
-                
-                const nodes = [sceneTree.scene, ...(sceneTree.scene.children || [])];
-                nodes.forEach(n => {
-                    if (n._editorX !== undefined) n.x = n._editorX;
-                    if (n._editorY !== undefined) n.y = n._editorY;
-                });
 
-                editor2D.cameraX = 0; editor2D.cameraY = 0;
-                
-                ['left-panel', 'right-panel', 'canvas-tools-hud', 'bottom-console', 'editor-tabs', 'editor-header'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.classList.remove('hidden');
-                });
-
-                document.getElementById('btn-header-pause').classList.add('hidden');
-                document.getElementById('btn-header-stop').classList.add('hidden');
-                document.getElementById('game-runtime-hud').classList.add('hidden');
-
-                if (sceneTree.selectedNode) inspector.inspect(sceneTree.selectedNode);
-                editor2D.resize(); editor2D.draw();
-                consoleWindow.log("Execução encerrada.", "warning");
+            async deleteProject(id) {
+                const projects = await this.storage.getAllProjects();
+                if (projects.length <= 1) {
+                    this.showToast('Você não pode excluir o único projeto.', 'error');
+                    return;
+                }
+                if (confirm('Deseja excluir permanentemente este projeto?')) {
+                    await this.storage.deleteProject(id);
+                    this.closeModal();
+                    this.openProjectModal();
+                    this.showToast('Projeto excluído.', 'info');
+                }
             }
-            stopGame() { this.pauseGame(); }
+
+            async exportZip() {
+                const zip = new JSZip();
+                const folder = zip.folder(this.project.name);
+                this.project.files.forEach(f => {
+                    folder.file(f.name, f.content);
+                });
+                const content = await zip.generateAsync({ type: 'blob' });
+                const url = URL.createObjectURL(content);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${this.project.name}.zip`;
+                a.click();
+                this.showToast('Projeto exportado em ZIP!', 'success');
+            }
+
+            openSettings() {
+                this.showModal('Configurações da IDE', `
+                    <div class="space-y-4 text-sm">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Tamanho da Fonte (px)</label>
+                            <input id="set-fontsize" type="number" value="${this.settings.fontSize}" class="w-full bg-dark-900 border border-dark-600 rounded px-3 py-2 text-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Espaços por Tabulação</label>
+                            <input id="set-tabsize" type="number" value="${this.settings.tabSize}" class="w-full bg-dark-900 border border-dark-600 rounded px-3 py-2 text-white">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-300">Salvamento Automático</span>
+                            <input id="set-autosave" type="checkbox" ${this.settings.autoSave ? 'checked' : ''} class="w-4 h-4 accent-cyan-500">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-300">Atualização Automática do Preview</span>
+                            <input id="set-autopreview" type="checkbox" ${this.settings.autoPreview ? 'checked' : ''} class="w-4 h-4 accent-cyan-500">
+                        </div>
+                        <div class="flex justify-end space-x-2 pt-3">
+                            <button onclick="app.closeModal()" class="px-4 py-2 bg-dark-700 hover:bg-dark-600 rounded">Cancelar</button>
+                            <button onclick="app.saveSettingsFromModal()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded font-medium">Salvar</button>
+                        </div>
+                    </div>
+                `);
+            }
+
+            async saveSettingsFromModal() {
+                this.settings.fontSize = parseInt(document.getElementById('set-fontsize').value);
+                this.settings.tabSize = parseInt(document.getElementById('set-tabsize').value);
+                this.settings.autoSave = document.getElementById('set-autosave').checked;
+                this.settings.autoPreview = document.getElementById('set-autopreview').checked;
+
+                await this.storage.saveSettings(this.settings);
+                if (this.editor) {
+                    this.editor.updateOptions({ fontSize: this.settings.fontSize, tabSize: this.settings.tabSize });
+                }
+                this.closeModal();
+                this.showToast('Configurações salvas!', 'success');
+            }
+
+            undo() { if (this.editor) this.editor.trigger('keyboard', 'undo', null); }
+            redo() { if (this.editor) this.editor.trigger('keyboard', 'redo', null); }
+
+            toggleFullscreen() {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                } else {
+                    document.exitFullscreen();
+                }
+            }
+
+            togglePreviewFullscreen() {
+                const panel = document.getElementById('output-panel');
+                if (!document.fullscreenElement) {
+                    panel.requestFullscreen();
+                } else {
+                    document.exitFullscreen();
+                }
+            }
+
+            showModal(title, htmlContent) {
+                const container = document.getElementById('modal-container');
+                container.innerHTML = `
+                    <div class="bg-dark-800 border border-dark-700 w-full max-w-md rounded-xl p-5 space-y-4 shadow-2xl">
+                        <div class="flex items-center justify-between pb-2 border-b border-dark-700">
+                            <h3 class="text-lg font-bold text-white">${title}</h3>
+                            <button onclick="app.closeModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+                        </div>
+                        ${htmlContent}
+                    </div>
+                `;
+                container.classList.remove('hidden');
+                lucide.createIcons();
+            }
+
+            showCustomModal(htmlContent) {
+                const container = document.getElementById('modal-container');
+                container.innerHTML = htmlContent;
+                container.classList.remove('hidden');
+                lucide.createIcons();
+            }
+
+            closeModal() {
+                document.getElementById('modal-container').classList.add('hidden');
+            }
+
+            showToast(message, type = 'success') {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                const bg = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-rose-600' : 'bg-cyan-600';
+                toast.className = `${bg} text-white px-4 py-2 rounded-lg shadow-lg text-xs font-medium flex items-center space-x-2 transition-all duration-300 pointer-events-auto`;
+                toast.innerHTML = `<i data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info'}" class="w-4 h-4"></i><span>${message}</span>`;
+                container.appendChild(toast);
+                lucide.createIcons();
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
         }
-        const gameRunner = new GameRunner();
 
-        window.onload = () => { app.init(); };
+        // Initialize App
+        const app = new EngineCodeIDE();
+        window.onload = () => app.init();
     </script>
 </body>
 </html>
