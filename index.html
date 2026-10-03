@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Godot Engine Mobile</title>
+    <title>Godot Engine Mobile - MultiCena</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- FontAwesome para Ícones -->
@@ -40,7 +40,7 @@
                 <div class="w-10 h-10 bg-[#3d8ec9] rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg">G</div>
                 <div>
                     <h1 class="text-xl font-bold text-white tracking-wide">Godot Engine Mobile</h1>
-                    <p class="text-xs text-gray-400">Gerenciador de Projetos v3.2</p>
+                    <p class="text-xs text-gray-400">Gerenciador de Projetos v4.1 (MultiCena)</p>
                 </div>
             </div>
             <div class="flex space-x-2">
@@ -100,10 +100,22 @@
         <!-- Área de Trabalho Principal -->
         <div class="flex-1 flex relative overflow-hidden">
             
-            <!-- Painel Esquerdo: Cena / Nós -->
+            <!-- Painel Esquerdo: Gerenciador de Cenas / Árvore de Nós -->
             <div id="left-panel" class="w-64 godot-panel border-r border-[#2c313a] flex flex-col z-20 transition-all duration-200">
+                <!-- Seletor de Cenas -->
+                <div class="bg-[#1e2229] p-2 border-b border-[#2c313a] flex items-center justify-between">
+                    <div class="flex items-center space-x-1.5 truncate flex-1 mr-1">
+                        <i class="fa-solid fa-film text-[#3d8ec9] text-xs"></i>
+                        <select id="scene-selector" onchange="sceneManager.switchScene(this.value)" class="w-full bg-[#181a1f] border border-[#3a3f4b] rounded px-1.5 py-1 text-xs text-white truncate cursor-pointer"></select>
+                    </div>
+                    <div class="flex space-x-1 shrink-0">
+                        <button onclick="sceneManager.showEditSceneModal()" class="bg-[#2c313a] hover:bg-[#3a3f4b] text-white w-6 h-6 rounded flex items-center justify-center text-xs shadow cursor-pointer" title="Editar Cena Atual"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="sceneManager.showNewSceneModal()" class="bg-[#3d8ec9] hover:bg-[#327bb5] text-white w-6 h-6 rounded flex items-center justify-center text-xs shadow cursor-pointer" title="Nova Cena"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                </div>
+
                 <div class="flex border-b border-[#2c313a] text-xs bg-[#1e2229]">
-                    <span class="flex-1 py-2 text-center tab-active font-medium">Cena</span>
+                    <span id="scene-type-indicator" class="flex-1 py-2 text-center tab-active font-medium uppercase text-[10px] text-gray-300">Cena: Jogo</span>
                 </div>
                 <div class="flex-1 flex flex-col overflow-hidden p-2">
                     <div class="flex justify-between items-center mb-2 px-1">
@@ -117,13 +129,13 @@
             <!-- Área Central: Visualização / Editores -->
             <div class="flex-1 flex flex-col relative overflow-hidden bg-[#15171b]">
                 <div id="editor-tabs" class="h-9 bg-[#1e2229] border-b border-[#2c313a] flex items-center px-2 space-x-1 text-xs z-10 overflow-x-auto transition-all duration-200">
-                    <button onclick="editorManager.switchTab('2d')" id="tab-btn-2d" class="px-3 py-1.5 bg-[#21252b] text-white rounded-t border-t border-x border-[#2c313a] font-medium cursor-pointer"><i class="fa-solid fa-shapes mr-1 text-[#3d8ec9]"></i> 2D</button>
-                    <button onclick="editorManager.switchTab('script')" id="tab-btn-script" class="px-3 py-1.5 text-gray-400 hover:text-white rounded-t cursor-pointer"><i class="fa-solid fa-code mr-1 text-[#98c379]"></i> GodotScript</button>
+                    <button onclick="editorManager.switchTab('2d')" id="tab-btn-2d" class="px-3 py-1.5 bg-[#21252b] text-white rounded-t border-t border-x border-[#2c313a] font-medium cursor-pointer"><i class="fa-solid fa-shapes mr-1 text-[#3d8ec9]"></i> 2D / Visual</button>
+                    <button onclick="editorManager.switchTab('script')" id="tab-btn-script" class="px-3 py-1.5 text-gray-400 hover:text-white rounded-t cursor-pointer"><i class="fa-solid fa-code mr-1 text-[#98c379]"></i> JavaScript</button>
                     <button onclick="editorManager.switchTab('globals')" id="tab-btn-globals" class="px-3 py-1.5 text-gray-400 hover:text-white rounded-t cursor-pointer"><i class="fa-solid fa-globe mr-1 text-[#e5c07b]"></i> Globais</button>
                 </div>
 
                 <div class="flex-1 relative overflow-hidden flex flex-col">
-                    <!-- Editor 2D -->
+                    <!-- Editor 2D / Visual -->
                     <div id="view-2d" class="absolute inset-0 flex flex-col">
                         <div id="canvas-tools-hud" class="absolute top-2 left-2 z-10 bg-[#21252b]/90 border border-[#3a3f4b] p-1.5 rounded flex space-x-2 text-xs shadow">
                             <button onclick="editor2D.setTool('select')" id="tool-select" class="p-1.5 bg-[#3d8ec9] text-white rounded cursor-pointer transition" title="Selecionar / Mover Objeto"><i class="fa-solid fa-arrow-pointer"></i></button>
@@ -133,7 +145,7 @@
                         <canvas id="canvas-2d" class="w-full h-full cursor-crosshair"></canvas>
                     </div>
 
-                    <!-- Editor de Scripts Simplificados -->
+                    <!-- Editor de Scripts JavaScript -->
                     <div id="view-script" class="absolute inset-0 hidden flex flex-col bg-[#181a1f] z-30">
                         <div class="bg-[#21252b] border-b border-[#2c313a] px-4 py-3 flex items-center justify-between shrink-0">
                             <div class="flex items-center space-x-3">
@@ -142,11 +154,11 @@
                                 </div>
                                 <div>
                                     <div class="flex items-center space-x-2">
-                                        <span class="text-xs text-gray-400">GodotScript de:</span>
+                                        <span class="text-xs text-gray-400">Script JS de:</span>
                                         <span id="script-owner-name" class="font-bold text-white text-sm">Player</span>
                                         <span id="script-owner-type" class="text-[10px] bg-[#2c313a] text-gray-300 px-1.5 py-0.5 rounded">Player</span>
                                     </div>
-                                    <p class="text-[10px] text-gray-400">Exemplos: <code class="text-yellow-400">joystick "Joystick", 4</code> | <code class="text-yellow-400">se toca "Plataforma1" { ... }</code></p>
+                                    <p class="text-[10px] text-gray-400">Ex. mudar cena: <code class="text-yellow-400">changeScene("Fase2");</code> | Ex. exibir variável em Label: <code class="text-yellow-400">this.text = "Pontos: " + window.Globals.pontos;</code></p>
                                 </div>
                             </div>
                             <div class="flex items-center space-x-3">
@@ -156,7 +168,7 @@
                             </div>
                         </div>
                         <div class="flex-1 p-4 pb-44 overflow-y-auto flex flex-col">
-                            <textarea id="script-textarea" oninput="scriptEditor.onInput(this.value)" class="w-full flex-1 bg-[#1e2229] border border-[#2c313a] rounded-lg text-[#abb2bf] font-mono p-4 text-sm resize-none focus:outline-none focus:border-[#3d8ec9] shadow-inner min-h-[250px]" spellcheck="false" placeholder="// Escreva seu GodotScript aqui..."></textarea>
+                            <textarea id="script-textarea" oninput="scriptEditor.onInput(this.value)" class="w-full flex-1 bg-[#1e2229] border border-[#2c313a] rounded-lg text-[#abb2bf] font-mono p-4 text-sm resize-none focus:outline-none focus:border-[#3d8ec9] shadow-inner min-h-[250px]" spellcheck="false" placeholder="// Escreva seu código JavaScript aqui..."></textarea>
                         </div>
                     </div>
 
@@ -169,7 +181,7 @@
                                 </div>
                                 <div>
                                     <h2 class="font-bold text-white text-sm">Variáveis Globais do Projeto</h2>
-                                    <p class="text-[10px] text-gray-400">Modifique diretamente nos scripts usando o nome dela (ex: <code class="text-yellow-400">vida = vida - 1</code>)</p>
+                                    <p class="text-[10px] text-gray-400">Acesse ou modifique nos scripts usando <code class="text-yellow-400">window.Globals.sua_variavel</code></p>
                                 </div>
                             </div>
                             <div class="flex items-center space-x-3">
@@ -192,7 +204,7 @@
                         <button onclick="consoleWindow.clear()" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-trash-can"></i> Limpar</button>
                     </div>
                     <div id="console-output" class="flex-1 p-2 font-mono text-[11px] overflow-y-auto space-y-1 text-gray-300">
-                        <div class="text-blue-400">[Godot Engine Mobile v3.2] GodotScript Simples ativado.</div>
+                        <div class="text-blue-400">[Godot Engine Mobile v4.1] Suporte a MultiCena, troca de cena via script e variáveis na tela ativo.</div>
                     </div>
                 </div>
             </div>
@@ -222,6 +234,54 @@
             <div class="flex justify-end space-x-2">
                 <button onclick="app.closeNewProjectModal()" class="px-4 py-2 bg-[#2c313a] hover:bg-[#3a3f4b] text-white rounded text-xs cursor-pointer">Cancelar</button>
                 <button onclick="app.createProject()" class="px-4 py-2 bg-[#3d8ec9] hover:bg-[#327bb5] text-white rounded text-xs font-bold cursor-pointer">Criar e Editar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Criar Nova Cena -->
+    <div id="modal-new-scene" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
+        <div class="godot-panel border border-[#3a3f4b] rounded-xl w-full max-w-sm p-5 shadow-2xl">
+            <h2 class="text-base font-bold text-white mb-4">Criar Nova Cena</h2>
+            <div class="space-y-3 mb-5">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Nome da Cena</label>
+                    <input type="text" id="new-scene-name" value="MenuPrincipal" class="w-full bg-[#181a1f] border border-[#3a3f4b] rounded p-2 text-xs text-white">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Tipo de Cena</label>
+                    <select id="new-scene-type" class="w-full bg-[#181a1f] border border-[#3a3f4b] rounded p-2 text-xs text-white cursor-pointer">
+                        <option value="game">🎮 Cena de Jogo (Gameplay, Física, Câmera)</option>
+                        <option value="visual">🎨 Cena Visual (Menus, Pause, HUD)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-2">
+                <button onclick="sceneManager.closeNewSceneModal()" class="px-4 py-2 bg-[#2c313a] hover:bg-[#3a3f4b] text-white rounded text-xs cursor-pointer">Cancelar</button>
+                <button onclick="sceneManager.createScene()" class="px-4 py-2 bg-[#3d8ec9] hover:bg-[#327bb5] text-white rounded text-xs font-bold cursor-pointer">Criar Cena</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Cena Atual -->
+    <div id="modal-edit-scene" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
+        <div class="godot-panel border border-[#3a3f4b] rounded-xl w-full max-w-sm p-5 shadow-2xl">
+            <h2 class="text-base font-bold text-white mb-4">Editar Cena Atual</h2>
+            <div class="space-y-3 mb-5">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Nome da Cena</label>
+                    <input type="text" id="edit-scene-name" class="w-full bg-[#181a1f] border border-[#3a3f4b] rounded p-2 text-xs text-white">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Tipo de Cena</label>
+                    <select id="edit-scene-type" class="w-full bg-[#181a1f] border border-[#3a3f4b] rounded p-2 text-xs text-white cursor-pointer">
+                        <option value="game">🎮 Cena de Jogo (Gameplay, Física, Câmera)</option>
+                        <option value="visual">🎨 Cena Visual (Menus, Pause, HUD)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-2">
+                <button onclick="sceneManager.closeEditSceneModal()" class="px-4 py-2 bg-[#2c313a] hover:bg-[#3a3f4b] text-white rounded text-xs cursor-pointer">Cancelar</button>
+                <button onclick="sceneManager.updateScene()" class="px-4 py-2 bg-[#3d8ec9] hover:bg-[#327bb5] text-white rounded text-xs font-bold cursor-pointer">Salvar Alterações</button>
             </div>
         </div>
     </div>
@@ -270,7 +330,7 @@
         }
 
         class StorageManager {
-            constructor() { this.dbName = "GodotMobileDB_v12"; this.db = null; }
+            constructor() { this.dbName = "GodotMobileDB_v15"; this.db = null; }
             init() {
                 return new Promise((resolve, reject) => {
                     if (this.db) { resolve(this.db); return; }
@@ -297,7 +357,13 @@
                         name: proj.name,
                         updatedAt: new Date().toISOString(),
                         globals: proj.globals || {},
-                        scene: sanitizeNodeForSave(proj.scene)
+                        currentSceneId: proj.currentSceneId,
+                        scenes: (proj.scenes || []).map(s => ({
+                            id: s.id,
+                            name: s.name,
+                            type: s.type || 'game',
+                            root: sanitizeNodeForSave(s.root)
+                        }))
                     };
                     const req = tx.objectStore("projects").put(cleanProj);
                     req.onsuccess = () => resolve(true);
@@ -413,7 +479,7 @@
             if (node.frames === undefined) node.frames = [];
             if (node.animSpeed === undefined) node.animSpeed = 10;
             if (node.animation === undefined) node.animation = 'none';
-            if (node.text === undefined && node.type === 'Button') node.text = 'Pular';
+            if (node.text === undefined && (node.type === 'Button' || node.type === 'Label')) node.text = node.type === 'Label' ? 'Texto' : 'Pular';
             if (node.directionMode === undefined) node.directionMode = 'all';
             if (node.cameraMode === undefined) node.cameraMode = 'follow';
             if (node.shapeType === undefined) node.shapeType = 'rectangle';
@@ -423,6 +489,146 @@
                 node.children.forEach(c => enrichNode(c));
             }
         }
+
+        class SceneManager {
+            initScenes(project) {
+                if (!project.scenes || project.scenes.length === 0) {
+                    if (project.scene) {
+                        project.scenes = [{ id: 'scene_main', name: 'Principal', type: 'game', root: project.scene }];
+                        delete project.scene;
+                    } else {
+                        project.scenes = [{
+                            id: 'scene_main',
+                            name: 'GameScene',
+                            type: 'game',
+                            root: {
+                                name: 'Root',
+                                type: 'Node2D',
+                                children: [
+                                    { id: 'node_player', name: 'Player', type: 'Player', x: 150, y: 100, width: 40, height: 40, color: '#3d8ec9', gravity: 0.5, script: '' },
+                                    { id: 'node_plat', name: 'Plataforma', type: 'Platform', x: 50, y: 260, width: 260, height: 25, color: '#4b5263', script: '' }
+                                ]
+                            }
+                        }];
+                    }
+                }
+                if (!project.currentSceneId || !project.scenes.find(s => s.id === project.currentSceneId)) {
+                    project.currentSceneId = project.scenes[0].id;
+                }
+                project.scenes.forEach(s => enrichNode(s.root));
+                this.renderSelector();
+                this.loadActiveScene();
+            }
+            getCurrentScene() {
+                if (!app.currentProject) return null;
+                return app.currentProject.scenes.find(s => s.id === app.currentProject.currentSceneId) || app.currentProject.scenes[0];
+            }
+            renderSelector() {
+                const sel = document.getElementById('scene-selector');
+                if (!sel || !app.currentProject) return;
+                sel.innerHTML = '';
+                app.currentProject.scenes.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.id;
+                    opt.innerText = `${s.name} (${s.type === 'game' ? 'Jogo' : 'Visual'})`;
+                    if (s.id === app.currentProject.currentSceneId) opt.selected = true;
+                    sel.appendChild(opt);
+                });
+            }
+            switchScene(id) {
+                if (!app.currentProject) return;
+                const target = app.currentProject.scenes.find(s => s.id === id || s.name.toLowerCase() === id.toLowerCase());
+                if (!target) return;
+                app.currentProject.currentSceneId = target.id;
+                this.renderSelector();
+                this.loadActiveScene();
+                app.autoSave();
+
+                if (window.gameIsRunning) {
+                    gameRunner.stopGame();
+                    setTimeout(() => gameRunner.playGame(), 50);
+                }
+            }
+            showNewSceneModal() {
+                document.getElementById('modal-new-scene').classList.remove('hidden');
+            }
+            closeNewSceneModal() {
+                document.getElementById('modal-new-scene').classList.add('hidden');
+            }
+            showEditSceneModal() {
+                const scene = this.getCurrentScene();
+                if (!scene) return;
+                document.getElementById('edit-scene-name').value = scene.name;
+                document.getElementById('edit-scene-type').value = scene.type || 'game';
+                document.getElementById('modal-edit-scene').classList.remove('hidden');
+            }
+            closeEditSceneModal() {
+                document.getElementById('modal-edit-scene').classList.add('hidden');
+            }
+            updateScene() {
+                const scene = this.getCurrentScene();
+                if (!scene) return;
+                scene.name = document.getElementById('edit-scene-name').value.trim() || scene.name;
+                scene.type = document.getElementById('edit-scene-type').value || 'game';
+                this.closeEditSceneModal();
+                this.renderSelector();
+                this.loadActiveScene();
+                app.autoSave();
+            }
+            loadActiveScene() {
+                const scene = this.getCurrentScene();
+                if (!scene) return;
+                const typeInd = document.getElementById('scene-type-indicator');
+                if (typeInd) {
+                    typeInd.innerText = `Cena: ${scene.type === 'game' ? 'Jogo (Gameplay)' : 'Visual (Menu/HUD)'}`;
+                }
+                sceneTree.init(scene.root);
+            }
+            createScene() {
+                const nameInput = document.getElementById('new-scene-name').value.trim() || 'NovaCena';
+                const typeInput = document.getElementById('new-scene-type').value || 'game';
+                
+                let defaultChildren = [];
+                if (typeInput === 'game') {
+                    defaultChildren = [
+                        { id: 'node_pl_' + Date.now(), name: 'Player', type: 'Player', x: 150, y: 150, width: 40, height: 40, color: '#3d8ec9', gravity: 0.5, script: '' },
+                        { id: 'node_pt_' + Date.now(), name: 'Plataforma', type: 'Platform', x: 50, y: 240, width: 200, height: 25, color: '#4b5263', script: '' },
+                        { id: 'node_cam_' + Date.now(), name: 'Camera', type: 'Camera2D', cameraMode: 'follow', x: 0, y: 0, script: '' }
+                    ];
+                } else {
+                    defaultChildren = [
+                        { id: 'node_bg_' + Date.now(), name: 'FundoPainel', type: 'Platform', x: 0, y: 0, width: 360, height: 640, color: '#21252b', script: '' },
+                        { id: 'node_lbl_' + Date.now(), name: 'Titulo', type: 'Button', text: 'MENU PRINCIPAL', x: 80, y: 100, width: 200, height: 50, color: '#3d8ec9', script: '' },
+                        { id: 'node_btn_' + Date.now(), name: 'BotaoJogar', type: 'Button', text: 'JOGAR', x: 100, y: 250, width: 160, height: 50, color: '#98c379', script: 'changeScene("GameScene");' }
+                    ];
+                }
+
+                const newScene = {
+                    id: 'scene_' + Date.now(),
+                    name: nameInput,
+                    type: typeInput,
+                    root: {
+                        name: 'Root',
+                        type: 'Node2D',
+                        children: defaultChildren
+                    }
+                };
+
+                app.currentProject.scenes.push(newScene);
+                app.currentProject.currentSceneId = newScene.id;
+                enrichNode(newScene.root);
+                this.closeNewSceneModal();
+                this.renderSelector();
+                this.loadActiveScene();
+                app.autoSave();
+            }
+        }
+        const sceneManager = new SceneManager();
+
+        // Função global de atalho para scripts abrirem outras cenas por ID ou Nome
+        window.changeScene = (sceneNameOrId) => {
+            sceneManager.switchScene(sceneNameOrId);
+        };
 
         class EditorManager {
             switchTab(tab) {
@@ -472,59 +678,43 @@
                     if (!this.projects || this.projects.length === 0) {
                         const defaultProj = {
                             id: 'proj_' + Date.now(),
-                            name: 'Meu Jogo 2D',
+                            name: 'Meu Jogo 2D (MultiCena)',
                             globals: { vida: 3, pontos: 0 },
-                            scene: {
-                                name: 'Root',
-                                type: 'Node2D',
-                                children: [
-                                    { 
-                                        id: 'node_player', 
-                                        name: 'Player', 
-                                        type: 'Player', 
-                                        x: 150, y: 100, width: 40, height: 40, color: '#3d8ec9', 
-                                        gravity: 0.5, opacity: 1, animation: 'none', frames: [], animSpeed: 10,
-                                        script: 'joystick "Joystick", 4\n\nse toca "Plataforma1" {\n    // Ação ao tocar na plataforma\n}\n\nse y > 450 {\n    vida = vida - 1\n    y = 50\n    vy = 0\n}\n\nse botao "BotaoPulo" e no_chao {\n    vy = -10\n    no_chao = false\n}' 
-                                    },
-                                    {
-                                        id: 'node_plat',
-                                        name: 'Plataforma1',
-                                        type: 'Platform',
-                                        x: 50, y: 260, width: 260, height: 25, color: '#4b5263',
-                                        gravity: 0, opacity: 1, animation: 'none', frames: [], animSpeed: 10,
-                                        script: ''
-                                    },
-                                    {
-                                        id: 'node_btn',
-                                        name: 'BotaoPulo',
-                                        type: 'Button',
-                                        text: 'Pular',
-                                        x: 230, y: 310, width: 60, height: 60, color: '#e5c07b',
-                                        opacity: 0.9, locked: true, script: ''
-                                    },
-                                    { 
-                                        id: 'node_joystick', 
-                                        name: 'Joystick', 
-                                        type: 'VirtualJoystick', 
-                                        x: 30, y: 300, width: 100, height: 100, color: '#abb2bf',
-                                        opacity: 0.8, directionMode: 'all', locked: true, script: '' 
-                                    },
-                                    {
-                                        id: 'node_cam',
-                                        name: 'CameraPrincipal',
-                                        type: 'Camera2D',
-                                        cameraMode: 'follow',
-                                        x: 0, y: 0, script: ''
+                            currentSceneId: 'scene_main',
+                            scenes: [
+                                {
+                                    id: 'scene_main',
+                                    name: 'Fase1',
+                                    type: 'game',
+                                    root: {
+                                        name: 'Root',
+                                        type: 'Node2D',
+                                        children: [
+                                            { 
+                                                id: 'node_player', name: 'Player', type: 'Player', 
+                                                x: 150, y: 100, width: 40, height: 40, color: '#3d8ec9', 
+                                                gravity: 0.5, script: 'const joy = window.joysticks && window.joysticks["Joystick"];\nif (joy) this.x += joy.x * 4;\nif (window.buttons && window.buttons["BotaoPulo"] && this.onGround) {\n    this.vy = -10;\n    this.onGround = false;\n}' 
+                                            },
+                                            { id: 'node_plat', name: 'Plataforma1', type: 'Platform', x: 50, y: 260, width: 260, height: 25, color: '#4b5263', script: '' },
+                                            { id: 'node_lbl', name: 'Placar', type: 'Label', text: 'Pontos: 0', x: 20, y: 20, width: 120, height: 30, color: '#ffffff', script: 'this.text = "Pontos: " + window.Globals.pontos;' },
+                                            { id: 'node_btn', name: 'BotaoPulo', type: 'Button', text: 'Pular', x: 230, y: 310, width: 60, height: 60, color: '#e5c07b', locked: true, script: '' },
+                                            { id: 'node_joy', name: 'Joystick', type: 'VirtualJoystick', x: 30, y: 300, width: 100, height: 100, color: '#abb2bf', locked: true, script: '' },
+                                            { id: 'node_cam', name: 'CameraPrincipal', type: 'Camera2D', cameraMode: 'follow', x: 0, y: 0, script: '' }
+                                        ]
                                     }
-                                ]
-                            }
+                                }
+                            ]
                         };
                         await this.storage.saveProject(defaultProj);
                         this.projects = [defaultProj];
                     }
                     this.projects.forEach(p => {
                         if (!p.globals) p.globals = { vida: 3, pontos: 0 };
-                        enrichNode(p.scene);
+                        if (p.scene && !p.scenes) {
+                            p.scenes = [{ id: 'scene_default', name: 'Principal', type: 'game', root: p.scene }];
+                            p.currentSceneId = 'scene_default';
+                            delete p.scene;
+                        }
                     });
                     this.renderProjectList();
                 } catch (err) { consoleWindow.log("Erro ao carregar projetos.", "error"); }
@@ -542,7 +732,7 @@
                                 <i class="fa-solid fa-gamepad text-3xl text-[#3d8ec9]"></i>
                             </div>
                             <h3 class="font-bold text-white text-sm truncate">${p.name}</h3>
-                            <p class="text-[10px] text-gray-400 mt-1">Modificado: ${new Date(p.updatedAt || Date.now()).toLocaleDateString()}</p>
+                            <p class="text-[10px] text-gray-400 mt-1">Cenas: ${(p.scenes || []).length} | Modificado: ${new Date(p.updatedAt || Date.now()).toLocaleDateString()}</p>
                         </div>
                         <div class="flex justify-end space-x-2 mt-4 pt-2 border-t border-[#2c313a]" onclick="event.stopPropagation()">
                             <button onclick="app.deleteProject('${p.id}')" class="text-red-400 hover:text-red-300 text-xs p-1 cursor-pointer"><i class="fa-solid fa-trash"></i></button>
@@ -557,25 +747,30 @@
             
             async createProject() {
                 try {
-                    const nameInput = document.getElementById('new-project-name').value || 'Novo Jogo';
+                    const nameInput = document.getElementById('new-project-name').value.trim() || 'Novo Jogo';
                     const newProj = {
                         id: 'proj_' + Date.now(),
                         name: nameInput,
                         globals: { vida: 3, pontos: 0 },
-                        scene: {
-                            name: 'Root',
-                            type: 'Node2D',
-                            children: [
-                                { id: 'node_pl_' + Date.now(), name: 'Player', type: 'Player', x: 150, y: 150, width: 40, height: 40, color: '#98c379', gravity: 0.5, opacity: 1, animation: 'none', frames: [], animSpeed: 10, script: 'joystick "Joystick", 4' },
-                                { id: 'node_pt_' + Date.now(), name: 'Plataforma', type: 'Platform', x: 50, y: 240, width: 200, height: 25, color: '#4b5263', gravity: 0, opacity: 1, animation: 'none', frames: [], animSpeed: 10, script: '' },
-                                { id: 'node_btn_' + Date.now(), name: 'BotaoPulo', type: 'Button', text: 'Pular', x: 220, y: 280, width: 60, height: 60, color: '#e5c07b', opacity: 0.9, locked: true, script: '' },
-                                { id: 'node_joy_' + Date.now(), name: 'Joystick', type: 'VirtualJoystick', x: 30, y: 280, width: 100, height: 100, color: '#abb2bf', opacity: 0.8, directionMode: 'all', locked: true, script: '' },
-                                { id: 'node_cam_' + Date.now(), name: 'Camera', type: 'Camera2D', cameraMode: 'follow', x: 0, y: 0, script: '' }
-                            ]
-                        }
+                        currentSceneId: 'scene_main',
+                        scenes: [
+                            {
+                                id: 'scene_main',
+                                name: 'GameScene',
+                                type: 'game',
+                                root: {
+                                    name: 'Root',
+                                    type: 'Node2D',
+                                    children: [
+                                        { id: 'node_pl_' + Date.now(), name: 'Player', type: 'Player', x: 150, y: 150, width: 40, height: 40, color: '#98c379', gravity: 0.5, script: '' },
+                                        { id: 'node_pt_' + Date.now(), name: 'Plataforma', type: 'Platform', x: 50, y: 240, width: 200, height: 25, color: '#4b5263', script: '' },
+                                        { id: 'node_cam_' + Date.now(), name: 'Camera', type: 'Camera2D', cameraMode: 'follow', x: 0, y: 0, script: '' }
+                                    ]
+                                }
+                            }
+                        ]
                     };
                     await this.storage.saveProject(newProj);
-                    enrichNode(newProj.scene);
                     this.closeNewProjectModal();
                     this.openProject(newProj.id);
                 } catch (err) {}
@@ -590,11 +785,12 @@
                 this.currentProject = this.projects.find(p => p.id === id);
                 if (!this.currentProject) return;
                 if (!this.currentProject.globals) this.currentProject.globals = { vida: 3, pontos: 0 };
-                enrichNode(this.currentProject.scene);
+                
                 document.getElementById('project-manager').classList.add('hidden');
                 document.getElementById('editor-view').classList.remove('hidden');
                 document.getElementById('current-project-title').innerText = this.currentProject.name;
-                sceneTree.init(this.currentProject.scene);
+                
+                sceneManager.initScenes(this.currentProject);
                 editor2D.init();
             }
             openProjectManager() {
@@ -611,13 +807,14 @@
 
         class SceneTreeManager {
             constructor() { this.scene = null; this.selectedNode = null; }
-            init(sceneData) {
-                this.scene = sceneData;
+            init(sceneRoot) {
+                this.scene = sceneRoot;
                 enrichNode(this.scene);
                 this.selectedNode = this.scene.children[0] || this.scene;
                 this.render();
                 inspector.inspect(this.selectedNode);
                 scriptEditor.loadScript(this.selectedNode);
+                editor2D.draw();
             }
             render() {
                 const container = document.getElementById('node-tree-container');
@@ -635,7 +832,7 @@
                 else if (node.type === 'Player') icon = 'fa-user text-[#e5c07b]';
                 else if (node.type === 'Platform') icon = 'fa-layer-group text-[#61afef]';
                 else if (node.type === 'Collision') icon = 'fa-vector-square text-[#e06c75]';
-                else if (node.type === 'Button') icon = 'fa-circle-dot text-[#d19a66]';
+                else if (node.type === 'Button' || node.type === 'Label') icon = 'fa-circle-dot text-[#d19a66]';
                 else if (node.type === 'Camera2D') icon = 'fa-camera text-[#c678dd]';
 
                 const canDelete = node !== this.scene;
@@ -686,7 +883,8 @@
                     { type: 'Platform', desc: 'Plataforma sólida e opaca para apoio de personagens' },
                     { type: 'Collision', desc: 'Área de colisão / barreira sólida para delimitar o cenário' },
                     { type: 'Sprite2D', desc: 'Objeto visual com suporte a imagem e texturas' },
-                    { type: 'Button', desc: 'Botão redondo acionável via script (ex: Pular)' },
+                    { type: 'Button', desc: 'Botão clicável / acionável para menus e ações' },
+                    { type: 'Label', desc: 'Texto estático ou rótulo visual (Ex: Placar)' },
                     { type: 'VirtualJoystick', desc: 'Controle analógico direcional touch customizável' },
                     { type: 'Camera2D', desc: 'Câmera seguidora ou fixa do jogo' }
                 ];
@@ -703,25 +901,25 @@
             addNode(type) {
                 const isCam = type === 'Camera2D';
                 const isJoy = type === 'VirtualJoystick';
-                const isBtn = type === 'Button';
+                const isBtnOrLbl = type === 'Button' || type === 'Label';
                 const isCol = type === 'Collision';
                 const newNode = {
                     id: 'node_' + Date.now(),
                     name: type + '_' + Math.floor(Math.random()*100),
                     type: type,
                     x: 120, y: 120, 
-                    width: isJoy ? 100 : (isBtn ? 60 : 40), 
-                    height: isJoy ? 100 : (isBtn ? 60 : 40), 
-                    color: isCol ? '#e06c75' : (isBtn ? '#e5c07b' : (type === 'Platform' ? '#4b5263' : (type === 'Player' ? '#3d8ec9' : '#98c379'))),
+                    width: isJoy ? 100 : (isBtnOrLbl ? 120 : 40), 
+                    height: isJoy ? 100 : (isBtnOrLbl ? 40 : 40), 
+                    color: isCol ? '#e06c75' : (isBtnOrLbl ? '#e5c07b' : (type === 'Platform' ? '#4b5263' : (type === 'Player' ? '#3d8ec9' : '#98c379'))),
                     gravity: 0,
                     opacity: isCol ? 0.6 : 1,
                     animation: 'none',
                     frames: [],
                     animSpeed: 10,
-                    text: isBtn ? 'Pular' : undefined,
+                    text: isBtnOrLbl ? (type === 'Label' ? 'Texto' : 'Botão') : undefined,
                     directionMode: isJoy ? 'all' : undefined,
                     cameraMode: isCam ? 'follow' : undefined,
-                    locked: (isJoy || isBtn) ? true : false,
+                    locked: (isJoy || isBtnOrLbl) ? true : false,
                     script: ''
                 };
                 if (!this.scene.children) this.scene.children = [];
@@ -766,11 +964,11 @@
                     fields.push({ label: 'Cor', key: 'color', type: 'color' });
                     fields.push({ label: 'Opacidade (0 a 1)', key: 'opacity', type: 'number' });
                     
-                    if (node.type === 'Button') {
-                        fields.push({ label: 'Texto do Botão', key: 'text', type: 'text' });
+                    if (node.type === 'Button' || node.type === 'Label') {
+                        fields.push({ label: 'Texto', key: 'text', type: 'text' });
                     }
 
-                    if (node.type !== 'VirtualJoystick' && node.type !== 'Button' && node.type !== 'Collision') {
+                    if (node.type !== 'VirtualJoystick' && node.type !== 'Button' && node.type !== 'Label' && node.type !== 'Collision') {
                         fields.push({ label: 'Gravidade (Força Queda)', key: 'gravity', type: 'number' });
                         fields.push({ label: 'Modo de Animação', key: 'animation', type: 'select', options: [
                             { val: 'none', text: 'Nenhuma' },
@@ -822,7 +1020,7 @@
                     container.appendChild(div);
                 });
 
-                if (node.x !== undefined && node.type !== 'VirtualJoystick' && node.type !== 'Camera2D' && node.type !== 'Button' && node.type !== 'Collision') {
+                if (node.x !== undefined && node.type !== 'VirtualJoystick' && node.type !== 'Camera2D' && node.type !== 'Button' && node.type !== 'Label' && node.type !== 'Collision') {
                     const imgSection = document.createElement('div');
                     imgSection.className = "mt-4 pt-3 border-t border-[#2c313a] space-y-2";
                     imgSection.innerHTML = `
@@ -909,52 +1107,6 @@
             }
         }
         const scriptEditor = new ScriptEditor();
-
-        // ================= TRANSLATOR / COMPILADOR DO GODOT SCRIPT SIMPLES =================
-        function transpileGodotScript(code) {
-            if (!code || code.trim() === '') return '';
-            let lines = code.split('\n');
-            let jsLines = [];
-
-            for (let line of lines) {
-                let l = line.trim();
-                if (l === '' || l.startsWith('//')) {
-                    jsLines.push(l);
-                    continue;
-                }
-
-                // 1. Comando joystick "Nome", velocidade
-                if (l.startsWith('joystick')) {
-                    let match = l.match(/joystick\s+"([^"]+)",\s*([\d.]+)/);
-                    if (match) {
-                        let name = match[1];
-                        let speed = match[2];
-                        jsLines.push(`const joy_${name} = window.joysticks && window.joysticks["${name}"]; if (joy_${name}) { this.x += joy_${name}.x * ${speed}; }`);
-                        continue;
-                    }
-                }
-
-                // 2. Atalhos de Colisão e Botões
-                l = l.replace(/toca\s+"([^"]+)"/g, 'this.collidesWith("$1")');
-                l = l.replace(/colide\s+"([^"]+)"/g, 'this.collidesWith("$1")');
-                l = l.replace(/botao\s+"([^"]+)"/g, '(window.buttons && window.buttons["$1"])');
-                l = l.replace(/\bno_chao\b/g, 'this.onGround');
-
-                // 3. Propriedades físicas do nó (x, y, vy, width, height)
-                l = l.replace(/\b(vy|vx|x|y|width|height)\b(?!\s*\()/g, 'this.$1');
-
-                // 4. Mapeamento de Variáveis Globais (ex: vida, pontos)
-                if (window.Globals) {
-                    for (let gKey in window.Globals) {
-                        let regex = new RegExp(`\\b${gKey}\\b`, 'g');
-                        l = l.replace(regex, `window.Globals.${gKey}`);
-                    }
-                }
-
-                jsLines.push(l);
-            }
-            return jsLines.join('\n');
-        }
 
         class Editor2D {
             constructor() { 
@@ -1060,10 +1212,8 @@
                 for (let i = nodes.length - 1; i >= 0; i--) {
                     let n = nodes[i];
                     if (n.x !== undefined && n.locked) {
-                        if (n.type === 'Button') {
-                            const cx = n.x + n.width / 2; const cy = n.y + n.height / 2;
-                            const radius = Math.min(n.width, n.height) / 2;
-                            if (Math.hypot(x - cx, y - cy) <= radius) {
+                        if (n.type === 'Button' || n.type === 'Label') {
+                            if (x >= n.x && x <= n.x + n.width && y >= n.y && y <= n.y + n.height) {
                                 this.dragNode = n; this.isDragging = true;
                                 sceneTree.selectedNode = n; sceneTree.render(); inspector.inspect(n); scriptEditor.loadScript(n);
                                 return;
@@ -1114,9 +1264,7 @@
                             break;
                         }
                     } else if (n.type === 'Button') {
-                        const cx = n.x + (n.width / 2); const cy = n.y + (n.height / 2);
-                        const radius = Math.min(n.width, n.height) / 2;
-                        if (Math.hypot(x - cx, y - cy) <= radius) {
+                        if (x >= n.x && x <= n.x + n.width && y >= n.y && y <= n.y + n.height) {
                             this.activeButtons[id] = n.name;
                             if (!window.buttons) window.buttons = {};
                             window.buttons[n.name] = true;
@@ -1178,7 +1326,7 @@
                 if (sceneTree.scene) {
                     const allNodes = [sceneTree.scene, ...(sceneTree.scene.children || [])];
                     allNodes.forEach(n => {
-                        if (n.x !== undefined && n.type !== 'VirtualJoystick' && n.type !== 'Button') this.drawNode(n);
+                        if (n.x !== undefined && n.type !== 'VirtualJoystick' && n.type !== 'Button' && n.type !== 'Label') this.drawNode(n);
                     });
                 }
                 this.ctx.restore();
@@ -1186,7 +1334,7 @@
                 if (sceneTree.scene) {
                     const allNodes = [sceneTree.scene, ...(sceneTree.scene.children || [])];
                     allNodes.forEach(n => {
-                        if (n.x !== undefined && (n.type === 'VirtualJoystick' || n.type === 'Button')) this.drawNode(n);
+                        if (n.x !== undefined && (n.type === 'VirtualJoystick' || n.type === 'Button' || n.type === 'Label')) this.drawNode(n);
                     });
                 }
             }
@@ -1210,23 +1358,23 @@
                     this.ctx.beginPath(); this.ctx.arc(sx, sy, 22, 0, Math.PI * 2);
                     this.ctx.fillStyle = n.color || '#3d8ec9'; this.ctx.fill();
                 } else if (n.type === 'Button') {
-                    const cx = n.x + n.width / 2;
-                    const cy = n.y + n.height / 2;
-                    const radius = Math.min(n.width, n.height) / 2;
-                    
-                    this.ctx.beginPath();
-                    this.ctx.arc(cx, cy, radius, 0, Math.PI * 2);
                     this.ctx.fillStyle = n.color || '#e5c07b';
-                    this.ctx.fill();
-                    this.ctx.lineWidth = 2;
-                    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-                    this.ctx.stroke();
+                    this.ctx.fillRect(n.x, n.y, n.width || 120, n.height || 40);
+                    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                    this.ctx.lineWidth = 1;
+                    this.ctx.strokeRect(n.x, n.y, n.width || 120, n.height || 40);
 
                     this.ctx.fillStyle = '#fff';
                     this.ctx.font = 'bold 12px sans-serif';
                     this.ctx.textAlign = 'center';
                     this.ctx.textBaseline = 'middle';
-                    this.ctx.fillText(n.text || 'Pular', cx, cy);
+                    this.ctx.fillText(n.text || 'Botão', n.x + (n.width || 120) / 2, n.y + (n.height || 40) / 2);
+                } else if (n.type === 'Label') {
+                    this.ctx.fillStyle = n.color || '#fff';
+                    this.ctx.font = 'bold 14px sans-serif';
+                    this.ctx.textAlign = 'left';
+                    this.ctx.textBaseline = 'middle';
+                    this.ctx.fillText(n.text || 'Texto', n.x, n.y + (n.height || 30) / 2);
                 } else if (n.type === 'Collision') {
                     this.ctx.fillStyle = n.color || '#e06c75';
                     this.ctx.fillRect(n.x, n.y, n.width || 40, n.height || 40);
@@ -1271,14 +1419,7 @@
 
                 if (!window.gameIsRunning && sceneTree.selectedNode === n && n.x !== undefined) {
                     this.ctx.strokeStyle = '#fff'; this.ctx.lineWidth = 2;
-                    if (n.type === 'Button') {
-                        const cx = n.x + n.width / 2; const cy = n.y + n.height / 2;
-                        this.ctx.beginPath();
-                        this.ctx.arc(cx, cy, (Math.min(n.width, n.height) / 2) + 3, 0, Math.PI * 2);
-                        this.ctx.stroke();
-                    } else {
-                        this.ctx.strokeRect(n.x - 2, n.y - 2, (n.width || 40) + 4, (n.height || 40) + 4);
-                    }
+                    this.ctx.strokeRect(n.x - 2, n.y - 2, (n.width || 40) + 4, (n.height || 40) + 4);
                 }
                 this.ctx.restore();
             }
@@ -1300,7 +1441,6 @@
                 this.isRunning = true; window.gameIsRunning = true;
                 window.joysticks = {}; window.buttons = {};
 
-                // 1. LIMPA E RECRIA AS VARIÁVEIS GLOBAIS DO ZERO A CADA PLAY
                 window.Globals = {};
                 if (app.currentProject && app.currentProject.globals) {
                     window.Globals = JSON.parse(JSON.stringify(app.currentProject.globals));
@@ -1326,19 +1466,17 @@
                     if (n.y !== undefined) n._editorY = n.y;
                     n.vy = 0; n.onGround = false; n._animTimer = 0; n._currentFrameIdx = 0; n._frameCounter = 0;
 
-                    // Compila o GodotScript Simples para JavaScript executável
                     if (n.script && n.script.trim() !== '') {
                         try {
-                            const translatedJS = transpileGodotScript(n.script);
-                            n._compiledScript = new Function(translatedJS);
+                            n._compiledScript = new Function(n.script);
                         } catch (err) {
-                            consoleWindow.log(`Erro ao compilar script de ${n.name}: ${err.message}`, "error");
+                            consoleWindow.log(`Erro ao compilar script JS de ${n.name}: ${err.message}`, "error");
                         }
                     }
                 });
 
                 editor2D.resize();
-                consoleWindow.log("Executando jogo (GodotScript limpo e reiniciado)...");
+                consoleWindow.log("Executando cena ativa...");
 
                 const platforms = nodes.filter(n => n.type === 'Platform' || n.type === 'Collision');
                 const camNode = nodes.find(n => n.type === 'Camera2D');
@@ -1363,12 +1501,11 @@
                             n.x += Math.cos(n._animTimer) * 1.5;
                         }
 
-                        if (n.gravity > 0 && n.type !== 'VirtualJoystick' && n.type !== 'Button' && n.type !== 'Collision') {
+                        if (n.gravity > 0 && n.type !== 'VirtualJoystick' && n.type !== 'Button' && n.type !== 'Label' && n.type !== 'Collision') {
                             n.vy += n.gravity;
                             n.y += n.vy;
                         }
 
-                        // Função auxiliar interna para detecção de colisão via script
                         n.collidesWith = function(targetName) {
                             const target = nodes.find(node => (node.name === targetName || node.type === targetName) && node !== this);
                             if (!target) return false;
@@ -1379,8 +1516,7 @@
                             try { n._compiledScript.call(n); } catch (err) {}
                         }
 
-                        // SISTEMA DE COLISÃO FISICA COM PLATAFORMAS
-                        if (n.type === 'Player' || n.gravity > 0 || (n.script && n.script.trim() !== '')) {
+                        if (n.type === 'Player' || n.gravity > 0) {
                             n.onGround = false;
                             for (let plat of platforms) {
                                 if (n === plat) continue;
@@ -1443,7 +1579,7 @@
 
                 if (sceneTree.selectedNode) inspector.inspect(sceneTree.selectedNode);
                 editor2D.resize(); editor2D.draw();
-                consoleWindow.log("Jogo pausado.", "warning");
+                consoleWindow.log("Execução encerrada.", "warning");
             }
             stopGame() { this.pauseGame(); }
         }
