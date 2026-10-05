@@ -1,892 +1,176 @@
+
 <!DOCTYPE html>
-<html lang="pt-BR" class="dark">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EngineCode - IDE Profissional</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        dark: {
-                            900: '#0f172a',
-                            800: '#1e293b',
-                            700: '#334155',
-                            600: '#475569',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- JSZip for Import/Export -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <!-- Monaco Editor Loader -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
-    <style>
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
-        .resizer-x { cursor: col-resize; }
-        .resizer-y { cursor: row-resize; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#181a1f">
+  <title>EngineGame 2D</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-dark-900 text-slate-100 h-screen w-screen overflow-hidden flex flex-col font-sans select-none">
-
-    <!-- Top Navbar -->
-    <header class="h-12 bg-dark-800 border-b border-dark-700 flex items-center justify-between px-4 shrink-0 z-20">
-        <div class="flex items-center space-x-3">
-            <div class="flex items-center space-x-2 text-cyan-400 font-bold text-lg tracking-wide">
-                <i data-lucide="terminal" class="w-6 h-6"></i>
-                <span>Engine<span class="text-white">Code</span></span>
-            </div>
-            <div class="h-4 w-[1px] bg-dark-600"></div>
-            <div class="flex items-center space-x-2 text-sm text-slate-300">
-                <span id="current-project-name" class="font-medium text-white px-2 py-0.5 bg-dark-700 rounded">Meu Projeto</span>
-                <span id="save-status" class="text-xs text-slate-400 flex items-center gap-1"><i data-lucide="check" class="w-3 h-3 text-emerald-400"></i> Salvo</span>
-            </div>
-        </div>
-
-        <!-- Toolbar -->
-        <div class="flex items-center space-x-1 sm:space-x-2">
-            <button onclick="app.runCode()" title="Executar (Ctrl+Enter)" class="flex items-center space-x-1.5 bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded text-xs font-semibold transition shadow">
-                <i data-lucide="play" class="w-3.5 h-3.5"></i>
-                <span class="hidden sm:inline">Executar</span>
-            </button>
-            <button onclick="app.stopExecution()" title="Parar" class="flex items-center space-x-1.5 bg-rose-600/80 hover:bg-rose-600 text-white px-2.5 py-1.5 rounded text-xs transition">
-                <i data-lucide="square" class="w-3.5 h-3.5"></i>
-            </button>
-            <div class="h-4 w-[1px] bg-dark-600 mx-1"></div>
-            <button onclick="app.saveProject()" title="Salvar Projeto (Ctrl+S)" class="p-1.5 hover:bg-dark-700 text-slate-300 hover:text-white rounded transition">
-                <i data-lucide="save" class="w-4 h-4"></i>
-            </button>
-            <button onclick="app.undo()" title="Desfazer (Ctrl+Z)" class="p-1.5 hover:bg-dark-700 text-slate-300 hover:text-white rounded transition">
-                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
-            </button>
-            <button onclick="app.redo()" title="Refazer (Ctrl+Y)" class="p-1.5 hover:bg-dark-700 text-slate-300 hover:text-white rounded transition">
-                <i data-lucide="rotate-cw" class="w-4 h-4"></i>
-            </button>
-            <div class="h-4 w-[1px] bg-dark-600 mx-1"></div>
-            <button onclick="app.newFileDialog()" title="Novo Arquivo (Ctrl+N)" class="p-1.5 hover:bg-dark-700 text-slate-300 hover:text-white rounded transition">
-                <i data-lucide="file-plus" class="w-4 h-4"></i>
-            </button>
-            <button onclick="app.newFolderDialog()" title="Nova Pasta" class="p-1.5 hover:bg-dark-700 text-slate-300 hover:text-white rounded transition">
-                <i data-lucide="folder-plus" class="w-4 h-4"></i>
-            </button>
-            <button onclick="app.exportZip()" title="Exportar Projeto ZIP" class="p-1.5 hover:bg-dark-700 text-slate-300 hover:text-white rounded transition">
-                <i data-lucide="download" class="w-4 h-4"></i>
-            </button>
-            <div class="h-4 w-[1px] bg-dark-600 mx-1"></div>
-            <button onclick="app.toggleFullscreen()" title="Tela Cheia (F11)" class="p-1.5 hover:bg-dark-700 text-slate-300 hover:text-white rounded transition">
-                <i data-lucide="maximize" class="w-4 h-4"></i>
-            </button>
-            <button onclick="app.openSettings()" title="Configurações" class="p-1.5 hover:bg-dark-700 text-slate-300 hover:text-white rounded transition">
-                <i data-lucide="settings" class="w-4 h-4"></i>
-            </button>
-        </div>
-    </header>
-
-    <!-- Main Workspace -->
-    <div class="flex-1 flex overflow-hidden relative">
-
-        <!-- Sidebar / File Explorer -->
-        <aside id="sidebar" class="w-64 bg-dark-800 border-r border-dark-700 flex flex-col shrink-0 transition-all duration-200">
-            <div class="p-3 border-b border-dark-700 flex items-center justify-between">
-                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Explorador</span>
-                <div class="flex items-center space-x-1">
-                    <button onclick="app.newFileDialog()" title="Novo Arquivo" class="p-1 hover:bg-dark-700 rounded text-slate-400 hover:text-white"><i data-lucide="file-plus" class="w-3.5 h-3.5"></i></button>
-                    <button onclick="app.openProjectModal()" title="Gerenciar Projetos" class="p-1 hover:bg-dark-700 rounded text-slate-400 hover:text-white"><i data-lucide="folder-kanban" class="w-3.5 h-3.5"></i></button>
-                </div>
-            </div>
-            <!-- File Tree -->
-            <div id="file-tree" class="flex-1 overflow-y-auto p-2 space-y-1 text-sm select-none"></div>
-            <!-- Language Selector Footer -->
-            <div class="p-3 border-t border-dark-700 bg-dark-900/50">
-                <label class="block text-xs text-slate-400 mb-1">Linguagem do Arquivo</label>
-                <select id="language-select" onchange="app.changeLanguage(this.value)" class="w-full bg-dark-700 border border-dark-600 rounded px-2 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-500">
-                    <optgroup label="Frontend">
-                        <option value="html">HTML</option>
-                        <option value="css">CSS</option>
-                        <option value="javascript">JavaScript</option>
-                        <option value="typescript">TypeScript</option>
-                    </optgroup>
-                    <optgroup label="Backend & Compiladas">
-                        <option value="python">Python</option>
-                        <option value="java">Java</option>
-                        <option value="c">C</option>
-                        <option value="cpp">C++</option>
-                        <option value="csharp">C#</option>
-                        <option value="php">PHP</option>
-                        <option value="go">Go</option>
-                        <option value="rust">Rust</option>
-                        <option value="ruby">Ruby</option>
-                        <option value="kotlin">Kotlin</option>
-                        <option value="swift">Swift</option>
-                        <option value="bash">Bash</option>
-                    </optgroup>
-                </select>
-            </div>
-        </aside>
-
-        <!-- Editor & Terminal Area -->
-        <div class="flex-1 flex flex-col min-w-0 bg-dark-900">
-            <!-- Tabs Bar -->
-            <div id="editor-tabs" class="h-9 bg-dark-800/80 border-b border-dark-700 flex items-center overflow-x-auto shrink-0 space-x-1 px-2"></div>
-
-            <!-- Central Split: Editor & Output/Preview -->
-            <div class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
-                <!-- Editor Container -->
-                <div id="editor-container" class="flex-1 h-full relative"></div>
-
-                <!-- Resizer X -->
-                <div id="resizer-x" class="hidden lg:block w-1 bg-dark-700 hover:bg-cyan-500 resizer-x transition"></div>
-
-                <!-- Right / Bottom Panel (Terminal & Preview) -->
-                <div id="output-panel" class="w-full lg:w-[45%] h-1/2 lg:h-full flex flex-col bg-dark-800 border-t lg:border-t-0 lg:border-l border-dark-700">
-                    <!-- Panel Tabs -->
-                    <div class="h-9 bg-dark-800 border-b border-dark-700 flex items-center justify-between px-3 shrink-0">
-                        <div class="flex space-x-4 text-xs font-medium">
-                            <button onclick="app.switchOutputTab('preview')" id="tab-btn-preview" class="text-cyan-400 border-b-2 border-cyan-400 pb-2 pt-2 flex items-center gap-1.5 transition">
-                                <i data-lucide="eye" class="w-3.5 h-3.5"></i> Preview
-                            </button>
-                            <button onclick="app.switchOutputTab('terminal')" id="tab-btn-terminal" class="text-slate-400 hover:text-white pb-2 pt-2 flex items-center gap-1.5 transition">
-                                <i data-lucide="terminal" class="w-3.5 h-3.5"></i> Terminal / Logs
-                            </button>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <button onclick="app.refreshPreview()" title="Atualizar Preview" class="p-1 hover:bg-dark-700 rounded text-slate-400 hover:text-white"><i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i></button>
-                            <button onclick="app.togglePreviewFullscreen()" title="Tela Cheia" class="p-1 hover:bg-dark-700 rounded text-slate-400 hover:text-white"><i data-lucide="maximize-2" class="w-3.5 h-3.5"></i></button>
-                        </div>
-                    </div>
-
-                    <!-- Preview Content -->
-                    <div id="panel-preview" class="flex-1 bg-white relative overflow-hidden flex flex-col">
-                        <iframe id="preview-frame" class="w-full h-full border-0" sandbox="allow-scripts allow-modals"></iframe>
-                    </div>
-
-                    <!-- Terminal Content -->
-                    <div id="panel-terminal" class="flex-1 bg-dark-900 p-3 font-mono text-xs overflow-y-auto hidden flex flex-col justify-between">
-                        <div id="terminal-output" class="space-y-1 text-slate-300 flex-1">
-                            <div class="text-slate-500">// EngineCode Terminal v1.0.0 - Pronto para execução.</div>
-                        </div>
-                        <div class="mt-2 pt-2 border-t border-dark-700 flex items-center justify-between text-slate-400">
-                            <span id="execution-status">Sistema ocioso</span>
-                            <button onclick="app.clearTerminal()" class="hover:text-white px-2 py-1 bg-dark-800 rounded border border-dark-700">Limpar Terminal</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Modals & Dialogs Container -->
-    <div id="modal-container" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4"></div>
-
-    <!-- Toast Notification Container -->
-    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
-
-    <!-- Application Script -->
-    <script>
-        // --- STORAGE MANAGER (IndexedDB) ---
-        class StorageManager {
-            constructor() {
-                this.dbName = 'EngineCodeDB';
-                this.storeName = 'projects';
-                this.db = null;
-            }
-            async init() {
-                return new Promise((resolve, reject) => {
-                    const request = indexedDB.open(this.dbName, 1);
-                    request.onerror = () => reject(request.error);
-                    request.onsuccess = () => {
-                        this.db = request.result;
-                        resolve(this.db);
-                    };
-                    request.onupgradeneeded = (e) => {
-                        const db = e.target.result;
-                        if (!db.objectStoreNames.contains(this.storeName)) {
-                            db.createObjectStore(this.storeName, { keyPath: 'id' });
-                        }
-                        if (!db.objectStoreNames.contains('settings')) {
-                            db.createObjectStore('settings', { keyPath: 'id' });
-                        }
-                    };
-                });
-            }
-            async saveProject(project) {
-                return new Promise((resolve, reject) => {
-                    const tx = this.db.transaction(this.storeName, 'readwrite');
-                    const store = tx.objectStore(this.storeName);
-                    const req = store.put(project);
-                    req.onsuccess = () => resolve(true);
-                    req.onerror = () => reject(req.error);
-                });
-            }
-            async getProject(id) {
-                return new Promise((resolve, reject) => {
-                    const tx = this.db.transaction(this.storeName, 'readonly');
-                    const store = tx.objectStore(this.storeName);
-                    const req = store.get(id);
-                    req.onsuccess = () => resolve(req.result);
-                    req.onerror = () => reject(req.error);
-                });
-            }
-            async getAllProjects() {
-                return new Promise((resolve, reject) => {
-                    const tx = this.db.transaction(this.storeName, 'readonly');
-                    const store = tx.objectStore(this.storeName);
-                    const req = store.getAll();
-                    req.onsuccess = () => resolve(req.result);
-                    req.onerror = () => reject(req.error);
-                });
-            }
-            async deleteProject(id) {
-                return new Promise((resolve, reject) => {
-                    const tx = this.db.transaction(this.storeName, 'readwrite');
-                    const store = tx.objectStore(this.storeName);
-                    const req = store.delete(id);
-                    req.onsuccess = () => resolve(true);
-                    req.onerror = () => reject(req.error);
-                });
-            }
-            async saveSettings(settings) {
-                return new Promise((resolve, reject) => {
-                    const tx = this.db.transaction('settings', 'readwrite');
-                    const store = tx.objectStore('settings');
-                    const req = store.put({ id: 'user_settings', ...settings });
-                    req.onsuccess = () => resolve(true);
-                    req.onerror = () => reject(req.error);
-                });
-            }
-            async getSettings() {
-                return new Promise((resolve) => {
-                    const tx = this.db.transaction('settings', 'readonly');
-                    const store = tx.objectStore('settings');
-                    const req = store.get('user_settings');
-                    req.onsuccess = () => resolve(req.result || {
-                        fontSize: 14,
-                        theme: 'dark',
-                        tabSize: 4,
-                        wordWrap: 'on',
-                        autoSave: true,
-                        autoPreview: true
-                    });
-                    req.onerror = () => resolve({});
-                });
-            }
-        }
-
-        // --- MAIN APP CONTROLLER ---
-        class EngineCodeIDE {
-            constructor() {
-                this.storage = new StorageManager();
-                this.project = null;
-                this.activeFileId = null;
-                this.openTabs = [];
-                this.editor = null;
-                this.settings = {};
-                this.executionTimeout = null;
-                this.autoSaveTimer = null;
-            }
-
-            async init() {
-                await this.storage.init();
-                this.settings = await this.storage.getSettings();
-                
-                let projects = await this.storage.getAllProjects();
-                if (projects.length === 0) {
-                    this.project = this.createDefaultProject();
-                    await this.storage.saveProject(this.project);
-                } else {
-                    this.project = projects[0];
-                }
-
-                this.activeFileId = this.project.mainFileId || this.project.files[0].id;
-                this.openTabs = [this.activeFileId];
-
-                this.initMonaco();
-                this.initUIEvents();
-                lucide.createIcons();
-                this.renderAll();
-                this.setupAutoSave();
-            }
-
-            createDefaultProject() {
-                const fileHtmlId = 'file_' + Date.now() + '_1';
-                const fileCssId = 'file_' + Date.now() + '_2';
-                const fileJsId = 'file_' + Date.now() + '_3';
-                return {
-                    id: 'proj_' + Date.now(),
-                    name: 'Web App Exemplo',
-                    mainFileId: fileHtmlId,
-                    files: [
-                        { id: fileHtmlId, name: 'index.html', language: 'html', content: '<div class="container">\n  <h1>Olá, EngineCode!</h1>\n  <p>Edite e veja o resultado em tempo real.</p>\n  <button onclick="dizerOla()">Clique Aqui</button>\n</div>' },
-                        { id: fileCssId, name: 'style.css', language: 'css', content: 'body { font-family: system-ui; background: #f8fafc; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }\n.container { text-align: center; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }\nh1 { color: #0ea5e9; margin-bottom: 0.5rem; }\nbutton { background: #0ea5e9; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 1rem; }\nbutton:hover { background: #0284c7; }' },
-                        { id: fileJsId, name: 'script.js', language: 'javascript', content: 'function dizerOla() {\n  alert("EngineCode funcionando perfeitamente!");\n}' }
-                    ]
-                };
-            }
-
-            initMonaco() {
-                require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min' }});
-                require(['vs/editor/editor.main'], () => {
-                    const activeFile = this.getFile(this.activeFileId);
-                    this.editor = monaco.editor.create(document.getElementById('editor-container'), {
-                        value: activeFile ? activeFile.content : '',
-                        language: activeFile ? activeFile.language : 'html',
-                        theme: 'vs-dark',
-                        fontSize: this.settings.fontSize || 14,
-                        tabSize: this.settings.tabSize || 4,
-                        wordWrap: this.settings.wordWrap || 'on',
-                        automaticLayout: true,
-                        minimap: { enabled: true }
-                    });
-
-                    this.editor.onDidChangeModelContent(() => {
-                        const file = this.getFile(this.activeFileId);
-                        if (file) {
-                            file.content = this.editor.getValue();
-                            this.setSaveStatus(false);
-                            if (this.settings.autoPreview && (file.language === 'html' || file.language === 'css' || file.language === 'javascript')) {
-                                clearTimeout(this.executionTimeout);
-                                this.executionTimeout = setTimeout(() => this.runFrontendPreview(), 500);
-                            }
-                        }
-                    });
-
-                    // Keyboard shortcuts
-                    this.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => this.saveProject());
-                    this.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => this.runCode());
-                    this.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyN, () => this.newFileDialog());
-
-                    this.runFrontendPreview();
-                });
-            }
-
-            initUIEvents() {
-                // Resizer X
-                const resizer = document.getElementById('resizer-x');
-                const sidebar = document.getElementById('sidebar');
-                const outputPanel = document.getElementById('output-panel');
-                let isResizing = false;
-
-                resizer.addEventListener('mousedown', () => { isResizing = true; });
-                window.addEventListener('mousemove', (e) => {
-                    if (!isResizing) return;
-                    const containerWidth = window.innerWidth;
-                    const newWidth = containerWidth - e.clientX;
-                    if (newWidth > 200 && newWidth < containerWidth - 300) {
-                        outputPanel.style.width = newWidth + 'px';
-                    }
-                });
-                window.addEventListener('mouseup', () => { isResizing = false; });
-            }
-
-            renderAll() {
-                document.getElementById('current-project-name').innerText = this.project.name;
-                this.renderFileTree();
-                this.renderTabs();
-                const file = this.getFile(this.activeFileId);
-                if (file) {
-                    document.getElementById('language-select').value = file.language;
-                }
-                lucide.createIcons();
-            }
-
-            renderFileTree() {
-                const container = document.getElementById('file-tree');
-                container.innerHTML = '';
-                this.project.files.forEach(file => {
-                    const isSelected = file.id === this.activeFileId;
-                    const isMain = file.id === this.project.mainFileId;
-                    const div = document.createElement('div');
-                    div.className = `flex items-center justify-between px-2 py-1.5 rounded cursor-pointer group text-xs ${isSelected ? 'bg-cyan-500/15 text-cyan-400 font-medium' : 'text-slate-300 hover:bg-dark-700'}`;
-                    div.innerHTML = `
-                        <div class="flex items-center space-x-2 truncate" onclick="app.openFile('${file.id}')">
-                            <i data-lucide="${this.getFileIcon(file.language)}" class="w-4 h-4 shrink-0"></i>
-                            <span class="truncate">${file.name}</span>
-                            ${isMain ? '<span class="text-[10px] bg-cyan-500/20 text-cyan-300 px-1 rounded">main</span>' : ''}
-                        </div>
-                        <div class="hidden group-hover:flex items-center space-x-1">
-                            <button onclick="event.stopPropagation(); app.setMainFile('${file.id}')" title="Definir como Principal" class="p-1 hover:text-cyan-400"><i data-lucide="star" class="w-3 h-3"></i></button>
-                            <button onclick="event.stopPropagation(); app.deleteFileDialog('${file.id}')" title="Excluir" class="p-1 hover:text-rose-400"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
-                        </div>
-                    `;
-                    container.appendChild(div);
-                });
-            }
-
-            renderTabs() {
-                const container = document.getElementById('editor-tabs');
-                container.innerHTML = '';
-                this.openTabs.forEach(fileId => {
-                    const file = this.getFile(fileId);
-                    if (!file) return;
-                    const isActive = fileId === this.activeFileId;
-                    const tab = document.createElement('div');
-                    tab.className = `flex items-center space-x-2 px-3 py-1.5 text-xs border-r border-dark-700 cursor-pointer ${isActive ? 'bg-dark-900 text-cyan-400 border-t-2 border-t-cyan-400 font-medium' : 'text-slate-400 hover:bg-dark-700/50'}`;
-                    tab.innerHTML = `
-                        <span onclick="app.switchTab('${file.id}')">${file.name}</span>
-                        <button onclick="event.stopPropagation(); app.closeTab('${file.id}')" class="hover:text-white p-0.5 rounded"><i data-lucide="x" class="w-3 h-3"></i></button>
-                    `;
-                    container.appendChild(tab);
-                });
-            }
-
-            getFileIcon(lang) {
-                switch(lang) {
-                    case 'html': return 'file-code';
-                    case 'css': return 'file-text';
-                    case 'javascript': case 'typescript': return 'file-json';
-                    case 'python': return 'file-code';
-                    default: return 'file';
-                }
-            }
-
-            getFile(id) {
-                return this.project.files.find(f => f.id === id);
-            }
-
-            openFile(id) {
-                this.activeFileId = id;
-                if (!this.openTabs.includes(id)) {
-                    this.openTabs.push(id);
-                }
-                const file = this.getFile(id);
-                if (file && this.editor) {
-                    const model = this.editor.getModel();
-                    monaco.editor.setModelLanguage(model, file.language);
-                    model.setValue(file.content);
-                    document.getElementById('language-select').value = file.language;
-                }
-                this.renderAll();
-            }
-
-            switchTab(id) {
-                this.openFile(id);
-            }
-
-            closeTab(id) {
-                this.openTabs = this.openTabs.filter(t => t !== id);
-                if (this.activeFileId === id && this.openTabs.length > 0) {
-                    this.openFile(this.openTabs[this.openTabs.length - 1]);
-                } else if (this.openTabs.length === 0) {
-                    this.activeFileId = null;
-                    if (this.editor) this.editor.setValue('');
-                }
-                this.renderAll();
-            }
-
-            changeLanguage(lang) {
-                const file = this.getFile(this.activeFileId);
-                if (file) {
-                    file.language = lang;
-                    if (this.editor) {
-                        monaco.editor.setModelLanguage(this.editor.getModel(), lang);
-                    }
-                    this.renderAll();
-                    this.setSaveStatus(false);
-                }
-            }
-
-            setMainFile(id) {
-                this.project.mainFileId = id;
-                this.renderAll();
-                this.showToast('Arquivo principal definido!', 'success');
-            }
-
-            async saveProject() {
-                await this.storage.saveProject(this.project);
-                this.setSaveStatus(true);
-                this.showToast('Projeto salvo com sucesso!', 'success');
-            }
-
-            setSaveStatus(isSaved) {
-                const el = document.getElementById('save-status');
-                if (isSaved) {
-                    el.innerHTML = '<i data-lucide="check" class="w-3 h-3 text-emerald-400"></i> Salvo';
-                } else {
-                    el.innerHTML = '<i data-lucide="circle" class="w-3 h-3 text-amber-400 fill-amber-400"></i> Não salvo';
-                }
-                lucide.createIcons();
-            }
-
-            setupAutoSave() {
-                setInterval(() => {
-                    if (this.settings.autoSave) {
-                        this.storage.saveProject(this.project);
-                    }
-                }, 10000);
-            }
-
-            newFileDialog() {
-                this.showModal('Criar Novo Arquivo', `
-                    <div class="space-y-3">
-                        <div>
-                            <label class="block text-xs text-slate-400 mb-1">Nome do Arquivo (ex: index.js, app.py)</label>
-                            <input id="new-file-name" type="text" class="w-full bg-dark-900 border border-dark-600 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500" placeholder="script.js">
-                        </div>
-                        <div>
-                            <label class="block text-xs text-slate-400 mb-1">Linguagem</label>
-                            <select id="new-file-lang" class="w-full bg-dark-900 border border-dark-600 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500">
-                                <option value="html">HTML</option>
-                                <option value="css">CSS</option>
-                                <option value="javascript" selected>JavaScript</option>
-                                <option value="python">Python</option>
-                                <option value="java">Java</option>
-                                <option value="cpp">C++</option>
-                            </select>
-                        </div>
-                        <div class="flex justify-end space-x-2 pt-2">
-                            <button onclick="app.closeModal()" class="px-4 py-2 bg-dark-700 hover:bg-dark-600 rounded text-sm">Cancelar</button>
-                            <button onclick="app.confirmCreateFile()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded text-sm font-medium">Criar</button>
-                        </div>
-                    </div>
-                `);
-            }
-
-            confirmCreateFile() {
-                const name = document.getElementById('new-file-name').value.trim();
-                const lang = document.getElementById('new-file-lang').value;
-                if (!name) return;
-                const newFile = {
-                    id: 'file_' + Date.now(),
-                    name: name,
-                    language: lang,
-                    content: `// ${name}\n`
-                };
-                this.project.files.push(newFile);
-                this.closeModal();
-                this.openFile(newFile.id);
-                this.showToast('Arquivo criado com sucesso!', 'success');
-            }
-
-            deleteFileDialog(id) {
-                if (this.project.files.length <= 1) {
-                    this.showToast('O projeto precisa ter pelo menos um arquivo.', 'error');
-                    return;
-                }
-                const file = this.getFile(id);
-                if (confirm(`Deseja realmente excluir ${file.name}?`)) {
-                    this.project.files = this.project.files.filter(f => f.id !== id);
-                    this.closeTab(id);
-                    this.renderAll();
-                    this.showToast('Arquivo excluído.', 'info');
-                }
-            }
-
-            switchOutputTab(tab) {
-                const isPreview = tab === 'preview';
-                document.getElementById('panel-preview').classList.toggle('hidden', !isPreview);
-                document.getElementById('panel-terminal').classList.toggle('hidden', isPreview);
-                document.getElementById('tab-btn-preview').className = isPreview ? 'text-cyan-400 border-b-2 border-cyan-400 pb-2 pt-2 flex items-center gap-1.5 transition' : 'text-slate-400 hover:text-white pb-2 pt-2 flex items-center gap-1.5 transition';
-                document.getElementById('tab-btn-terminal').className = !isPreview ? 'text-cyan-400 border-b-2 border-cyan-400 pb-2 pt-2 flex items-center gap-1.5 transition' : 'text-slate-400 hover:text-white pb-2 pt-2 flex items-center gap-1.5 transition';
-                lucide.createIcons();
-            }
-
-            async runCode() {
-                const file = this.getFile(this.activeFileId);
-                if (!file) return;
-
-                if (['html', 'css', 'javascript'].includes(file.language)) {
-                    this.switchOutputTab('preview');
-                    this.runFrontendPreview();
-                    this.showToast('Preview atualizado!', 'success');
-                } else {
-                    this.switchOutputTab('terminal');
-                    await this.runBackendCode(file);
-                }
-            }
-
-            runFrontendPreview() {
-                const htmlFile = this.project.files.find(f => f.language === 'html') || this.project.files[0];
-                const cssFiles = this.project.files.filter(f => f.language === 'css');
-                const jsFiles = this.project.files.filter(f => f.language === 'javascript');
-
-                let cssContent = cssFiles.map(f => `<style>${f.content}</style>`).join('\n');
-                let jsContent = jsFiles.map(f => `<script>${f.content}<\/script>`).join('\n');
-
-                let fullHtml = htmlFile.content;
-                if (!fullHtml.includes('<head>')) {
-                    fullHtml = `<!DOCTYPE html><html><head>${cssContent}</head><body>${fullHtml}${jsContent}</body></html>`;
-                } else {
-                    fullHtml = fullHtml.replace('</head>', `${cssContent}</head>`).replace('</body>', `${jsContent}</body>`);
-                }
-
-                const iframe = document.getElementById('preview-frame');
-                const blob = new Blob([fullHtml], { type: 'text/html' });
-                iframe.src = URL.createObjectURL(blob);
-            }
-
-            async runBackendCode(file) {
-                const terminal = document.getElementById('terminal-output');
-                const status = document.getElementById('execution-status');
-                
-                terminal.innerHTML += `<div class="text-cyan-400">$ Executando ${file.name} (${file.language})...</div>`;
-                status.innerText = 'Executando na API Piston...';
-
-                try {
-                    const response = await fetch('https://emkc.org/api/v2/piston/execute', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            language: file.language,
-                            version: '*',
-                            files: [{ name: file.name, content: file.content }]
-                        })
-                    });
-                    const result = await response.json();
-                    if (result.run) {
-                        if (result.run.stdout) {
-                            terminal.innerHTML += `<div class="text-slate-200 whitespace-pre-wrap">${result.run.stdout}</div>`;
-                        }
-                        if (result.run.stderr) {
-                            terminal.innerHTML += `<div class="text-rose-400 whitespace-pre-wrap">${result.run.stderr}</div>`;
-                        }
-                        status.innerText = `Concluído em ${result.run.time || 0}ms (Código: ${result.run.code})`;
-                    } else {
-                        terminal.innerHTML += `<div class="text-rose-400">Erro na resposta da API Piston.</div>`;
-                        status.innerText = 'Erro na execução';
-                    }
-                } catch (err) {
-                    terminal.innerHTML += `<div class="text-rose-400">Falha de conexão com a API Piston: ${err.message}</div>`;
-                    status.innerText = 'Erro de rede';
-                }
-                terminal.scrollTop = terminal.scrollHeight;
-            }
-
-            stopExecution() {
-                const iframe = document.getElementById('preview-frame');
-                iframe.src = 'about:blank';
-                document.getElementById('execution-status').innerText = 'Execução interrompida';
-                this.showToast('Execução interrompida.', 'info');
-            }
-
-            refreshPreview() {
-                this.runFrontendPreview();
-                this.showToast('Preview reiniciado.', 'success');
-            }
-
-            clearTerminal() {
-                document.getElementById('terminal-output').innerHTML = '<div class="text-slate-500">// Terminal limpo.</div>';
-            }
-
-            async openProjectModal() {
-                const projects = await this.storage.getAllProjects();
-                let html = `<div class="bg-dark-800 border border-dark-700 w-full max-w-md rounded-xl p-5 space-y-4 shadow-2xl">
-                    <h3 class="text-lg font-bold text-white">Gerenciar Projetos</h3>
-                    <div class="space-y-2 max-h-60 overflow-y-auto">`;
-                
-                projects.forEach(p => {
-                    html += `<div class="flex items-center justify-between p-3 bg-dark-900 rounded border border-dark-700">
-                        <div>
-                            <div class="font-medium text-white">${p.name}</div>
-                            <div class="text-xs text-slate-400">${p.files.length} arquivos</div>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <button onclick="app.switchProject('${p.id}')" class="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 text-white text-xs rounded">Abrir</button>
-                            <button onclick="app.deleteProject('${p.id}')" class="p-1 hover:text-rose-400 text-slate-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                        </div>
-                    </div>`;
-                });
-
-                html += `</div>
-                    <div class="flex justify-between pt-2">
-                        <button onclick="app.newProjectDialog()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded text-sm font-medium">Novo Projeto</button>
-                        <button onclick="app.closeModal()" class="px-4 py-2 bg-dark-700 hover:bg-dark-600 rounded text-sm">Fechar</button>
-                    </div>
-                </div>`;
-                this.showCustomModal(html);
-                lucide.createIcons();
-            }
-
-            async switchProject(id) {
-                this.project = await this.storage.getProject(id);
-                this.activeFileId = this.project.mainFileId || this.project.files[0].id;
-                this.openTabs = [this.activeFileId];
-                this.closeModal();
-                this.initMonaco();
-                this.renderAll();
-                this.showToast('Projeto aberto com sucesso!', 'success');
-            }
-
-            newProjectDialog() {
-                this.showModal('Criar Novo Projeto', `
-                    <div class="space-y-3">
-                        <div>
-                            <label class="block text-xs text-slate-400 mb-1">Nome do Projeto</label>
-                            <input id="new-proj-name" type="text" class="w-full bg-dark-900 border border-dark-600 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500" placeholder="Meu App Incrível">
-                        </div>
-                        <div class="flex justify-end space-x-2 pt-2">
-                            <button onclick="app.closeModal()" class="px-4 py-2 bg-dark-700 hover:bg-dark-600 rounded text-sm">Cancelar</button>
-                            <button onclick="app.confirmCreateProject()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded text-sm font-medium">Criar</button>
-                        </div>
-                    </div>
-                `);
-            }
-
-            async confirmCreateProject() {
-                const name = document.getElementById('new-proj-name').value.trim();
-                if (!name) return;
-                const newProj = {
-                    id: 'proj_' + Date.now(),
-                    name: name,
-                    files: [
-                        { id: 'f_' + Date.now(), name: 'main.js', language: 'javascript', content: 'console.log("Olá do projeto ' + name + '");' }
-                    ]
-                };
-                newProj.mainFileId = newProj.files[0].id;
-                await this.storage.saveProject(newProj);
-                this.project = newProj;
-                this.activeFileId = newProj.mainFileId;
-                this.openTabs = [this.activeFileId];
-                this.closeModal();
-                this.initMonaco();
-                this.renderAll();
-                this.showToast('Novo projeto criado!', 'success');
-            }
-
-            async deleteProject(id) {
-                const projects = await this.storage.getAllProjects();
-                if (projects.length <= 1) {
-                    this.showToast('Você não pode excluir o único projeto.', 'error');
-                    return;
-                }
-                if (confirm('Deseja excluir permanentemente este projeto?')) {
-                    await this.storage.deleteProject(id);
-                    this.closeModal();
-                    this.openProjectModal();
-                    this.showToast('Projeto excluído.', 'info');
-                }
-            }
-
-            async exportZip() {
-                const zip = new JSZip();
-                const folder = zip.folder(this.project.name);
-                this.project.files.forEach(f => {
-                    folder.file(f.name, f.content);
-                });
-                const content = await zip.generateAsync({ type: 'blob' });
-                const url = URL.createObjectURL(content);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${this.project.name}.zip`;
-                a.click();
-                this.showToast('Projeto exportado em ZIP!', 'success');
-            }
-
-            openSettings() {
-                this.showModal('Configurações da IDE', `
-                    <div class="space-y-4 text-sm">
-                        <div>
-                            <label class="block text-xs text-slate-400 mb-1">Tamanho da Fonte (px)</label>
-                            <input id="set-fontsize" type="number" value="${this.settings.fontSize}" class="w-full bg-dark-900 border border-dark-600 rounded px-3 py-2 text-white">
-                        </div>
-                        <div>
-                            <label class="block text-xs text-slate-400 mb-1">Espaços por Tabulação</label>
-                            <input id="set-tabsize" type="number" value="${this.settings.tabSize}" class="w-full bg-dark-900 border border-dark-600 rounded px-3 py-2 text-white">
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-slate-300">Salvamento Automático</span>
-                            <input id="set-autosave" type="checkbox" ${this.settings.autoSave ? 'checked' : ''} class="w-4 h-4 accent-cyan-500">
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-slate-300">Atualização Automática do Preview</span>
-                            <input id="set-autopreview" type="checkbox" ${this.settings.autoPreview ? 'checked' : ''} class="w-4 h-4 accent-cyan-500">
-                        </div>
-                        <div class="flex justify-end space-x-2 pt-3">
-                            <button onclick="app.closeModal()" class="px-4 py-2 bg-dark-700 hover:bg-dark-600 rounded">Cancelar</button>
-                            <button onclick="app.saveSettingsFromModal()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded font-medium">Salvar</button>
-                        </div>
-                    </div>
-                `);
-            }
-
-            async saveSettingsFromModal() {
-                this.settings.fontSize = parseInt(document.getElementById('set-fontsize').value);
-                this.settings.tabSize = parseInt(document.getElementById('set-tabsize').value);
-                this.settings.autoSave = document.getElementById('set-autosave').checked;
-                this.settings.autoPreview = document.getElementById('set-autopreview').checked;
-
-                await this.storage.saveSettings(this.settings);
-                if (this.editor) {
-                    this.editor.updateOptions({ fontSize: this.settings.fontSize, tabSize: this.settings.tabSize });
-                }
-                this.closeModal();
-                this.showToast('Configurações salvas!', 'success');
-            }
-
-            undo() { if (this.editor) this.editor.trigger('keyboard', 'undo', null); }
-            redo() { if (this.editor) this.editor.trigger('keyboard', 'redo', null); }
-
-            toggleFullscreen() {
-                if (!document.fullscreenElement) {
-                    document.documentElement.requestFullscreen();
-                } else {
-                    document.exitFullscreen();
-                }
-            }
-
-            togglePreviewFullscreen() {
-                const panel = document.getElementById('output-panel');
-                if (!document.fullscreenElement) {
-                    panel.requestFullscreen();
-                } else {
-                    document.exitFullscreen();
-                }
-            }
-
-            showModal(title, htmlContent) {
-                const container = document.getElementById('modal-container');
-                container.innerHTML = `
-                    <div class="bg-dark-800 border border-dark-700 w-full max-w-md rounded-xl p-5 space-y-4 shadow-2xl">
-                        <div class="flex items-center justify-between pb-2 border-b border-dark-700">
-                            <h3 class="text-lg font-bold text-white">${title}</h3>
-                            <button onclick="app.closeModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
-                        </div>
-                        ${htmlContent}
-                    </div>
-                `;
-                container.classList.remove('hidden');
-                lucide.createIcons();
-            }
-
-            showCustomModal(htmlContent) {
-                const container = document.getElementById('modal-container');
-                container.innerHTML = htmlContent;
-                container.classList.remove('hidden');
-                lucide.createIcons();
-            }
-
-            closeModal() {
-                document.getElementById('modal-container').classList.add('hidden');
-            }
-
-            showToast(message, type = 'success') {
-                const container = document.getElementById('toast-container');
-                const toast = document.createElement('div');
-                const bg = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-rose-600' : 'bg-cyan-600';
-                toast.className = `${bg} text-white px-4 py-2 rounded-lg shadow-lg text-xs font-medium flex items-center space-x-2 transition-all duration-300 pointer-events-auto`;
-                toast.innerHTML = `<i data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info'}" class="w-4 h-4"></i><span>${message}</span>`;
-                container.appendChild(toast);
-                lucide.createIcons();
-                setTimeout(() => {
-                    toast.style.opacity = '0';
-                    setTimeout(() => toast.remove(), 300);
-                }, 3000);
-            }
-        }
-
-        // Initialize App
-        const app = new EngineCodeIDE();
-        window.onload = () => app.init();
-    </script>
+<body>
+    <!-- TELA DE GERENCIAMENTO DE PROJETOS -->
+<section id="projectManager" class="project-manager">
+
+  <header class="manager-header">
+    <div class="brand">
+      <span class="brand-icon">◆</span>
+      EngineGame
+    </div>
+
+    <button id="newProjectBtn" class="btn btn-run">
+      + Novo Projeto
+    </button>
+  </header>
+
+  <div class="manager-content">
+    <h1>Meus Projetos</h1>
+    <p>Crie, organize e continue desenvolvendo seus jogos.</p>
+
+    <div id="projectList" class="project-list"></div>
+  </div>
+
+</section>
+<!-- JANELA DE CRIAÇÃO DE PROJETO -->
+<div id="newProjectModal" class="project-modal hidden">
+
+  <div class="project-form">
+
+    <h2>Novo Projeto</h2>
+
+    <label for="projectNameInput">Nome do projeto</label>
+
+    <input
+      id="projectNameInput"
+      type="text"
+      placeholder="Ex: Meu primeiro jogo"
+    >
+
+    <label>Orientação do jogo</label>
+
+    <div class="orientation-options">
+
+      <button
+        type="button"
+        class="orientation-option selected"
+        data-orientation="landscape"
+      >
+        <span class="orientation-icon landscape-icon"></span>
+        Paisagem
+      </button>
+
+      <button
+        type="button"
+        class="orientation-option"
+        data-orientation="portrait"
+      >
+        <span class="orientation-icon portrait-icon"></span>
+        Retrato
+      </button>
+
+    </div>
+
+    <div class="modal-actions">
+
+      <button id="cancelProjectBtn" class="btn">
+        Cancelar
+      </button>
+
+      <button id="createProjectBtn" class="btn btn-run">
+        Criar Projeto
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+<div id="editorApp">
+  <header class="topbar">
+    <div class="brand"><span class="brand-icon">◆</span> EngineGame</div>
+    <div class="project-name">Meu Projeto 2D</div>
+    <div class="top-actions">
+        <button id="saveBtn" class="btn">💾 Salvar</button>
+<button id="resetBtn" class="btn">↻ Limpar</button>
+      <button id="addObjectBtn" class="btn">＋ Objeto</button>
+      <button id="runBtn" class="btn btn-run">▶ Executar</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="panel scene-panel">
+      <div class="panel-title">Cena <button id="deleteObjectBtn" class="icon-btn" title="Excluir objeto">⌫</button></div>
+      <div id="sceneTree" class="scene-tree"></div>
+    </aside>
+<section id="scriptEditor" class="script-editor hidden">
+  <div class="script-header">
+    <div>
+      <strong>Editor de Scripts</strong>
+      <span id="scriptObjectName">Nenhum objeto</span>
+    </div>
+    <button id="closeScriptBtn" class="btn">Fechar ✕</button>
+  </div>
+
+  <div class="script-toolbar">
+  <span id="scriptFileName">script.js</span>
+
+  <div>
+    <span id="scriptStatus">Pronto</span>
+    <button id="validateScriptBtn" class="btn">
+      Validar código
+    </button>
+  </div>
+</div>
+
+  <textarea
+    id="scriptCode"
+    spellcheck="false"
+    autocapitalize="off"
+    autocomplete="off"
+    autocorrect="off"
+    placeholder="// Escreva o código JavaScript do objeto aqui..."
+  ></textarea>
+
+  <div class="script-footer">
+    <span>JavaScript</span>
+    <span>Salvamento automático</span>
+  </div>
+</section>
+    <section class="center-panel">
+      <div class="toolbar">
+  <button class="tool-btn active" data-tool="select">↖ Selecionar</button>
+  <button class="tool-btn" data-tool="rect">▭ Retângulo</button>
+  <button class="tool-btn" data-tool="circle">○ Círculo</button>
+  <button class="tool-btn" data-tool="triangle">
+  ▲ Triângulo
+</button>
+  <button class="tool-btn" id="deleteTool">⌫ Excluir</button>
+</div>
+      <div class="viewport">
+        <canvas id="editorCanvas" width="640" height="400"></canvas>
+      </div>
+      <div class="bottom-panel">
+        <div class="panel-title">Saída</div>
+        <div id="output">EngineGame iniciada. Selecione um objeto para editar.</div>
+      </div>
+    </section>
+
+    <aside class="panel inspector-panel">
+      <div class="panel-title">Inspetor</div>
+      <div id="inspector" class="inspector-content">
+        <p class="empty-message">Selecione um objeto para ver suas propriedades.</p>
+      </div>
+    </aside>
+  </main>
+  </div>
+  <div id="gamePreview" class="game-preview hidden">
+  <div class="game-preview-header">
+    <button id="stopGameBtn" class="btn">■ Parar</button>
+  </div>
+
+  <canvas id="gameCanvas" width="640" height="400"></canvas>
+</div>
+
+  <script src="script.js"></script>
 </body>
 </html>
