@@ -4,9 +4,205 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NexusSheet - A Planilha Inteligente</title>
-    <link rel="stylesheet" href="css/style.css">
     <!-- FontAwesome para ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #1e1e1e;
+            --bg-secondary: #252526;
+            --bg-toolbar: #2d2d2d;
+            --border-color: #3f3f46;
+            --text-primary: #d4d4d4;
+            --text-accent: #3b82f6;
+            --cell-hover: #2a2d2e;
+            --cell-select: #094771;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .app-header {
+            display: flex;
+            align-items: center;
+            background-color: var(--bg-secondary);
+            padding: 8px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        .logo {
+            margin-right: 24px;
+            color: var(--text-accent);
+        }
+
+        .menu-bar span {
+            margin-right: 16px;
+            cursor: pointer;
+            color: #9ca3af;
+        }
+
+        .menu-bar span.active, .menu-bar span:hover {
+            color: var(--text-primary);
+        }
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            background-color: var(--bg-toolbar);
+            padding: 6px 12px;
+            gap: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .toolbar button {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-primary);
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .toolbar button:hover {
+            background-color: var(--border-color);
+        }
+
+        .toolbar .separator {
+            width: 1px;
+            height: 20px;
+            background-color: var(--border-color);
+            margin: 0 4px;
+        }
+
+        .formula-bar {
+            display: flex;
+            align-items: center;
+            background-color: var(--bg-secondary);
+            padding: 6px 12px;
+            border-bottom: 1px solid var(--border-color);
+            gap: 12px;
+        }
+
+        #current-cell-indicator {
+            font-weight: bold;
+            min-width: 35px;
+            text-align: center;
+            color: var(--text-accent);
+        }
+
+        .formula-bar input {
+            flex: 1;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .grid-container {
+            flex: 1;
+            overflow: auto;
+            position: relative;
+            background-color: var(--bg-primary);
+        }
+
+        table.spreadsheet {
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        table.spreadsheet th, table.spreadsheet td {
+            border: 1px solid var(--border-color);
+            height: 26px;
+            padding: 2px 4px;
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        table.spreadsheet th {
+            background-color: var(--bg-secondary);
+            text-align: center;
+            color: #9ca3af;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        table.spreadsheet th.row-header {
+            position: sticky;
+            left: 0;
+            z-index: 3;
+            width: 50px;
+        }
+
+        table.spreadsheet td {
+            background-color: var(--bg-primary);
+            cursor: cell;
+        }
+
+        table.spreadsheet td:focus {
+            outline: 2px solid var(--text-accent);
+            background-color: var(--cell-select);
+        }
+
+        .app-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg-secondary);
+            padding: 4px 12px;
+            border-top: 1px solid var(--border-color);
+            font-size: 12px;
+        }
+
+        .sheet-tabs {
+            display: flex;
+            gap: 4px;
+        }
+
+        .tab {
+            background: transparent;
+            border: none;
+            color: #9ca3af;
+            padding: 4px 12px;
+            cursor: pointer;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .tab.active {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            border-top: 2px solid var(--text-accent);
+        }
+    </style>
 </head>
 <body>
     <div id="app-container">
@@ -22,7 +218,7 @@
             </nav>
         </header>
 
-        <!-- Barra de Ferramentas Avançadas (Inovações vs Excel) -->
+        <!-- Barra de Ferramentas Avançadas -->
         <div class="toolbar">
             <button id="btn-fetch" title="Buscar dados de API externa direto na célula"><i class="fa-solid fa-globe"></i> API Fetch</button>
             <button id="btn-ai-prompt" title="Transformar dados usando linguagem natural"><i class="fa-solid fa-wand-magic-sparkles"></i> Comando IA</button>
@@ -37,12 +233,12 @@
         <div class="formula-bar">
             <span id="current-cell-indicator">A1</span>
             <i class="fa-solid fa-fx"></i>
-            <input type="text" id="formula-input" placeholder="Digite um valor, fórmula (=SOMA) ou comando de IA (=FETCH, =IA)...">
+            <input type="text" id="formula-input" placeholder="Digite um valor, fórmula (=SOMA) ou comando de IA (=FETCH)...">
         </div>
 
         <!-- Grade da Planilha (Grid) -->
         <div class="grid-container" id="grid-container">
-            <!-- Gerado dinamicamente via JS -->
+            <!-- Gerado via JS -->
         </div>
 
         <!-- Rodapé / Abas -->
@@ -55,8 +251,168 @@
         </footer>
     </div>
 
-    <!-- Scripts Separados -->
-    <script src="js/features.js"></script>
-    <script src="js/sheet.js"></script>
+    <script>
+        // --- 1. Módulo de Recursos Avançados ---
+        class NexusFeatures {
+            constructor() {
+                this.cellHistory = {};
+            }
+
+            async fetchApiData(url, path = '') {
+                try {
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    if (path) {
+                        return path.split('.').reduce((obj, key) => obj?.[key], data) ?? 'Chave não encontrada';
+                    }
+                    return JSON.stringify(data);
+                } catch (error) {
+                    return `Erro API: ${error.message}`;
+                }
+            }
+
+            recordChange(cellId, oldValue, newValue) {
+                if (!this.cellHistory[cellId]) {
+                    this.cellHistory[cellId] = [];
+                }
+                this.cellHistory[cellId].push({
+                    oldValue,
+                    newValue,
+                    timestamp: new Date().toLocaleTimeString()
+                });
+            }
+
+            getHistory(cellId) {
+                return this.cellHistory[cellId] || [{ msg: 'Nenhum histórico anterior' }];
+            }
+        }
+
+        const nexusFeatures = new NexusFeatures();
+
+        // --- 2. Módulo Principal da Planilha ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const gridContainer = document.getElementById('grid-container');
+            const currentCellIndicator = document.getElementById('current-cell-indicator');
+            const formulaInput = document.getElementById('formula-input');
+            const statusBar = document.getElementById('status-bar');
+
+            const ROWS = 50;
+            const COLS = 26; // A a Z
+            let activeCell = null;
+            const spreadsheetData = {};
+
+            function createGrid() {
+                const table = document.createElement('table');
+                table.className = 'spreadsheet';
+
+                const headerRow = document.createElement('tr');
+                const thCorner = document.createElement('th');
+                thCorner.className = 'row-header';
+                headerRow.appendChild(thCorner);
+
+                for (let c = 0; c < COLS; c++) {
+                    const th = document.createElement('th');
+                    th.textContent = String.fromCharCode(65 + c);
+                    headerRow.appendChild(th);
+                }
+                table.appendChild(headerRow);
+
+                for (let r = 1; r <= ROWS; r++) {
+                    const tr = document.createElement('tr');
+                    const thRow = document.createElement('th');
+                    thRow.className = 'row-header';
+                    thRow.textContent = r;
+                    tr.appendChild(thRow);
+
+                    for (let c = 0; c < COLS; c++) {
+                        const td = document.createElement('td');
+                        const cellId = `${String.fromCharCode(65 + c)}${r}`;
+                        td.id = cellId;
+                        td.contentEditable = true;
+                        
+                        td.addEventListener('focus', () => selectCell(td, cellId));
+                        td.addEventListener('input', (e) => handleCellInput(cellId, e.target.textContent));
+                        
+                        tr.appendChild(td);
+                    }
+                    table.appendChild(tr);
+                }
+
+                gridContainer.appendChild(table);
+            }
+
+            function selectCell(td, cellId) {
+                activeCell = td;
+                currentCellIndicator.textContent = cellId;
+                const cellData = spreadsheetData[cellId];
+                formulaInput.value = cellData ? (cellData.formula || cellData.value) : '';
+                statusBar.textContent = `Célula ativa: ${cellId}`;
+            }
+
+            function handleCellInput(cellId, value) {
+                if (!spreadsheetData[cellId]) {
+                    spreadsheetData[cellId] = { value: '', formula: '' };
+                }
+                
+                const oldValue = spreadsheetData[cellId].value;
+                spreadsheetData[cellId].value = value;
+
+                if (value.startsWith('=')) {
+                    spreadsheetData[cellId].formula = value;
+                    evaluateFormula(cellId, value);
+                } else {
+                    nexusFeatures.recordChange(cellId, oldValue, value);
+                }
+            }
+
+            async function evaluateFormula(cellId, formula) {
+                const cell = document.getElementById(cellId);
+                
+                if (formula.toUpperCase().startsWith('=FETCH(')) {
+                    const match = formula.match(/=FETCH\("(.*?)"(?:,\s*"(.*?)")?\)/i);
+                    if (match) {
+                        cell.textContent = 'Carregando API...';
+                        const result = await nexusFeatures.fetchApiData(match[1], match[2]);
+                        cell.textContent = result;
+                        spreadsheetData[cellId].value = result;
+                    } else {
+                        cell.textContent = 'Erro sintaxe FETCH';
+                    }
+                } else {
+                    try {
+                        const cleanFormula = formula.substring(1);
+                        const res = eval(cleanFormula);
+                        cell.textContent = res;
+                        spreadsheetData[cellId].value = res;
+                    } catch (err) {
+                        cell.textContent = '#ERRO!';
+                    }
+                }
+            }
+
+            formulaInput.addEventListener('input', (e) => {
+                if (activeCell) {
+                    activeCell.textContent = e.target.value;
+                    handleCellInput(activeCell.id, e.target.value);
+                }
+            });
+
+            document.getElementById('btn-fetch').addEventListener('click', () => {
+                if (activeCell) {
+                    formulaInput.value = '=FETCH("https://api.coinbase.com/v2/prices/BTC-BRL/spot", "data.amount")';
+                    formulaInput.dispatchEvent(new Event('input'));
+                }
+            });
+
+            document.getElementById('btn-history').addEventListener('click', () => {
+                if (activeCell) {
+                    const history = nexusFeatures.getHistory(activeCell.id);
+                    alert(`Histórico da célula ${activeCell.id}:\n` + JSON.stringify(history, null, 2));
+                }
+            });
+
+            createGrid();
+        });
+    </script>
 </body>
 </html>
