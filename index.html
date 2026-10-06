@@ -450,11 +450,11 @@
 </head>
 <body>
 
-    <!-- MODAL DE SELEÇÃO E VALIDAÇÃO DE LOJA POR GPS (10 METROS) -->
+    <!-- MODAL DE SELEÇÃO E VALIDAÇÃO DE LOJA POR GPS (TOLERÂNCIA 1 KM) -->
     <div id="modalLoja">
         <div class="modal-card">
             <h2>Selecionar Unidade</h2>
-            <p>Escolha a loja em que você está. O sistema validará sua localização GPS (tolerância máxima de 10 metros) para liberar o acesso.</p>
+            <p>Escolha a loja em que você está. O sistema validará sua localização GPS (tolerância máxima de 1 km) para liberar o acesso.</p>
             <select id="modalSelectLoja">
                 <option value="ALAMEDA GABRIEL - SP">ALAMEDA GABRIEL - SP</option>
                 <option value="Pacaembu - SP">Pacaembu - SP</option>
@@ -751,7 +751,7 @@
                     const lojaCoord = coordenadasLojas[lojaEscolhida];
 
                     const distanciaMetros = calcularDistanciaMetros(userLat, userLng, lojaCoord.lat, lojaCoord.lng);
-                    const LIMITE_METROS = 10; // Tolerância máxima de 10 metros
+                    const LIMITE_METROS = 1000; // Tolerância máxima de 1 km (1000 metros)
 
                     if (distanciaMetros <= LIMITE_METROS) {
                         lojaSelecionada = lojaEscolhida;
@@ -759,7 +759,8 @@
                         document.getElementById('modalLoja').style.display = 'none';
                         carregarDadosFirebase();
                     } else {
-                        msgErro.innerText = `Acesso negado! Você está a aproximadamente ${Math.round(distanciaMetros)} metros da unidade. Aproxime-se (limite de 10 metros) para acessar.`;
+                        const distanciaKmCalculada = (distanciaMetros / 1000).toFixed(2);
+                        msgErro.innerText = `Acesso negado! Você está a aproximadamente ${distanciaKmCalculada} km da unidade. Aproxime-se (limite de 1 km) para acessar.`;
                     }
                 },
                 (error) => {
