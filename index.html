@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NexusSheet - A Planilha Inteligente</title>
+    <title>NexusSheet Pro - A Planilha Inteligente</title>
     <!-- FontAwesome para ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -148,8 +148,8 @@
         table.spreadsheet th, table.spreadsheet td {
             border: 1px solid var(--border-color);
             height: 28px;
-            width: 100px;
-            padding: 2px 4px;
+            width: 110px;
+            padding: 2px 6px;
             font-size: 13px;
             white-space: nowrap;
             overflow: hidden;
@@ -219,7 +219,7 @@
     <div id="app-container">
         <!-- Menu Superior -->
         <header class="app-header">
-            <div class="logo"><i class="fa-solid fa-layer-group"></i> <strong>NexusSheet</strong></div>
+            <div class="logo"><i class="fa-solid fa-layer-group"></i> <strong>NexusSheet Pro</strong></div>
             <nav class="menu-bar">
                 <span>Arquivo</span>
                 <span id="menu-export" style="cursor:pointer;"><i class="fa-solid fa-download"></i> Exportar CSV</span>
@@ -228,23 +228,23 @@
             </nav>
         </header>
 
-        <!-- Barra de Ferramentas Avançadas -->
+        <!-- Barra de Ferramentas -->
         <div class="toolbar">
-            <button id="btn-fetch" title="Buscar dados de API externa"><i class="fa-solid fa-globe"></i> API Fetch</button>
-            <button id="btn-history" title="Ver histórico da célula"><i class="fa-solid fa-clock-rotate-left"></i> Histórico</button>
+            <button id="btn-fetch" title="Inserir API Fetch"><i class="fa-solid fa-globe"></i> API Fetch</button>
+            <button id="btn-history" title="Ver histórico"><i class="fa-solid fa-clock-rotate-left"></i> Histórico</button>
             <span class="separator"></span>
             <button id="btn-bold" title="Negrito"><i class="fa-solid fa-bold"></i></button>
             <button id="btn-italic" title="Itálico"><i class="fa-solid fa-italic"></i></button>
-            <label title="Cor de Fundo da Célula"><i class="fa-solid fa-fill-drip"></i> <input type="color" id="cell-bg-color" value="#1e1e1e"></label>
+            <label title="Cor de Fundo"><i class="fa-solid fa-fill-drip"></i> <input type="color" id="cell-bg-color" value="#1e1e1e"></label>
             <span class="separator"></span>
-            <button id="btn-clear" title="Limpar Célula"><i class="fa-solid fa-trash-can"></i> Limpar</button>
+            <button id="btn-clear" title="Limpar"><i class="fa-solid fa-trash-can"></i> Limpar</button>
         </div>
 
         <!-- Barra de Fórmulas -->
         <div class="formula-bar">
             <span id="current-cell-indicator">A1</span>
             <i class="fa-solid fa-fx"></i>
-            <input type="text" id="formula-input" placeholder="Digite valor, fórmula (=A1+B1), =SUM(A1:A5) ou =FETCH(...)">
+            <input type="text" id="formula-input" placeholder="Digite valor, =A1+B1, =SUM(A1:A5), =AVERAGE(A1:A3) ou =AI('maiusculo', A1)">
         </div>
 
         <!-- Grade da Planilha -->
@@ -255,24 +255,23 @@
             <div class="sheet-tabs">
                 <button class="tab active">Planilha 1</button>
             </div>
-            <div class="status-bar" id="status-bar">Pronto | Auto-save Ativo</div>
+            <div class="status-bar" id="status-bar">Pronto | Motor Pro Ativo</div>
         </footer>
     </div>
 
     <script>
-        // --- Core Engine e Estado ---
         class NexusSheetEngine {
             constructor() {
-                this.rows = 60;
+                this.rows = 50;
                 this.cols = 26;
-                this.data = JSON.parse(localStorage.getItem('nexus_sheet_data')) || {};
-                this.cellHistory = JSON.parse(localStorage.getItem('nexus_sheet_history')) || {};
+                this.data = JSON.parse(localStorage.getItem('nexus_sheet_pro_data')) || {};
+                this.cellHistory = JSON.parse(localStorage.getItem('nexus_sheet_pro_history')) || {};
                 this.activeCellId = 'A1';
             }
 
             saveState() {
-                localStorage.setItem('nexus_sheet_data', JSON.stringify(this.data));
-                localStorage.setItem('nexus_sheet_history', JSON.stringify(this.cellHistory));
+                localStorage.setItem('nexus_sheet_pro_data', JSON.stringify(this.data));
+                localStorage.setItem('nexus_sheet_pro_history', JSON.stringify(this.cellHistory));
             }
 
             setCell(cellId, value, formula = '', style = {}) {
@@ -287,7 +286,6 @@
                     this.data[cellId].style = { ...this.data[cellId].style, ...style };
                 }
 
-                // Registrar Histórico
                 if (oldVal !== value) {
                     if (!this.cellHistory[cellId]) this.cellHistory[cellId] = [];
                     this.cellHistory[cellId].push({
@@ -296,7 +294,6 @@
                         timestamp: new Date().toLocaleTimeString()
                     });
                 }
-
                 this.saveState();
             }
 
@@ -326,7 +323,6 @@
                 const table = document.createElement('table');
                 table.className = 'spreadsheet';
 
-                // Cabeçalho colunas (A-Z)
                 const headerRow = document.createElement('tr');
                 const thCorner = document.createElement('th');
                 thCorner.className = 'row-header';
@@ -339,7 +335,6 @@
                 }
                 table.appendChild(headerRow);
 
-                // Linhas
                 for (let r = 1; r <= engine.rows; r++) {
                     const tr = document.createElement('tr');
                     const thRow = document.createElement('th');
@@ -354,16 +349,14 @@
                         td.id = cellId;
                         td.contentEditable = true;
 
-                        // Restaurar dados salvos
                         const cellInfo = engine.getCell(cellId);
-                        if (cellInfo.value !== '') {
-                            td.textContent = cellInfo.value;
-                        }
+                        // Exibe o valor computado armazenado
+                        td.textContent = cellInfo.value !== undefined ? cellInfo.value : '';
                         applyStylesToElement(td, cellInfo.style);
 
-                        // Eventos
                         td.addEventListener('focus', () => selectCell(td, cellId));
-                        td.addEventListener('input', (e) => handleInput(cellId, e.target.textContent));
+                        // Usamos blur para processar fórmulas e atualizar o grid com segurança
+                        td.addEventListener('blur', async (e) => await handleInput(cellId, e.target.textContent));
                         td.addEventListener('keydown', (e) => handleKeyNavigation(e, colLetter, r));
 
                         tr.appendChild(td);
@@ -372,8 +365,6 @@
                 }
 
                 gridContainer.appendChild(table);
-                
-                // Selecionar A1 por padrão
                 const firstCell = document.getElementById('A1');
                 if (firstCell) selectCell(firstCell, 'A1');
             }
@@ -387,17 +378,13 @@
                 currentCellIndicator.textContent = cellId;
                 const cellInfo = engine.getCell(cellId);
                 formulaInput.value = cellInfo.formula || cellInfo.value;
-                statusBar.textContent = `Célula ativa: ${cellId} | Pronto`;
+                statusBar.textContent = `Célula ativa: ${cellId}`;
             }
 
             function applyStylesToElement(element, style) {
                 if (!element) return;
-                if (style.bold) element.style.fontWeight = 'bold';
-                else element.style.fontWeight = 'normal';
-
-                if (style.italic) element.style.fontStyle = 'italic';
-                else element.style.fontStyle = 'normal';
-
+                element.style.fontWeight = style.bold ? 'bold' : 'normal';
+                element.style.fontStyle = style.italic ? 'italic' : 'normal';
                 if (style.backgroundColor) element.style.backgroundColor = style.backgroundColor;
             }
 
@@ -411,47 +398,67 @@
 
                 engine.setCell(cellId, computedValue, formulaText);
                 
-                // Se a fórmula gerou valor diferente, atualiza visualmente sem perder o cursor
-                if (rawValue.startsWith('=') && activeCellElement && activeCellElement.id === cellId) {
-                    // Mantém a visualização limpa
+                // Atualiza o elemento visualmente com o resultado calculado
+                const cellEl = document.getElementById(cellId);
+                if (cellEl) {
+                    cellEl.textContent = computedValue;
                 }
             }
 
-            // Engine de Avaliação de Fórmulas Avançada (Substitui referências como A1, B2)
+            // Engine de Avaliação Avançada (Corrigido para Async/Await)
             async function evaluateFormula(formula) {
                 try {
                     let cleanFormula = formula.substring(1).trim();
+                    const upper = cleanFormula.toUpperCase();
 
-                    // 1. Tratamento de API =FETCH("url", "path")
-                    if (cleanFormula.toUpperCase().startsWith('FETCH(')) {
+                    // 1. Função de IA / Transformação de Texto (=AI("maiusculo", A1))
+                    if (upper.startsWith('AI(')) {
+                        const match = cleanFormula.match(/AI\("(.*?)",\s*([A-Z]+[0-9]+)\)/i);
+                        if (match) {
+                            const cmd = match[1].toLowerCase();
+                            const targetVal = String(engine.getCell(match[2]).value || '');
+                            if (cmd.includes('maiusculo')) return targetVal.toUpperCase();
+                            if (cmd.includes('minusculo')) return targetVal.toLowerCase();
+                            if (cmd.includes('inverter')) return targetVal.split('').reverse().join('');
+                            return targetVal;
+                        }
+                        return '#ERRO_AI';
+                    }
+
+                    // 2. Função API Fetch (=FETCH("url", "path"))
+                    if (upper.startsWith('FETCH(')) {
                         const match = cleanFormula.match(/FETCH\("(.*?)"(?:,\s*"(.*?)")?\)/i);
                         if (match) {
                             const res = await fetch(match[1]);
                             const data = await res.json();
                             if (match[2]) {
-                                return match[2].split('.').reduce((o, k) => o?.[k], data) ?? 'Erro Chave';
+                                return match[2].split('.').reduce((o, k) => o?.[k], data) ?? 'Chave N/D';
                             }
                             return JSON.stringify(data);
                         }
-                        return '#SINTAXE_FETCH';
+                        return '#ERRO_FETCH';
                     }
 
-                    // 2. Tratamento de Funções de Intervalo (=SUM(A1:A5))
-                    if (cleanFormula.toUpperCase().startsWith('SUM(')) {
-                        const rangeMatch = cleanFormula.match(/SUM\(([A-Z]+[0-9]+):([A-Z]+[0-9]+)\)/i);
-                        if (rangeMatch) {
-                            const vals = getRangeValues(rangeMatch[1], rangeMatch[2]);
-                            return vals.reduce((acc, v) => acc + (parseFloat(v) || 0), 0);
-                        }
+                    // 3. Funções de Intervalo Estatísticas (SUM, AVERAGE, MAX, MIN, COUNT)
+                    const rangeMatch = cleanFormula.match(/(SUM|AVERAGE|MAX|MIN|COUNT)\(([A-Z]+[0-9]+):([A-Z]+[0-9]+)\)/i);
+                    if (rangeMatch) {
+                        const funcName = rangeMatch[1].toUpperCase();
+                        const vals = getRangeValues(rangeMatch[2], rangeMatch[3]).map(v => parseFloat(v) || 0);
+                        if (vals.length === 0) return 0;
+
+                        if (funcName === 'SUM') return vals.reduce((a, b) => a + b, 0);
+                        if (funcName === 'AVERAGE') return vals.reduce((a, b) => a + b, 0) / vals.length;
+                        if (funcName === 'MAX') return Math.max(...vals);
+                        if (funcName === 'MIN') return Math.min(...vals);
+                        if (funcName === 'COUNT') return vals.filter(v => v !== 0).length;
                     }
 
-                    // 3. Substituir referências de células (ex: A1, B2) pelos seus valores reais
+                    // 4. Referências de células normais e matemática básica (=A1+B1)
                     cleanFormula = cleanFormula.replace(/[A-Z]+[0-9]+/g, (match) => {
                         const val = engine.getCell(match).value;
                         return isNaN(val) || val === '' ? 0 : val;
                     });
 
-                    // Execução segura via eval aritmético básico
                     const result = eval(cleanFormula);
                     return result !== undefined ? result : '#ERRO';
                 } catch (e) {
@@ -475,7 +482,6 @@
                 return values;
             }
 
-            // Navegação por teclado estilo Excel
             function handleKeyNavigation(e, colLetter, rowNum) {
                 let targetRow = rowNum;
                 let targetColCode = colLetter.charCodeAt(0);
@@ -500,24 +506,24 @@
 
                 const nextCellId = `${String.fromCharCode(targetColCode)}${targetRow}`;
                 const nextCellEl = document.getElementById(nextCellId);
-                if (nextCellEl) {
-                    nextCellEl.focus();
-                }
+                if (nextCellEl) nextCellEl.focus();
             }
 
-            // Sincronizar input da barra superior com a célula ativa
             formulaInput.addEventListener('input', (e) => {
                 if (activeCellElement) {
                     activeCellElement.textContent = e.target.value;
-                    handleInput(activeCellElement.id, e.target.value);
                 }
             });
 
-            // Botões da Toolbar
+            formulaInput.addEventListener('keydown', async (e) => {
+                if (e.key === 'Enter' && activeCellElement) {
+                    await handleInput(activeCellElement.id, formulaInput.value);
+                }
+            });
+
             document.getElementById('btn-fetch').addEventListener('click', () => {
                 if (activeCellElement) {
-                    const formula = '=FETCH("https://api.coinbase.com/v2/prices/BTC-BRL/spot", "data.amount")';
-                    formulaInput.value = formula;
+                    formulaInput.value = '=FETCH("https://api.coinbase.com/v2/prices/BTC-BRL/spot", "data.amount")';
                     formulaInput.dispatchEvent(new Event('input'));
                 }
             });
@@ -542,8 +548,7 @@
 
             document.getElementById('cell-bg-color').addEventListener('input', (e) => {
                 if (activeCellElement) {
-                    const color = e.target.value;
-                    engine.setCell(activeCellElement.id, activeCellElement.textContent, undefined, { backgroundColor: color });
+                    engine.setCell(activeCellElement.id, activeCellElement.textContent, undefined, { backgroundColor: e.target.value });
                     applyStylesToElement(activeCellElement, engine.getCell(activeCellElement.id).style);
                 }
             });
@@ -558,27 +563,25 @@
 
             document.getElementById('btn-history').addEventListener('click', () => {
                 if (activeCellElement) {
-                    const history = engine.cellHistory[activeCellElement.id] || [{ msg: 'Sem alterações registradas' }];
-                    alert(`Histórico da célula ${activeCellElement.id}:\n` + JSON.stringify(history, null, 2));
+                    const history = engine.cellHistory[activeCellElement.id] || [{ msg: 'Sem histórico' }];
+                    alert(`Histórico de ${activeCellElement.id}:\n` + JSON.stringify(history, null, 2));
                 }
             });
 
-            // Exportar CSV
             document.getElementById('menu-export').addEventListener('click', () => {
                 let csvContent = "data:text/csv;charset=utf-8,";
                 for (let r = 1; r <= 20; r++) {
                     let row = [];
                     for (let c = 0; c < 10; c++) {
                         const id = `${String.fromCharCode(65 + c)}${r}`;
-                        row.value = engine.getCell(id).value || '';
-                        row.push(`"${row.value}"`);
+                        const val = engine.getCell(id).value || '';
+                        row.push(`"${val}"`);
                     }
                     csvContent += row.join(",") + "\r\n";
                 }
-                const encodedUri = encodeURI(csvContent);
                 const link = document.createElement("a");
-                link.setAttribute("href", encodedUri);
-                link.setAttribute("download", "nexus_sheet_export.csv");
+                link.setAttribute("href", encodeURI(csvContent));
+                link.setAttribute("download", "nexus_sheet_pro.csv");
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
