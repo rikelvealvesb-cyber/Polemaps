@@ -1,176 +1,1617 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#181a1f">
-  <title>EngineGame 2D</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Estoque e Produção</title>
+    <!-- Ícone do site (Favicon) -->
+    <link rel="icon" type="image/svg+xml" href="https://maisfinishings.com.br/wp-content/uploads/2024/07/mais-finishings-logo-branco.svg">
+    
+    <!-- Firebase SDK Compat (App & Realtime Database) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+    <style>
+        :root {
+            --primary: #000000;
+            --primary-hover: #333333;
+            --bg-color: #ffffff;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+            --sidebar-bg: #000000;
+            --success-bg: #d1fae5;
+            --success-color: #065f46;
+            --error-bg: #fee2e2;
+            --error-color: #991b1b;
+            --warning-color: #b45309;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Modal de Validação de Loja por GPS */
+        #modalLoja {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-card {
+            background-color: #ffffff;
+            padding: 35px 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 440px;
+            text-align: center;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.3);
+            border: 1px solid #e2e8f0;
+        }
+
+        .modal-card h2 {
+            margin-top: 0;
+            font-size: 1.3rem;
+            color: #0f172a;
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 10px;
+            justify-content: center;
+        }
+
+        .modal-card p {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+            line-height: 1.4;
+        }
+
+        .modal-card select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+
+        /* Layout de Duas Colunas */
+        .app-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Menu Lateral Esquerdo */
+        .sidebar {
+            width: 280px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid #222222;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 25px 20px;
+            box-sizing: border-box;
+        }
+
+        .sidebar-top {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .sidebar-logo {
+            text-align: center;
+        }
+
+        .sidebar-logo img {
+            max-width: 100%;
+            max-height: 70px;
+            object-fit: contain;
+        }
+
+        /* Indicador de Loja Ativa no Menu */
+        .loja-ativa-badge {
+            background-color: #111111;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #333333;
+            text-align: left;
+        }
+
+        .loja-ativa-badge span {
+            display: block;
+            font-size: 0.7rem;
+            color: #94a3b8;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+
+        .loja-ativa-badge strong {
+            font-size: 0.85rem;
+            color: #ffffff;
+        }
+
+        .nav-tabs {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            background-color: transparent;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            text-align: left;
+            width: 100%;
+            font-size: 0.90rem;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover { 
+            background-color: #1e1e1e; 
+            color: #ffffff;
+        }
+
+        .nav-btn.active { 
+            background-color: #ffffff;
+            color: #000000; 
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .footer-credit {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #64748b;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            padding-top: 15px;
+            border-top: 1px solid #222222;
+        }
+
+        /* Conteúdo Principal à Direita */
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            background-color: var(--bg-color);
+            overflow-y: auto;
+            max-width: calc(100% - 280px);
+            box-sizing: border-box;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.02);
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+        }
+
+        textarea, select, input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+            margin-bottom: 12px;
+            background-color: #fff;
+        }
+
+        textarea:focus, select:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: #000;
+        }
+
+        textarea { resize: vertical; }
+        #txtTabela { height: 180px; }
+        #inputConsulta, #inputModulo { height: 120px; }
+        #inputPesquisaSistema { height: 90px; }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        button:hover { background-color: var(--primary-hover); }
+        .btn-secondary { background-color: #475569; }
+        .btn-secondary:hover { background-color: #334155; }
+        .btn-danger { background-color: #dc2626; }
+        .btn-danger:hover { background-color: #b91c1c; }
+        
+        .btn-adjust { background-color: #059669; padding: 6px 10px; font-size: 0.8rem; display: inline-block; }
+        .btn-adjust:hover { background-color: #047857; }
+        .btn-adjust-medida { background-color: #334155; }
+        .btn-adjust-medida:hover { background-color: #1e293b; }
+        .btn-delete-item { background-color: #dc2626; padding: 5px 8px; font-size: 0.75rem; }
+        .btn-delete-item:hover { background-color: #b91c1c; }
+
+        .result-box {
+            margin-top: 12px;
+            padding: 14px;
+            border-radius: 8px;
+            font-weight: 500;
+            line-height: 1.4;
+            font-size: 0.95rem;
+        }
+
+        .success { background-color: var(--success-bg); color: var(--success-color); border: 1px solid #a7f3d0; }
+        .error { background-color: var(--error-bg); color: var(--error-color); border: 1px solid #fecaca; }
+        .info { background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            font-size: 0.9rem;
+        }
+
+        th, td { border: 1px solid var(--border-color); padding: 10px 12px; text-align: left; vertical-align: middle; }
+        th { background-color: #f8fafc; color: #475569; font-weight: 600; }
+
+        .table-container {
+            max-height: 420px;
+            overflow-y: auto;
+            margin-top: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .status-ok { color: var(--success-color); font-weight: bold; }
+        .status-divergente { color: var(--warning-color); font-weight: bold; }
+        .status-nao-encontrado { color: var(--error-color); font-weight: bold; }
+
+        .badge-medida-alerta {
+            display: inline-block;
+            background-color: #fef3c7;
+            color: #92400e;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-top: 4px;
+            border: 1px solid #fcd34d;
+        }
+
+        .badge-tolerancia-info {
+            display: inline-block;
+            background-color: #ecfdf5;
+            color: #065f46;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 4px;
+            border: 1px solid #a7f3d0;
+        }
+
+        .badge-tag {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 6px;
+            margin-left: 6px;
+            text-transform: uppercase;
+        }
+        .badge-tozeto { background-color: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; }
+        .badge-amostra { background-color: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+
+        .filtro-container {
+            display: none;
+            margin-top: 15px;
+            background-color: #f8fafc;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filtro-grupo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .filtro-grupo label {
+            font-weight: 600;
+            white-space: nowrap;
+            font-size: 0.85rem;
+            color: #334155;
+        }
+
+        .filtro-grupo select {
+            margin-bottom: 0;
+            width: 100%;
+        }
+
+        .storage-badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            background-color: #f1f5f9;
+            color: #334155;
+            padding: 4px 10px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+        }
+
+        .flex-row-center {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn-icon-copy {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #475569;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .btn-icon-copy:hover {
+            background-color: #e2e8f0;
+            color: #000000;
+        }
+
+        /* Toast / Mensagem Visual Flutuante */
+        #toast-aviso {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background-color: #000000;
+            color: #ffffff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.2);
+            z-index: 9999;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #333333;
+        }
+
+        #toast-aviso.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            .app-layout { flex-direction: column; }
+            .sidebar { width: 100%; padding: 15px; }
+            .main-content { max-width: 100%; padding: 15px; }
+        }
+
+        svg { vertical-align: middle; margin-right: 6px; flex-shrink: 0; }
+    </style>
 </head>
 <body>
-    <!-- TELA DE GERENCIAMENTO DE PROJETOS -->
-<section id="projectManager" class="project-manager">
 
-  <header class="manager-header">
-    <div class="brand">
-      <span class="brand-icon">◆</span>
-      EngineGame
+    <!-- MODAL DE SELEÇÃO E VALIDAÇÃO DE LOJA POR GPS -->
+    <div id="modalLoja">
+        <div class="modal-card">
+            <h2>Selecionar Unidade</h2>
+            <p>Escolha a loja em que você está. O sistema validará sua localização GPS para liberar o acesso.</p>
+            <select id="modalSelectLoja">
+                <option value="ALAMEDA GABRIEL - SP">ALAMEDA GABRIEL - SP</option>
+                <option value="Pacaembu - SP">Pacaembu - SP</option>
+                <option value="CAMPINAS - SP">CAMPINAS - SP</option>
+                <option value="Barra da Tijuca - RJ">Barra da Tijuca - RJ</option>
+                <option value="SANTO ANDRÉ - SP">SANTO ANDRÉ - SP</option>
+            </select>
+            <button onclick="validarAcessoLoja()" style="width: 100%; padding: 12px; background: #000; color: #fff; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer;">Verificar GPS e Entrar</button>
+            <div id="modalErro" style="margin-top: 15px; color: #dc2626; font-size: 0.85rem; font-weight: 600;"></div>
+        </div>
     </div>
 
-    <button id="newProjectBtn" class="btn btn-run">
-      + Novo Projeto
-    </button>
-  </header>
-
-  <div class="manager-content">
-    <h1>Meus Projetos</h1>
-    <p>Crie, organize e continue desenvolvendo seus jogos.</p>
-
-    <div id="projectList" class="project-list"></div>
-  </div>
-
-</section>
-<!-- JANELA DE CRIAÇÃO DE PROJETO -->
-<div id="newProjectModal" class="project-modal hidden">
-
-  <div class="project-form">
-
-    <h2>Novo Projeto</h2>
-
-    <label for="projectNameInput">Nome do projeto</label>
-
-    <input
-      id="projectNameInput"
-      type="text"
-      placeholder="Ex: Meu primeiro jogo"
-    >
-
-    <label>Orientação do jogo</label>
-
-    <div class="orientation-options">
-
-      <button
-        type="button"
-        class="orientation-option selected"
-        data-orientation="landscape"
-      >
-        <span class="orientation-icon landscape-icon"></span>
-        Paisagem
-      </button>
-
-      <button
-        type="button"
-        class="orientation-option"
-        data-orientation="portrait"
-      >
-        <span class="orientation-icon portrait-icon"></span>
-        Retrato
-      </button>
-
+    <!-- Toast de Notificação de Cópia -->
+    <div id="toast-aviso">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        <span id="toast-texto">Copiado para a área de transferência!</span>
     </div>
 
-    <div class="modal-actions">
+    <div class="app-layout">
+        <!-- MENU LATERAL ESQUERDO PRETO -->
+        <aside class="sidebar">
+            <div class="sidebar-top">
+                <div class="sidebar-logo">
+                    <img src="https://maisfinishings.com.br/wp-content/uploads/2024/07/mais-finishings-logo-branco.svg" alt="Mais Finishings">
+                </div>
 
-      <button id="cancelProjectBtn" class="btn">
-        Cancelar
-      </button>
+                <!-- INDICADOR DA LOJA ATIVA -->
+                <div class="loja-ativa-badge">
+                    <span>Loja Conectada</span>
+                    <strong id="displayLojaAtiva">-</strong>
+                </div>
 
-      <button id="createProjectBtn" class="btn btn-run">
-        Criar Projeto
-      </button>
+                <nav class="nav-tabs">
+                    <button class="nav-btn active" onclick="mudarAba('tela-importar', this)">1. Importar Produtos</button>
+                    <button class="nav-btn" onclick="mudarAba('tela-consultar', this)">2. Consultar Contagem</button>
+                    <button class="nav-btn" onclick="mudarAba('tela-modulo', this)">3. Consultar Módulo</button>
+                    <button class="nav-btn" onclick="mudarAba('tela-sistema', this)">4. Amostras no Sistema</button>
+                </nav>
+            </div>
 
+            <div class="footer-credit">
+                Desenvolvido por Rikelve Alves
+            </div>
+        </aside>
+
+        <!-- CONTEÚDO PRINCIPAL À DIREITA -->
+        <main class="main-content">
+            <div class="container">
+                
+                <!-- TELA 1: IMPORTAR PRODUTOS -->
+                <div id="tela-importar" class="tab-content active">
+                    <div class="card">
+                        <h2>1. Importar Produtos</h2>
+                        <span class="storage-badge">☁️ Firebase RTDB Sincronizado</span>
+                        <p style="font-size: 0.9rem; color: #64748b; margin-top: 0;">
+                            Os produtos importados serão salvos na loja autenticada via GPS.<br>
+                            Ex: <code>20/02/26 30430 FYF039B021- PP CUBIT GRIS ABS 90X90 TOZETO ROCA 0x0 M2 0 1,00 1</code>
+                        </p>
+                        <textarea id="txtTabela" placeholder="Cole os dados da tabela aqui..."></textarea>
+                        <div class="flex-row-center">
+                            <button onclick="importarDados()">Processar e Salvar no Firebase</button>
+                        </div>
+                        <div id="statusCadastro"></div>
+                    </div>
+                </div>
+
+                <!-- TELA 2: CONSULTAR CONTAGEM DA LOJA -->
+                <div id="tela-consultar" class="tab-content">
+                    <div class="card">
+                        <h2>2. Consultar Contagem da Loja</h2>
+                        <p style="font-size: 0.9rem; color: #64748b; margin-top: 0;">
+                            Suporta pesquisa por <strong>Código</strong> ou por <strong>Nome do Produto</strong>.<br>
+                            Sintaxe: <code>CÓDIGO ou NOME [QUANTIDADE] [MEDIDA]</code><br>
+                            Ex: <code>30430 1 90x90</code> | <code>CUBIT GRIS 2 90x90</code> | <code>TOZETO 1</code>
+                        </p>
+                        <textarea id="inputConsulta" placeholder="30430 1 90x90&#10;CUBIT GRIS 2 90x90&#10;TOZETO 1"></textarea>
+                        
+                        <!-- Opção de Medida Global -->
+                        <div style="margin: 12px 0; background-color: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: #334155; margin-bottom: 0;">
+                                <input type="checkbox" id="chkMedidaGlobal" onchange="toggleMedidaGlobal()" style="width: auto; margin-bottom: 0;">
+                                Forçar medida única para todos os itens da consulta que não tiverem medida escrita
+                            </label>
+                            <input type="text" id="inputMedidaGlobal" placeholder="Digite a medida global (Ex: 120x120)" style="display: none; margin-top: 10px; margin-bottom: 0;">
+                        </div>
+
+                        <button onclick="consultarEstoque()">Verificar Divergências</button>
+
+                        <div id="areaTabelaConsulta" style="display: none;">
+                            <div class="filtro-container" id="containerFiltro">
+                                <div class="filtro-grupo">
+                                    <label for="filtroStatus">Filtrar por Status:</label>
+                                    <select id="filtroStatus" onchange="aplicarFiltroConsulta()">
+                                        <option value="todos">Todos os Status</option>
+                                        <option value="ok">✅ OK (Sem Divergências)</option>
+                                        <option value="divergente">⚠ Divergente (Qtd ou Medida)</option>
+                                        <option value="nao-encontrado">❌ Não Encontrado</option>
+                                    </select>
+                                </div>
+                                <div class="filtro-grupo">
+                                    <label for="filtroTipo">Filtrar por Tipo:</label>
+                                    <select id="filtroTipo" onchange="aplicarFiltroConsulta()">
+                                        <option value="todos">Todos os Tipos</option>
+                                        <option value="amostra">🧪 Somente Amostra</option>
+                                        <option value="tozeto">🧩 Somente Tozeto</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="table-container">
+                                <table id="tabelaConsultaResultados">
+                                    <thead>
+                                        <tr>
+                                            <th>Termo Pesquisado</th>
+                                            <th>
+                                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                                                    <span>Código</span>
+                                                    <button class="btn-icon-copy" onclick="copiarTodosCodigosVisiveisConsulta()" title="Copiar todos os códigos visíveis">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                                    </button>
+                                                </div>
+                                            </th>
+                                            <th>Produto</th>
+                                            <th>Produção</th>
+                                            <th>Loja (Somado)</th>
+                                            <th>Sistema (Base)</th>
+                                            <th>Medida (Loja / Esperada)</th>
+                                            <th>Status</th>
+                                            <th>Ação</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="corpoTabelaConsulta"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div id="erroConsulta"></div>
+                    </div>
+                </div>
+
+                <!-- TELA 3: CONSULTAR MÓDULO -->
+                <div id="tela-modulo" class="tab-content">
+                    <div class="card">
+                        <h2>3. Consultar Módulo (Código ou Nome)</h2>
+                        <p style="font-size: 0.9rem; color: #64748b; margin-top: 0;">
+                            Informe os códigos ou nomes/descrições para verificar se constam no sistema.<br>
+                            Ex: <code>30430</code> | <code>TOZETO</code> | <code>AMOSTRA</code>
+                        </p>
+                        <textarea id="inputModulo" placeholder="30430&#10;TOZETO&#10;AMOSTRA"></textarea>
+                        <button onclick="consultarModulo()">Verificar no Módulo</button>
+
+                        <div id="areaTabelaModulo" style="display: none;">
+                            <div class="filtro-container" id="containerFiltroModulo">
+                                <div class="filtro-grupo">
+                                    <label for="filtroStatusModulo">Filtrar por Presença:</label>
+                                    <select id="filtroStatusModulo" onchange="aplicarFiltroModulo()">
+                                        <option value="todos">Todos os Itens</option>
+                                        <option value="encontrado">✅ Existe no Sistema</option>
+                                        <option value="nao-encontrado">❌ Não Encontrado</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Termo Pesquisado</th>
+                                            <th>
+                                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                                                    <span>Código</span>
+                                                    <button class="btn-icon-copy" onclick="copiarTodosCodigosVisiveisModulo()" title="Copiar todos os códigos visíveis">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                                    </button>
+                                                </div>
+                                            </th>
+                                            <th>Produto no Sistema</th>
+                                            <th>Status no Módulo</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="corpoTabelaModulo"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div id="erroModulo"></div>
+                    </div>
+                </div>
+
+                <!-- TELA 4: AMOSTRAS NO SISTEMA -->
+                <div id="tela-sistema" class="tab-content">
+                    <div class="card">
+                        <h2>4. Amostras no Sistema</h2>
+                        <div class="flex-row-center" style="justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+                            <span id="contadorProdutos" style="font-size: 0.9rem; color: #64748b; font-weight: 600;">0 cadastrados</span>
+                            <button onclick="limparEstoque()" class="btn-danger" style="padding: 8px 12px; font-size: 0.85rem; margin-bottom: 0;">Apagar Tudo</button>
+                        </div>
+                        
+                        <!-- Barra de Pesquisa Múltipla Inteligente de Produtos no Sistema -->
+                        <div style="margin-bottom: 12px;">
+                            <p style="font-size: 0.85rem; color: #64748b; margin-top: 0; margin-bottom: 6px;">
+                                🔍 Pesquise vários códigos (busca exata) ou nomes/palavras por vez (um por linha):
+                            </p>
+                            <textarea id="inputPesquisaSistema" placeholder="30430&#10;44&#10;TOZETO" oninput="filtrarTabelaSistema()"></textarea>
+                        </div>
+
+                        <div class="table-container">
+                            <table id="tabelaEstoque">
+                               <thead>
+                                    <tr>
+                                        <th>
+                                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                                                <span>Código</span>
+                                                <button class="btn-icon-copy" onclick="copiarTodosCodigosVisiveis()" title="Copiar todos os códigos visíveis">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                                </button>
+                                            </div>
+                                        </th>
+                                        <th>Produto</th>
+                                        <th>1ª Medida</th>
+                                        <th>2ª Medida</th>
+                                        <th>Medida Final Esperada</th>
+                                        <th>Produção</th>
+                                        <th>Qtd Sistema</th>
+                                        <th>Ação</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="corpoTabela">
+                                    <tr><td colspan="8" style="text-align: center; color: #64748b;">Nenhum produto cadastrado.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
     </div>
 
-  </div>
+    <script>
+        // CONFIGURAÇÃO DO FIREBASE RTDB
+        const firebaseConfig = {
+            apiKey: "AlzaSyCTkq0uXy5kHg9N8rj9--Dooh8cuguYxPE",
+            databaseURL: "https://subjectrobot-49600-default-rtdb.firebaseio.com",
+            projectId: "subjectrobot-49600",
+            storageBucket: "subjectrobot-49600.appspot.com",
+            appId: "1:731604558049:android:7f47b30b289445814017a0"
+        };
 
-</div>
-<div id="editorApp">
-  <header class="topbar">
-    <div class="brand"><span class="brand-icon">◆</span> EngineGame</div>
-    <div class="project-name">Meu Projeto 2D</div>
-    <div class="top-actions">
-        <button id="saveBtn" class="btn">💾 Salvar</button>
-<button id="resetBtn" class="btn">↻ Limpar</button>
-      <button id="addObjectBtn" class="btn">＋ Objeto</button>
-      <button id="runBtn" class="btn btn-run">▶ Executar</button>
-    </div>
-  </header>
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
 
-  <main class="workspace">
-    <aside class="panel scene-panel">
-      <div class="panel-title">Cena <button id="deleteObjectBtn" class="icon-btn" title="Excluir objeto">⌫</button></div>
-      <div id="sceneTree" class="scene-tree"></div>
-    </aside>
-<section id="scriptEditor" class="script-editor hidden">
-  <div class="script-header">
-    <div>
-      <strong>Editor de Scripts</strong>
-      <span id="scriptObjectName">Nenhum objeto</span>
-    </div>
-    <button id="closeScriptBtn" class="btn">Fechar ✕</button>
-  </div>
+        let lojaSelecionada = "";
+        let memoriaEstoqueLoja = {};
 
-  <div class="script-toolbar">
-  <span id="scriptFileName">script.js</span>
+        // Coordenadas geográficas exatas das lojas fornecidas para validação GPS
+        const coordenadasLojas = {
+            "ALAMEDA GABRIEL - SP": { lat: -23.5651, lng: -46.6713 },
+            "Pacaembu - SP": { lat: -23.5392, lng: -46.6621 },
+            "CAMPINAS - SP": { lat: -22.8943, lng: -47.0538 },
+            "Barra da Tijuca - RJ": { lat: -22.9995, lng: -43.3653 },
+            "SANTO ANDRÉ - SP": { lat: -23.6664, lng: -46.5385 }
+        };
 
-  <div>
-    <span id="scriptStatus">Pronto</span>
-    <button id="validateScriptBtn" class="btn">
-      Validar código
-    </button>
-  </div>
-</div>
+        function calcularDistanciaKm(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Raio da Terra em km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
 
-  <textarea
-    id="scriptCode"
-    spellcheck="false"
-    autocapitalize="off"
-    autocomplete="off"
-    autocorrect="off"
-    placeholder="// Escreva o código JavaScript do objeto aqui..."
-  ></textarea>
+        function validarAcessoLoja() {
+            const select = document.getElementById('modalSelectLoja');
+            const lojaEscolhida = select.value;
+            const msgErro = document.getElementById('modalErro');
+            msgErro.innerText = "Verificando geolocalização GPS...";
 
-  <div class="script-footer">
-    <span>JavaScript</span>
-    <span>Salvamento automático</span>
-  </div>
-</section>
-    <section class="center-panel">
-      <div class="toolbar">
-  <button class="tool-btn active" data-tool="select">↖ Selecionar</button>
-  <button class="tool-btn" data-tool="rect">▭ Retângulo</button>
-  <button class="tool-btn" data-tool="circle">○ Círculo</button>
-  <button class="tool-btn" data-tool="triangle">
-  ▲ Triângulo
-</button>
-  <button class="tool-btn" id="deleteTool">⌫ Excluir</button>
-</div>
-      <div class="viewport">
-        <canvas id="editorCanvas" width="640" height="400"></canvas>
-      </div>
-      <div class="bottom-panel">
-        <div class="panel-title">Saída</div>
-        <div id="output">EngineGame iniciada. Selecione um objeto para editar.</div>
-      </div>
-    </section>
+            if (!navigator.geolocation) {
+                msgErro.innerText = "Seu dispositivo não suporta geolocalização.";
+                return;
+            }
 
-    <aside class="panel inspector-panel">
-      <div class="panel-title">Inspetor</div>
-      <div id="inspector" class="inspector-content">
-        <p class="empty-message">Selecione um objeto para ver suas propriedades.</p>
-      </div>
-    </aside>
-  </main>
-  </div>
-  <div id="gamePreview" class="game-preview hidden">
-  <div class="game-preview-header">
-    <button id="stopGameBtn" class="btn">■ Parar</button>
-  </div>
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const userLat = position.coords.latitude;
+                    const userLng = position.coords.longitude;
+                    const lojaCoord = coordenadasLojas[lojaEscolhida];
 
-  <canvas id="gameCanvas" width="640" height="400"></canvas>
-</div>
+                    const distancia = calcularDistanciaKm(userLat, userLng, lojaCoord.lat, lojaCoord.lng);
+                    const LIMITE_KM = 40; // Tolerância máxima aceitável em quilômetros
 
-  <script src="script.js"></script>
+                    if (distancia <= LIMITE_KM) {
+                        lojaSelecionada = lojaEscolhida;
+                        document.getElementById('displayLojaAtiva').innerText = lojaSelecionada;
+                        document.getElementById('modalLoja').style.display = 'none';
+                        carregarDadosFirebase();
+                    } else {
+                        msgErro.innerText = `Acesso negado! Você está a aproximadamente ${Math.round(distancia)} km desta unidade. Aproxime-se da loja para acessar.`;
+                    }
+                },
+                (error) => {
+                    console.error(error);
+                    msgErro.innerText = "Erro ao obter GPS. Certifique-se de permitir o acesso à localização no navegador.";
+                },
+                { enableHighAccuracy: true, timeout: 12000 }
+            );
+        }
+
+        function carregarDadosFirebase() {
+            if (!lojaSelecionada) return;
+            const pathLoja = 'estoque_lojas/' + encodeURIComponent(lojaSelecionada);
+            db.ref(pathLoja).on('value', (snapshot) => {
+                const dados = snapshot.val();
+                memoriaEstoqueLoja = dados ? dados : {};
+                renderizarTabelaEstoque();
+            }, (error) => {
+                console.error("Erro ao sincronizar com Firebase:", error);
+            });
+        }
+
+        function salvarBanco(estoque) {
+            memoriaEstoqueLoja = estoque;
+            const pathLoja = 'estoque_lojas/' + encodeURIComponent(lojaSelecionada);
+            db.ref(pathLoja).set(estoque).catch(err => {
+                console.error("Erro ao salvar no Firebase:", err);
+                alert("Erro ao salvar dados no Firebase. Verifique a conexão.");
+            });
+        }
+
+        function carregarBanco() {
+            return memoriaEstoqueLoja;
+        }
+
+        const icone = (path, color = "currentColor", size = "18") => 
+            `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
+
+        const iconSuccess = icone('<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>', 'var(--success-color)');
+        const iconError = icone('<circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line>', 'var(--error-color)');
+        const iconWarning = icone('<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>', 'var(--warning-color)');
+
+        function mostrarToast(mensagem = 'Copiado para a área de transferência!') {
+            const toast = document.getElementById('toast-aviso');
+            document.getElementById('toast-texto').innerText = mensagem;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2200);
+        }
+
+        function mudarAba(idTela, elemento) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(idTela).classList.add('active');
+            elemento.classList.add('active');
+
+            if (idTela === 'tela-sistema') {
+                renderizarTabelaEstoque();
+            }
+        }
+
+        function normalizarMedida(str) {
+            if (!str) return '0x0';
+            let limpo = str.toLowerCase().replace(/\s+/g, '');
+            
+            if (limpo.includes('x')) {
+                const matchUnidade = limpo.match(/(mm|cm|m)$/);
+                if (matchUnidade) {
+                    const unidade = matchUnidade[1];
+                    let partes = limpo.split('x');
+                    partes = partes.map(p => {
+                        if (/^\d+([,\.]\d+)?$/.test(p)) {
+                            return p + unidade;
+                        }
+                        return p;
+                    });
+                    limpo = partes.join('x');
+                }
+            }
+            return limpo;
+        }
+
+        function parseDimension(dimStr) {
+            if (!dimStr) return { width: 0, height: 0 };
+            const cleanStr = dimStr.toString().toLowerCase().replace(/\s+/g, '').replace(',', '.');
+            const parts = cleanStr.split('x');
+            if (parts.length === 2) {
+                return {
+                    width: parseFloat(parts[0]) || 0,
+                    height: parseFloat(parts[1]) || 0
+                };
+            }
+            const val = parseFloat(cleanStr) || 0;
+            return { width: val, height: val };
+        }
+
+        function validarMedidaComTolerancia(inputDim, systemDim, maxTolerance = 0.5) {
+            if (!inputDim || !systemDim) return { isWithin: inputDim === systemDim, diffText: '' };
+            
+            const inp = parseDimension(inputDim);
+            const sys = parseDimension(systemDim);
+
+            const diffW = Math.abs(inp.width - sys.width);
+            const diffH = Math.abs(inp.height - sys.height);
+
+            const isWithin = diffW <= maxTolerance && diffH <= maxTolerance;
+
+            let diffText = "";
+            if (diffW > 0 || diffH > 0) {
+                const wTxt = diffW > 0 ? `${diffW.toFixed(1)}` : '0';
+                const hTxt = diffH > 0 ? `${diffH.toFixed(1)}` : '0';
+                if (wTxt === hTxt) {
+                    diffText = `(Dif: ${wTxt}mm)`;
+                } else {
+                    diffText = `(Dif: ${wTxt}mm / ${hTxt}mm)`;
+                }
+            }
+
+            return {
+                isWithin,
+                diffText,
+                diffW,
+                diffH
+            };
+        }
+
+        function extrairMedidas(texto) {
+            if (!texto) return { medida1: '0x0', medida2: '0x0' };
+            const regex = /\b\d+(?:[,\.]\d+)?\s*(?:mm|cm|m)?(?:\s*[xX]\s*\d+(?:[,\.]\d+)?\s*(?:mm|cm|m)?)+\b|\b\d+(?:[,\.]\d+)?\s*(?:mm|cm|m)\b/gi;
+            const matches = texto.match(regex);
+            if (!matches || matches.length === 0) return { medida1: '0x0', medida2: '0x0' };
+            
+            const m1 = normalizarMedida(matches[0]);
+            const m2 = matches.length >= 2 ? normalizarMedida(matches[1]) : '0x0';
+            return { medida1: m1, medida2: m2 };
+        }
+
+        function obterMedidaEsperada(item) {
+            if (!item) return '0x0';
+            if (item.medidaCustom) return normalizarMedida(item.medidaCustom);
+            
+            let m1 = item.medida1;
+            let m2 = item.medida2;
+
+            if (!m1 || m1 === '0x0') {
+                const extraido = extrairMedidas(item.produto || '');
+                m1 = extraido.medida1;
+                m2 = m2 || extraido.medida2;
+            }
+
+            m1 = normalizarMedida(m1);
+            m2 = normalizarMedida(m2);
+
+            if (m2 && m2 !== '0x0' && m2 !== '0x0cm' && m2 !== '0x0mm') return m2;
+            return m1;
+        }
+
+        function toggleMedidaGlobal() {
+            const chk = document.getElementById('chkMedidaGlobal');
+            const inputGlobal = document.getElementById('inputMedidaGlobal');
+            inputGlobal.style.display = chk.checked ? 'block' : 'none';
+        }
+
+        function copiarTexto(texto) {
+            navigator.clipboard.writeText(texto).then(() => {
+                mostrarToast(`Código "${texto}" copiado!`);
+            }).catch(err => {
+                console.error('Erro ao copiar', err);
+            });
+        }
+
+        function copiarTodosCodigosVisiveis() {
+            const linhas = document.querySelectorAll('#corpoTabela tr');
+            const codigos = [];
+            linhas.forEach(linha => {
+                if (linha.style.display !== 'none') {
+                    const codigo = linha.getAttribute('data-codigo-real');
+                    if (codigo) codigos.push(codigo);
+                }
+            });
+
+            if (codigos.length > 0) {
+                navigator.clipboard.writeText(codigos.join('\n')).then(() => {
+                    mostrarToast(`${codigos.length} código(s) copiado(s)!`);
+                });
+            } else {
+                alert('Nenhum código visível para copiar.');
+            }
+        }
+
+        function copiarTodosCodigosVisiveisConsulta() {
+            const linhas = document.querySelectorAll('#corpoTabelaConsulta tr');
+            const codigos = [];
+            linhas.forEach(linha => {
+                if (linha.style.display !== 'none') {
+                    const codigo = linha.getAttribute('data-codigo-real');
+                    if (codigo && codigo !== '-') codigos.push(codigo);
+                }
+            });
+
+            if (codigos.length > 0) {
+                navigator.clipboard.writeText(codigos.join('\n')).then(() => {
+                    mostrarToast(`${codigos.length} código(s) copiado(s)!`);
+                });
+            } else {
+                alert('Nenhum código visível para copiar.');
+            }
+        }
+
+        function copiarTodosCodigosVisiveisModulo() {
+            const linhas = document.querySelectorAll('#corpoTabelaModulo tr');
+            const codigos = [];
+            linhas.forEach(linha => {
+                if (linha.style.display !== 'none') {
+                    const codigo = linha.getAttribute('data-codigo-real');
+                    if (codigo && codigo !== '-') codigos.push(codigo);
+                }
+            });
+
+            if (codigos.length > 0) {
+                navigator.clipboard.writeText(codigos.join('\n')).then(() => {
+                    mostrarToast(`${codigos.length} código(s) copiado(s)!`);
+                });
+            } else {
+                alert('Nenhum código visível para copiar.');
+            }
+        }
+
+        function importarDados() {
+            const texto = document.getElementById('txtTabela').value.trim();
+            if (!texto) {
+                mostrarStatus(`${iconError} Cole os dados primeiro.`, "error");
+                return;
+            }
+
+            let estoque = carregarBanco();
+            const regexInicio = /(\d{2}\/\d{2}\/\d{2,4})\s+([^\s]+)\s+([^\s\-]+)-/g;
+            let matches = [];
+            let match;
+            
+            while ((match = regexInicio.exec(texto)) !== null) {
+                matches.push({
+                    index: match.index,
+                    tamanhoTotalMatch: match[0].length,
+                    data: match[1],
+                    codigo: match[2],
+                    codigoFabrica: match[3] || ''
+                });
+            }
+
+            if (matches.length === 0) {
+                mostrarStatus(`${iconError} Formato base não encontrado. Verifique se o formato possui o Código e o Código de Fábrica seguidos de hífen (Ex: 30430 FYF039B021-).`, "error");
+                return;
+            }
+
+            let importados = 0;
+
+            for (let i = 0; i < matches.length; i++) {
+                let atual = matches[i];
+                let proximoIndex = (i + 1 < matches.length) ? matches[i+1].index : texto.length;
+                
+                let blocoTexto = texto.substring(atual.index, proximoIndex).trim();
+                let resto = blocoTexto.substring(atual.tamanhoTotalMatch).trim();
+                
+                let producao = 'EM LINHA';
+                if (/FORA\s+DE\s+LINHA/i.test(resto)) {
+                    producao = 'FORA DE LINHA';
+                    resto = resto.replace(/FORA\s+DE\s+LINHA/gi, ' ').trim();
+                } else if (/DESCONTINUADO/i.test(resto)) {
+                    producao = 'DESCONTINUADO';
+                    resto = resto.replace(/DESCONTINUADO/gi, ' ').trim();
+                } else if (/EM\s+LINHA/i.test(resto)) {
+                    producao = 'EM LINHA';
+                    resto = resto.replace(/EM\s+LINHA/gi, ' ').trim();
+                }
+
+                let qtd = 1.0;
+                const matchesM2 = [...resto.matchAll(/(\d+(?:[\,\.]\d+)?)\s*m2/gi)];
+                let validQtdFound = false;
+                for (let m of matchesM2) {
+                    let indexInicioMatch = m.index;
+                    let subAntes = resto.substring(0, indexInicioMatch).trim();
+                    if (/([xX]\s*)$/.test(subAntes)) {
+                        continue;
+                    }
+                    qtd = parseFloat(m[1].replace(',', '.'));
+                    validQtdFound = true;
+                    break;
+                }
+
+                if (!validQtdFound) {
+                    let matchQtd = resto.match(/(?:^|\s)(\d+[\,\.]\d+)(?:\s|$)/);
+                    if (matchQtd) {
+                        qtd = parseFloat(matchQtd[1].replace(',', '.'));
+                    } else {
+                        let allNums = resto.match(/\d+[\,\.]\d+/g);
+                        if (allNums && allNums.length > 0) {
+                            qtd = parseFloat(allNums[allNums.length - 1].replace(',', '.'));
+                        }
+                    }
+                }
+
+                const { medida1, medida2 } = extrairMedidas(resto);
+                
+                let aposHyphen = resto;
+                const regexCorte = /\b(TOZETO|AMOSTRA)\b/i;
+                const matchCorte = aposHyphen.match(regexCorte);
+                if (matchCorte) {
+                    const indexFim = matchCorte.index + matchCorte[0].length;
+                    aposHyphen = aposHyphen.substring(0, indexFim).trim();
+                } else {
+                    aposHyphen = aposHyphen.replace(/\b\d+([xX]\d+)?\s*(m2|mm|cm|m)?\b.*$/, '').trim();
+                }
+                let nomeProduto = aposHyphen.replace(/\s+/g, ' ');
+
+                const nomeUpper = resto.toUpperCase();
+                let sufixoTipo = '';
+                if (nomeUpper.includes('TOZETO')) {
+                    sufixoTipo = '_TOZETO';
+                } else if (nomeUpper.includes('AMOSTRA')) {
+                    sufixoTipo = '_AMOSTRA';
+                }
+                
+                let chaveUnica = atual.codigo + sufixoTipo;
+                if (estoque[chaveUnica] && estoque[chaveUnica].produto !== nomeProduto) {
+                    chaveUnica = `${atual.codigo}_${Date.now()}`;
+                }
+
+                estoque[chaveUnica] = {
+                    id: chaveUnica,
+                    codigo: atual.codigo,
+                    codigoFabrica: atual.codigoFabrica,
+                    produto: nomeProduto,
+                    producao: producao,
+                    quantidade: qtd,
+                    medida1: medida1,
+                    medida2: medida2
+                };
+                importados++;
+            }
+
+            if (importados > 0) {
+                salvarBanco(estoque);
+                mostrarStatus(`${iconSuccess} Sucesso! ${importados} produtos salvos no Firebase para a loja ${lojaSelecionada}.`, "success");
+                document.getElementById('txtTabela').value = '';
+                renderizarTabelaEstoque();
+            }
+        }
+
+        function mostrarStatus(mensagem, tipo) {
+            const div = document.getElementById('statusCadastro');
+            div.className = `result-box ${tipo}`;
+            div.innerHTML = mensagem;
+        }
+
+        function consultarEstoque() {
+            const consultaTexto = document.getElementById('inputConsulta').value.trim();
+            const divErro = document.getElementById('erroConsulta');
+            const areaTabela = document.getElementById('areaTabelaConsulta');
+            const corpoTabelaConsulta = document.getElementById('corpoTabelaConsulta');
+
+            divErro.innerHTML = '';
+
+            if (!consultaTexto) {
+                areaTabela.style.display = 'none';
+                divErro.innerHTML = `<div class="result-box error">${iconError} Digite os códigos ou nomes que deseja pesquisar.</div>`;
+                return;
+            }
+
+            const usarMedidaGlobal = document.getElementById('chkMedidaGlobal').checked;
+            const medidaGlobalValor = normalizarMedida(document.getElementById('inputMedidaGlobal').value.trim());
+
+            if (usarMedidaGlobal && !medidaGlobalValor) {
+                divErro.innerHTML = `<div class="result-box error">${iconError} Digite a medida global desejada.</div>`;
+                return;
+            }
+
+            const linhasPesquisa = consultaTexto.split('\n').map(l => l.trim()).filter(l => l !== '');
+            const estoque = carregarBanco();
+            const consultasAgrupadas = {};
+
+            linhasPesquisa.forEach(linhaOriginal => {
+                const partes = linhaOriginal.split(/\s+/);
+                if (partes.length === 0) return;
+
+                let codigosEncontrados = [];
+                let medidaInformada = null;
+                let qtdLida = 1.0;
+
+                const codigoBuscadoPesquisa = partes[0];
+                const itensPorCodigo = Object.values(estoque).filter(item => item.codigo === codigoBuscadoPesquisa);
+
+                if (itensPorCodigo.length > 0) {
+                    const restoPartes = partes.slice(1);
+                    let medidaPartes = [];
+
+                    restoPartes.forEach(parte => {
+                        if (/[xX]|\d+(mm|cm|m)|(mm|cm|m)\b/i.test(parte)) {
+                            medidaPartes.push(parte);
+                        } else {
+                            const num = parseFloat(parte.replace(',', '.'));
+                            if (!isNaN(num) && medidaPartes.length === 0 && qtdLida === 1.0) {
+                                qtdLida = num;
+                            } else {
+                                medidaPartes.push(parte);
+                            }
+                        }
+                    });
+
+                    if (medidaPartes.length > 0) {
+                        medidaInformada = normalizarMedida(medidaPartes.join(' '));
+                    }
+                    if (usarMedidaGlobal && !medidaInformada) {
+                        medidaInformada = medidaGlobalValor;
+                    }
+
+                    let itensAlvo = itensPorCodigo;
+                    const linhaUpper = linhaOriginal.toUpperCase();
+                    if (itensPorCodigo.length > 1) {
+                        if (linhaUpper.includes('TOZETO')) {
+                            itensAlvo = itensPorCodigo.filter(it => it.produto.toUpperCase().includes('TOZETO'));
+                        } else if (linhaUpper.includes('AMOSTRA')) {
+                            itensAlvo = itensPorCodigo.filter(it => it.produto.toUpperCase().includes('AMOSTRA'));
+                        }
+                    }
+
+                    itensAlvo.forEach(itemEncontrado => {
+                        codigosEncontrados.push({ idUnico: itemEncontrado.id || itemEncontrado.codigo, codigo: itemEncontrado.codigo, qtd: qtdLida, medida: medidaInformada });
+                    });
+                } else {
+                    let tokens = [...partes];
+                    let medidaPartes = [];
+
+                    if (tokens.length > 1) {
+                        const ultimo = tokens[tokens.length - 1];
+                        if (/[xX]|\d+(mm|cm|m)|(mm|cm|m)\b/i.test(ultimo) || /^\d+([,\.]\d+)?x\d+([,\.]\d+)?$/i.test(ultimo)) {
+                            medidaPartes.push(tokens.pop());
+                        }
+                    }
+
+                    if (tokens.length > 1) {
+                        const ultimo = tokens[tokens.length - 1];
+                        const num = parseFloat(ultimo.replace(',', '.'));
+                        if (!isNaN(num) && /^\d+([,\.]\d+)?$/.test(ultimo)) {
+                            qtdLida = num;
+                            tokens.pop();
+                        }
+                    }
+
+                    if (medidaPartes.length > 0) {
+                        medidaInformada = normalizarMedida(medidaPartes.join(' '));
+                    }
+                    if (usarMedidaGlobal && !medidaInformada) {
+                        medidaInformada = medidaGlobalValor;
+                    }
+
+                    const termoBuscaNome = tokens.join(' ').toLowerCase();
+                    const todosProdutos = Object.values(estoque);
+                    const correspondencias = todosProdutos.filter(item => (item.produto || '').toLowerCase().includes(termoBuscaNome));
+
+                    if (correspondencias.length > 0) {
+                        correspondencias.forEach(item => {
+                            codigosEncontrados.push({ idUnico: item.id || item.codigo, codigo: item.codigo, qtd: qtdLida, medida: medidaInformada });
+                        });
+                    } else {
+                        codigosEncontrados.push({ idUnico: partes[0], codigo: partes[0], qtd: qtdLida, medida: medidaInformada, naoEncontrado: true });
+                    }
+                }
+
+                codigosEncontrados.forEach(itemInfo => {
+                    const chaveAgrupamento = itemInfo.idUnico;
+                    if (!consultasAgrupadas[chaveAgrupamento]) {
+                        consultasAgrupadas[chaveAgrupamento] = { 
+                            codigoReal: itemInfo.codigo,
+                            qtdTotal: 0, 
+                            medida: itemInfo.medida, 
+                            naoEncontrado: itemInfo.naoEncontrado, 
+                            termos: new Set() 
+                        };
+                    }
+                    consultasAgrupadas[chaveAgrupamento].qtdTotal += itemInfo.qtd;
+                    consultasAgrupadas[chaveAgrupamento].termos.add(linhaOriginal);
+                    if (itemInfo.medida) consultasAgrupadas[chaveAgrupamento].medida = itemInfo.medida;
+                });
+            });
+
+            let arrayResultados = [];
+
+            Object.keys(consultasAgrupadas).forEach(chaveAgrupamento => {
+                const dadosConsulta = consultasAgrupadas[chaveAgrupamento];
+                const codigoBuscado = dadosConsulta.codigoReal;
+                const qtdLidaLoja = Math.round(dadosConsulta.qtdTotal * 100) / 100;
+                const medidaLoja = dadosConsulta.medida;
+                const termosStr = Array.from(dadosConsulta.termos).map(t => `<code>${t}</code>`).join('<br>');
+
+                if (dadosConsulta.naoEncontrado || !estoque[chaveAgrupamento]) {
+                    let codigoExibicaoNaoEnc = `<strong>${codigoBuscado}</strong>`;
+                    const itemEncontradoPorCodigo = Object.values(estoque).find(it => it.codigo === codigoBuscado);
+                    if (itemEncontradoPorCodigo && itemEncontradoPorCodigo.codigoFabrica) {
+                        codigoExibicaoNaoEnc += `<br><span style="font-size: 0.75rem; color: #64748b;">Fáb: ${itemEncontradoPorCodigo.codigoFabrica}</span>`;
+                    }
+
+                    arrayResultados.push({
+                        ordemProd: 4,
+                        html: `<tr data-status="nao-encontrado" data-is-amostra="false" data-is-tozeto="false" data-codigo-real="${codigoBuscado}">
+                            <td>${termosStr}</td>
+                            <td>
+                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                                    <div>${codigoExibicaoNaoEnc}</div>
+                                    <button class="btn-icon-copy" onclick="copiarTexto('${codigoBuscado}')" title="Copiar código">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                    </button>
+                                </div>
+                            </td>
+                            <td style="color: #94a3b8; font-style: italic;">Desconhecido no Sistema</td>
+                            <td>-</td>
+                            <td><strong>${qtdLidaLoja}</strong></td>
+                            <td>-</td>
+                            <td>${medidaLoja ? medidaLoja : '-'}</td>
+                            <td class="status-nao-encontrado">${iconError} Não Encontrado</td>
+                            <td>-</td>
+                        </tr>`
+                    });
+                } else {
+                    const item = estoque[chaveAgrupamento];
+                    const qtdSistema = item.quantidade;
+                    const medidaEsperada = obterMedidaEsperada(item);
+                    const divergenciaQtd = qtdSistema !== qtdLidaLoja;
+                    
+                    let divergenciaMedida = false;
+                    let toleranciaInfo = "";
+
+                    if (medidaLoja) {
+                        const resTol = validarMedidaComTolerancia(medidaLoja, medidaEsperada, 0.5);
+                        if (!resTol.isWithin) {
+                            divergenciaMedida = true;
+                        } else {
+                            toleranciaInfo = resTol.diffText;
+                        }
+                    }
+
+                    let isDivergente = divergenciaQtd || divergenciaMedida;
+                    
+                    let statusHTML = "";
+                    if (!isDivergente) {
+                        const suffix = toleranciaInfo ? ` ${toleranciaInfo}` : "";
+                        statusHTML = `<span class="status-ok">${iconSuccess} OK${suffix}</span>`;
+                    } else {
+                        statusHTML = `<span class="status-divergente">${iconWarning} Divergência (${[divergenciaQtd && 'Qtd', divergenciaMedida && 'Medida'].filter(Boolean).join(' + ')} )</span>`;
+                    }
+
+                    const nomeLower = (item.produto || '').toLowerCase();
+                    const temTozeto = nomeLower.includes('tozeto');
+                    const temAmostra = nomeLower.includes('amostra');
+
+                    let badgeTipo = temTozeto ? `<span class="badge-tag badge-tozeto">Tozeto</span>` : (temAmostra ? `<span class="badge-tag badge-amostra">Amostra</span>` : '');
+
+                    let acoes = [];
+                    if (divergenciaQtd) acoes.push(`<button class="btn-adjust" onclick="atualizarEstoqueParaLoja('${item.id}', ${qtdLidaLoja})">Ajustar Qtd</button>`);
+                    if (divergenciaMedida && medidaLoja) acoes.push(`<button class="btn-adjust btn-adjust-medida" onclick="atualizarMedidaParaLoja('${item.id}', '${medidaLoja}')">Ajustar Medida</button>`);
+                    let acaoHTML = acoes.length > 0 ? acoes.join(' ') : '-';
+
+                    let textoMedida = `Loja: ${medidaLoja || 'Não informada'}<br>Esperada: <strong>${medidaEsperada}</strong>`;
+                    if (toleranciaInfo) {
+                        textoMedida += `<br><span class="badge-tolerancia-info">✨ OK com Tolerância ${toleranciaInfo}</span>`;
+                    }
+                    if (divergenciaMedida) {
+                        textoMedida += `<br><span class="badge-medida-alerta">⚠ Medida Incorreta</span>`;
+                    }
+
+                    let codigoExibicao = `<strong>${item.codigo}</strong>`;
+                    if (item.codigoFabrica) {
+                        codigoExibicao += `<br><span style="font-size: 0.75rem; color: #64748b;">Fáb: ${item.codigoFabrica}</span>`;
+                    }
+
+                    const producaoVal = item.producao || 'EM LINHA';
+                    let ordemProd = 1;
+                    const pUp = producaoVal.toUpperCase();
+                    if (pUp.includes('DESCONTINUADO')) ordemProd = 2;
+                    else if (pUp.includes('FORA DE LINHA')) ordemProd = 3;
+
+                    arrayResultados.push({
+                        ordemProd: ordemProd,
+                        html: `<tr data-status="${isDivergente ? 'divergente' : 'ok'}" data-is-amostra="${temAmostra}" data-is-tozeto="${temTozeto}" data-codigo-real="${item.codigo}">
+                            <td>${termosStr}</td>
+                            <td>
+                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                                    <div>${codigoExibicao}</div>
+                                    <button class="btn-icon-copy" onclick="copiarTexto('${item.codigo}')" title="Copiar código">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                    </button>
+                                </div>
+                            </td>
+                            <td>${item.produto} ${badgeTipo}</td>
+                            <td><span style="font-weight: 600; font-size: 0.85rem;">${producaoVal}</span></td>
+                            <td><strong>${qtdLidaLoja}</strong></td>
+                            <td style="${divergenciaQtd ? 'color: var(--error-color); font-weight: bold;' : ''}">${qtdSistema}</td>
+                            <td>${textoMedida}</td>
+                            <td>${statusHTML}</td>
+                            <td>${acaoHTML}</td>
+                        </tr>`
+                    });
+                }
+            });
+
+            arrayResultados.sort((a, b) => a.ordemProd - b.ordemProd);
+            let htmlTabela = arrayResultados.map(r => r.html).join('');
+
+            corpoTabelaConsulta.innerHTML = htmlTabela;
+            areaTabela.style.display = 'block';
+            document.getElementById('containerFiltro').style.display = 'flex';
+            aplicarFiltroConsulta();
+        }
+
+        function consultarModulo() {
+            const consultaTexto = document.getElementById('inputModulo').value.trim();
+            const divErro = document.getElementById('erroModulo');
+            const areaTabela = document.getElementById('areaTabelaModulo');
+            const corpoTabelaModulo = document.getElementById('corpoTabelaModulo');
+
+            divErro.innerHTML = '';
+
+            if (!consultaTexto) {
+                areaTabela.style.display = 'none';
+                divErro.innerHTML = `<div class="result-box error">${iconError} Digite os códigos ou nomes que deseja verificar.</div>`;
+                return;
+            }
+
+            const linhasPesquisa = consultaTexto.split('\n').map(l => l.trim()).filter(l => l !== '');
+            const estoque = carregarBanco();
+            const todosProdutos = Object.values(estoque);
+
+            let htmlTabela = '';
+            const produtosExibidos = new Set();
+
+            linhasPesquisa.forEach(linhaOriginal => {
+                if (!linhaOriginal) return;
+
+                const partes = linhaOriginal.split(/\s+/);
+                const termoPrincipal = partes[0]; 
+                const termoPrincipalLower = termoPrincipal.toLowerCase();
+
+                const pareceCodigo = /\d/.test(termoPrincipal);
+
+                let correspondencias = [];
+
+                if (pareceCodigo) {
+                    correspondencias = todosProdutos.filter(item => (item.codigo || '').toLowerCase() === termoPrincipalLower);
+                } else {
+                    const termoCompletoLower = linhaOriginal.toLowerCase();
+                    correspondencias = todosProdutos.filter(item => (item.produto || '').toLowerCase().includes(termoCompletoLower));
+                }
+
+                if (correspondencias.length > 0) {
+                    correspondencias.forEach(item => {
+                        const chaveUnica = `${linhaOriginal}_${item.id || item.codigo}`;
+                        if (!produtosExibidos.has(chaveUnica)) {
+                            produtosExibidos.add(chaveUnica);
+                            const nomeLower = (item.produto || '').toLowerCase();
+                            let badgeTipo = nomeLower.includes('tozeto') ? `<span class="badge-tag badge-tozeto">Tozeto</span>` : (nomeLower.includes('amostra') ? `<span class="badge-tag badge-amostra">Amostra</span>` : '');
+
+                            let codigoExibicaoModulo = `<strong>${item.codigo}</strong>`;
+                            if (item.codigoFabrica) {
+                                codigoExibicaoModulo += `<br><span style="font-size: 0.75rem; color: #64748b;">Fáb: ${item.codigoFabrica}</span>`;
+                            }
+
+                            htmlTabela += `<tr data-status-modulo="encontrado" data-codigo-real="${item.codigo}">
+                                <td><code>${linhaOriginal}</code></td>
+                                <td>
+                                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                                        <div>${codigoExibicaoModulo}</div>
+                                        <button class="btn-icon-copy" onclick="copiarTexto('${item.codigo}')" title="Copiar código">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                        </button>
+                                    </div>
+                                </td>
+                                <td>${item.produto} ${badgeTipo}</td>
+                                <td><span class="status-ok">${iconSuccess} Existe no Sistema</span></td>
+                            </tr>`;
+                        }
+                    });
+                } else {
+                    htmlTabela += `<tr data-status-modulo="nao-encontrado" data-codigo-real="-">
+                        <td><code>${linhaOriginal}</code></td>
+                        <td>-</td>
+                        <td style="color: #94a3b8; font-style: italic;">Nenhum produto encontrado por este ${pareceCodigo ? 'código' : 'nome'}</td>
+                        <td><span class="status-nao-encontrado">${iconError} Não Encontrado</span></td>
+                    </tr>`;
+                }
+            });
+
+            corpoTabelaModulo.innerHTML = htmlTabela;
+            areaTabela.style.display = 'block';
+            document.getElementById('containerFiltroModulo').style.display = 'flex';
+            aplicarFiltroModulo();
+        }
+
+        function aplicarFiltroModulo() {
+            const filtro = document.getElementById('filtroStatusModulo').value;
+            document.querySelectorAll('#corpoTabelaModulo tr').forEach(linha => {
+                const statusLinha = linha.getAttribute('data-status-modulo');
+                linha.style.display = (filtro === 'todos' || filtro === statusLinha) ? '' : 'none';
+            });
+        }
+
+        function atualizarEstoqueParaLoja(idItem, novaQtd) {
+            let estoque = carregarBanco();
+            if (estoque[idItem]) {
+                estoque[idItem].quantidade = novaQtd;
+                salvarBanco(estoque);
+                consultarEstoque();
+                renderizarTabelaEstoque();
+            }
+        }
+
+        function atualizarMedidaParaLoja(idItem, novaMedida) {
+            let estoque = carregarBanco();
+            if (estoque[idItem]) {
+                estoque[idItem].medidaCustom = normalizarMedida(novaMedida);
+                salvarBanco(estoque);
+                consultarEstoque();
+                renderizarTabelaEstoque();
+            }
+        }
+
+        function aplicarFiltroConsulta() {
+            const statusSelecionado = document.getElementById('filtroStatus').value;
+            const tipoSelecionado = document.getElementById('filtroTipo').value;
+
+            document.querySelectorAll('#corpoTabelaConsulta tr').forEach(linha => {
+                const statusLinha = linha.getAttribute('data-status');
+                const isTozeto = linha.getAttribute('data-is-tozeto') === 'true';
+                const isAmostra = linha.getAttribute('data-is-amostra') === 'true';
+                
+                const matchStatus = (statusSelecionado === 'todos') || (statusSelecionado === statusLinha);
+                let matchTipo = (tipoSelecionado === 'todos') || (tipoSelecionado === 'amostra' && isAmostra) || (tipoSelecionado === 'tozeto' && isTozeto);
+
+                linha.style.display = (matchStatus && matchTipo) ? '' : 'none';
+            });
+        }
+
+        function renderizarTabelaEstoque() {
+            const estoque = carregarBanco();
+            const corpo = document.getElementById('corpoTabela');
+            const chaves = Object.keys(estoque);
+            
+            document.getElementById('contadorProdutos').innerText = `${chaves.length} cadastrados`;
+
+            if (chaves.length === 0) {
+                corpo.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #64748b;">Nenhum produto cadastrado para esta loja.</td></tr>';
+                return;
+            }
+
+            let html = '';
+            chaves.forEach(key => {
+                const item = estoque[key];
+                const medidaEsperada = obterMedidaEsperada(item);
+                const nomeLower = (item.produto || '').toLowerCase();
+                
+                let badgeTipo = nomeLower.includes('tozeto') ? `<span class="badge-tag badge-tozeto">Tozeto</span>` : (nomeLower.includes('amostra') ? `<span class="badge-tag badge-amostra">Amostra</span>` : '');
+
+                let codigoExibicao = `<strong>${item.codigo}</strong>`;
+                if (item.codigoFabrica) {
+                    codigoExibicao += `<br><span style="font-size: 0.75rem; color: #64748b;" title="Código de Fábrica">Fáb: ${item.codigoFabrica}</span>`;
+                }
+
+                html += `<tr data-codigo="${item.codigo.toLowerCase()}" data-codigo-real="${item.codigo}" data-produto="${item.produto.toLowerCase()}">` +
+                    `<td>` +
+                        `<div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">` +
+                            `<div>${codigoExibicao}</div>` +
+                            `<button class="btn-icon-copy" onclick="copiarTexto('${item.codigo}')" title="Copiar código">` +
+                                `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>` +
+                            `</button>` +
+                        `</div>` +
+                    `</td>` +
+                    `<td>${item.produto} ${badgeTipo}</td>` +
+                    `<td><code>${item.medida1 || '0x0'}</code></td>` +
+                    `<td><code>${item.medida2 || '0x0'}</code></td>` +
+                    `<td><strong style="color: var(--primary);">${medidaEsperada}</strong></td>` +
+                    `<td>${item.producao}</td>` +
+                    `<td><strong>${item.quantidade}</strong></td>` +
+                    `<td><button class="btn-adjust btn-delete-item" onclick="deletarItemEstoque('${item.id || item.codigo}')">Excluir</button></td>` +
+                    `</tr>`;
+            });
+            corpo.innerHTML = html;
+            filtrarTabelaSistema();
+        }
+
+        function deletarItemEstoque(idItem) {
+            if (confirm(`Deseja realmente excluir este produto do Firebase para a loja ${lojaSelecionada}?`)) {
+                let estoque = carregarBanco();
+                if (estoque[idItem]) {
+                    delete estoque[idItem];
+                } else {
+                    delete estoque[Object.keys(estoque).find(k => estoque[k].codigo === idItem)];
+                }
+                salvarBanco(estoque);
+            }
+        }
+
+        function filtrarTabelaSistema() {
+            const termoTexto = document.getElementById('inputPesquisaSistema').value.toLowerCase().trim();
+            const linhasPesquisa = termoTexto.split('\n').map(l => l.trim()).filter(l => l !== '');
+            const linhas = document.querySelectorAll('#corpoTabela tr');
+            
+            linhas.forEach(linha => {
+                const codigo = linha.getAttribute('data-codigo');
+                const produto = linha.getAttribute('data-produto');
+                
+                if (!codigo || !produto) return; 
+
+                if (linhasPesquisa.length === 0) {
+                    linha.style.display = '';
+                    return;
+                }
+
+                const correspondeAlgumaLinha = linhasPesquisa.some(linhaPesq => {
+                    const partes = linhaPesq.split(/\s+/);
+                    const termoPrincipal = partes[0];
+                    const pareceCodigo = /\d/.test(termoPrincipal);
+
+                    if (pareceCodigo) {
+                        return codigo === termoPrincipal; 
+                    } else {
+                        return produto.includes(linhaPesq);
+                    }
+                });
+
+                if (correspondeAlgumaLinha) {
+                    linha.style.display = '';
+                } else {
+                    linha.style.display = 'none';
+                }
+            });
+        }
+
+        function limparEstoque() {
+            if (confirm(`Deseja apagar permanentemente TODOS os produtos cadastrados na loja ${lojaSelecionada} no Firebase?`)) {
+                const pathLoja = 'estoque_lojas/' + encodeURIComponent(lojaSelecionada);
+                db.ref(pathLoja).remove().then(() => {
+                    memoriaEstoqueLoja = {};
+                    renderizarTabelaEstoque();
+                    
+                    document.getElementById('areaTabelaConsulta').style.display = 'none';
+                    document.getElementById('inputConsulta').value = '';
+                    document.getElementById('areaTabelaModulo').style.display = 'none';
+                    document.getElementById('inputModulo').value = '';
+                });
+            }
+        }
+    </script>
 </body>
 </html>
