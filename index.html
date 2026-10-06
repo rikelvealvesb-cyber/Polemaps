@@ -450,11 +450,11 @@
 </head>
 <body>
 
-    <!-- MODAL DE SELEÇÃO E VALIDAÇÃO DE LOJA POR GPS -->
+    <!-- MODAL DE SELEÇÃO E VALIDAÇÃO DE LOJA POR GPS (10 METROS) -->
     <div id="modalLoja">
         <div class="modal-card">
             <h2>Selecionar Unidade</h2>
-            <p>Escolha a loja em que você está. O sistema validará sua localização GPS para liberar o acesso.</p>
+            <p>Escolha a loja em que você está. O sistema validará sua localização GPS (tolerância máxima de 10 metros) para liberar o acesso.</p>
             <select id="modalSelectLoja">
                 <option value="ALAMEDA GABRIEL - SP">ALAMEDA GABRIEL - SP</option>
                 <option value="Pacaembu - SP">Pacaembu - SP</option>
@@ -721,8 +721,8 @@
             "SANTO ANDRÉ - SP": { lat: -23.6664, lng: -46.5385 }
         };
 
-        function calcularDistanciaKm(lat1, lon1, lat2, lon2) {
-            const R = 6371; // Raio da Terra em km
+        function calcularDistanciaMetros(lat1, lon1, lat2, lon2) {
+            const R = 6371000; // Raio da Terra em metros
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
             const a = 
@@ -730,14 +730,14 @@
                 Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
                 Math.sin(dLon/2) * Math.sin(dLon/2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c;
+            return R * c; // Retorna a distância em metros
         }
 
         function validarAcessoLoja() {
             const select = document.getElementById('modalSelectLoja');
             const lojaEscolhida = select.value;
             const msgErro = document.getElementById('modalErro');
-            msgErro.innerText = "Verificando geolocalização GPS...";
+            msgErro.innerText = "Obtendo geolocalização exata...";
 
             if (!navigator.geolocation) {
                 msgErro.innerText = "Seu dispositivo não suporta geolocalização.";
@@ -750,23 +750,23 @@
                     const userLng = position.coords.longitude;
                     const lojaCoord = coordenadasLojas[lojaEscolhida];
 
-                    const distancia = calcularDistanciaKm(userLat, userLng, lojaCoord.lat, lojaCoord.lng);
-                    const LIMITE_KM = 40; // Tolerância máxima aceitável em quilômetros
+                    const distanciaMetros = calcularDistanciaMetros(userLat, userLng, lojaCoord.lat, lojaCoord.lng);
+                    const LIMITE_METROS = 10; // Tolerância máxima de 10 metros
 
-                    if (distancia <= LIMITE_KM) {
+                    if (distanciaMetros <= LIMITE_METROS) {
                         lojaSelecionada = lojaEscolhida;
                         document.getElementById('displayLojaAtiva').innerText = lojaSelecionada;
                         document.getElementById('modalLoja').style.display = 'none';
                         carregarDadosFirebase();
                     } else {
-                        msgErro.innerText = `Acesso negado! Você está a aproximadamente ${Math.round(distancia)} km desta unidade. Aproxime-se da loja para acessar.`;
+                        msgErro.innerText = `Acesso negado! Você está a aproximadamente ${Math.round(distanciaMetros)} metros da unidade. Aproxime-se (limite de 10 metros) para acessar.`;
                     }
                 },
                 (error) => {
                     console.error(error);
-                    msgErro.innerText = "Erro ao obter GPS. Certifique-se de permitir o acesso à localização no navegador.";
+                    msgErro.innerText = "Erro ao obter GPS. Certifique-se de permitir a alta precisão da localização no dispositivo.";
                 },
-                { enableHighAccuracy: true, timeout: 12000 }
+                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
             );
         }
 
