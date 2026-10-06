@@ -72,9 +72,10 @@
             padding: 6px 12px;
             gap: 8px;
             border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
         }
 
-        .toolbar button {
+        .toolbar button, .toolbar label {
             background: transparent;
             border: 1px solid transparent;
             color: var(--text-primary);
@@ -87,8 +88,16 @@
             gap: 6px;
         }
 
-        .toolbar button:hover {
+        .toolbar button:hover, .toolbar label:hover {
             background-color: var(--border-color);
+        }
+
+        .toolbar input[type="color"] {
+            border: none;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            background: none;
         }
 
         .toolbar .separator {
@@ -138,7 +147,8 @@
 
         table.spreadsheet th, table.spreadsheet td {
             border: 1px solid var(--border-color);
-            height: 26px;
+            height: 28px;
+            width: 100px;
             padding: 2px 4px;
             font-size: 13px;
             white-space: nowrap;
@@ -168,9 +178,10 @@
             cursor: cell;
         }
 
-        table.spreadsheet td:focus {
+        table.spreadsheet td.selected {
             outline: 2px solid var(--text-accent);
-            background-color: var(--cell-select);
+            background-color: var(--cell-select) !important;
+            z-index: 1;
         }
 
         .app-footer {
@@ -211,207 +222,369 @@
             <div class="logo"><i class="fa-solid fa-layer-group"></i> <strong>NexusSheet</strong></div>
             <nav class="menu-bar">
                 <span>Arquivo</span>
+                <span id="menu-export" style="cursor:pointer;"><i class="fa-solid fa-download"></i> Exportar CSV</span>
                 <span>Editar</span>
-                <span>Inserir</span>
                 <span class="active">Dados & IA</span>
-                <span>Ajuda</span>
             </nav>
         </header>
 
         <!-- Barra de Ferramentas Avançadas -->
         <div class="toolbar">
-            <button id="btn-fetch" title="Buscar dados de API externa direto na célula"><i class="fa-solid fa-globe"></i> API Fetch</button>
-            <button id="btn-ai-prompt" title="Transformar dados usando linguagem natural"><i class="fa-solid fa-wand-magic-sparkles"></i> Comando IA</button>
-            <button id="btn-history" title="Ver histórico/versionamento da célula"><i class="fa-solid fa-clock-rotate-left"></i> Histórico de Célula</button>
+            <button id="btn-fetch" title="Buscar dados de API externa"><i class="fa-solid fa-globe"></i> API Fetch</button>
+            <button id="btn-history" title="Ver histórico da célula"><i class="fa-solid fa-clock-rotate-left"></i> Histórico</button>
             <span class="separator"></span>
-            <button><i class="fa-solid fa-bold"></i></button>
-            <button><i class="fa-solid fa-italic"></i></button>
-            <button><i class="fa-solid fa-align-left"></i></button>
+            <button id="btn-bold" title="Negrito"><i class="fa-solid fa-bold"></i></button>
+            <button id="btn-italic" title="Itálico"><i class="fa-solid fa-italic"></i></button>
+            <label title="Cor de Fundo da Célula"><i class="fa-solid fa-fill-drip"></i> <input type="color" id="cell-bg-color" value="#1e1e1e"></label>
+            <span class="separator"></span>
+            <button id="btn-clear" title="Limpar Célula"><i class="fa-solid fa-trash-can"></i> Limpar</button>
         </div>
 
-        <!-- Barra de Fórmulas e IA -->
+        <!-- Barra de Fórmulas -->
         <div class="formula-bar">
             <span id="current-cell-indicator">A1</span>
             <i class="fa-solid fa-fx"></i>
-            <input type="text" id="formula-input" placeholder="Digite um valor, fórmula (=SOMA) ou comando de IA (=FETCH)...">
+            <input type="text" id="formula-input" placeholder="Digite valor, fórmula (=A1+B1), =SUM(A1:A5) ou =FETCH(...)">
         </div>
 
-        <!-- Grade da Planilha (Grid) -->
-        <div class="grid-container" id="grid-container">
-            <!-- Gerado via JS -->
-        </div>
+        <!-- Grade da Planilha -->
+        <div class="grid-container" id="grid-container"></div>
 
-        <!-- Rodapé / Abas -->
+        <!-- Rodapé -->
         <footer class="app-footer">
             <div class="sheet-tabs">
                 <button class="tab active">Planilha 1</button>
-                <button class="tab">+ Nova Aba</button>
             </div>
-            <div class="status-bar" id="status-bar">Pronto | Modo Local Ativo</div>
+            <div class="status-bar" id="status-bar">Pronto | Auto-save Ativo</div>
         </footer>
     </div>
 
     <script>
-        // --- 1. Módulo de Recursos Avançados ---
-        class NexusFeatures {
+        // --- Core Engine e Estado ---
+        class NexusSheetEngine {
             constructor() {
-                this.cellHistory = {};
+                this.rows = 60;
+                this.cols = 26;
+                this.data = JSON.parse(localStorage.getItem('nexus_sheet_data')) || {};
+                this.cellHistory = JSON.parse(localStorage.getItem('nexus_sheet_history')) || {};
+                this.activeCellId = 'A1';
             }
 
-            async fetchApiData(url, path = '') {
-                try {
-                    const response = await fetch(url);
-                    const data = await response.json();
-                    if (path) {
-                        return path.split('.').reduce((obj, key) => obj?.[key], data) ?? 'Chave não encontrada';
-                    }
-                    return JSON.stringify(data);
-                } catch (error) {
-                    return `Erro API: ${error.message}`;
+            saveState() {
+                localStorage.setItem('nexus_sheet_data', JSON.stringify(this.data));
+                localStorage.setItem('nexus_sheet_history', JSON.stringify(this.cellHistory));
+            }
+
+            setCell(cellId, value, formula = '', style = {}) {
+                if (!this.data[cellId]) {
+                    this.data[cellId] = { value: '', formula: '', style: {} };
                 }
-            }
-
-            recordChange(cellId, oldValue, newValue) {
-                if (!this.cellHistory[cellId]) {
-                    this.cellHistory[cellId] = [];
+                const oldVal = this.data[cellId].value;
+                
+                this.data[cellId].value = value;
+                if (formula !== undefined) this.data[cellId].formula = formula;
+                if (style) {
+                    this.data[cellId].style = { ...this.data[cellId].style, ...style };
                 }
-                this.cellHistory[cellId].push({
-                    oldValue,
-                    newValue,
-                    timestamp: new Date().toLocaleTimeString()
-                });
+
+                // Registrar Histórico
+                if (oldVal !== value) {
+                    if (!this.cellHistory[cellId]) this.cellHistory[cellId] = [];
+                    this.cellHistory[cellId].push({
+                        oldValue: oldVal,
+                        newValue: value,
+                        timestamp: new Date().toLocaleTimeString()
+                    });
+                }
+
+                this.saveState();
             }
 
-            getHistory(cellId) {
-                return this.cellHistory[cellId] || [{ msg: 'Nenhum histórico anterior' }];
+            getCell(cellId) {
+                return this.data[cellId] || { value: '', formula: '', style: {} };
+            }
+
+            clearCell(cellId) {
+                if (this.data[cellId]) {
+                    delete this.data[cellId];
+                    this.saveState();
+                }
             }
         }
 
-        const nexusFeatures = new NexusFeatures();
+        const engine = new NexusSheetEngine();
 
-        // --- 2. Módulo Principal da Planilha ---
         document.addEventListener('DOMContentLoaded', () => {
             const gridContainer = document.getElementById('grid-container');
             const currentCellIndicator = document.getElementById('current-cell-indicator');
             const formulaInput = document.getElementById('formula-input');
             const statusBar = document.getElementById('status-bar');
 
-            const ROWS = 50;
-            const COLS = 26; // A a Z
-            let activeCell = null;
-            const spreadsheetData = {};
+            let activeCellElement = null;
 
-            function createGrid() {
+            function buildGrid() {
                 const table = document.createElement('table');
                 table.className = 'spreadsheet';
 
+                // Cabeçalho colunas (A-Z)
                 const headerRow = document.createElement('tr');
                 const thCorner = document.createElement('th');
                 thCorner.className = 'row-header';
                 headerRow.appendChild(thCorner);
 
-                for (let c = 0; c < COLS; c++) {
+                for (let c = 0; c < engine.cols; c++) {
                     const th = document.createElement('th');
                     th.textContent = String.fromCharCode(65 + c);
                     headerRow.appendChild(th);
                 }
                 table.appendChild(headerRow);
 
-                for (let r = 1; r <= ROWS; r++) {
+                // Linhas
+                for (let r = 1; r <= engine.rows; r++) {
                     const tr = document.createElement('tr');
                     const thRow = document.createElement('th');
                     thRow.className = 'row-header';
                     thRow.textContent = r;
                     tr.appendChild(thRow);
 
-                    for (let c = 0; c < COLS; c++) {
+                    for (let c = 0; c < engine.cols; c++) {
                         const td = document.createElement('td');
-                        const cellId = `${String.fromCharCode(65 + c)}${r}`;
+                        const colLetter = String.fromCharCode(65 + c);
+                        const cellId = `${colLetter}${r}`;
                         td.id = cellId;
                         td.contentEditable = true;
-                        
+
+                        // Restaurar dados salvos
+                        const cellInfo = engine.getCell(cellId);
+                        if (cellInfo.value !== '') {
+                            td.textContent = cellInfo.value;
+                        }
+                        applyStylesToElement(td, cellInfo.style);
+
+                        // Eventos
                         td.addEventListener('focus', () => selectCell(td, cellId));
-                        td.addEventListener('input', (e) => handleCellInput(cellId, e.target.textContent));
-                        
+                        td.addEventListener('input', (e) => handleInput(cellId, e.target.textContent));
+                        td.addEventListener('keydown', (e) => handleKeyNavigation(e, colLetter, r));
+
                         tr.appendChild(td);
                     }
                     table.appendChild(tr);
                 }
 
                 gridContainer.appendChild(table);
+                
+                // Selecionar A1 por padrão
+                const firstCell = document.getElementById('A1');
+                if (firstCell) selectCell(firstCell, 'A1');
             }
 
             function selectCell(td, cellId) {
-                activeCell = td;
+                if (activeCellElement) activeCellElement.classList.remove('selected');
+                activeCellElement = td;
+                activeCellElement.classList.add('selected');
+                engine.activeCellId = cellId;
+                
                 currentCellIndicator.textContent = cellId;
-                const cellData = spreadsheetData[cellId];
-                formulaInput.value = cellData ? (cellData.formula || cellData.value) : '';
-                statusBar.textContent = `Célula ativa: ${cellId}`;
+                const cellInfo = engine.getCell(cellId);
+                formulaInput.value = cellInfo.formula || cellInfo.value;
+                statusBar.textContent = `Célula ativa: ${cellId} | Pronto`;
             }
 
-            function handleCellInput(cellId, value) {
-                if (!spreadsheetData[cellId]) {
-                    spreadsheetData[cellId] = { value: '', formula: '' };
+            function applyStylesToElement(element, style) {
+                if (!element) return;
+                if (style.bold) element.style.fontWeight = 'bold';
+                else element.style.fontWeight = 'normal';
+
+                if (style.italic) element.style.fontStyle = 'italic';
+                else element.style.fontStyle = 'normal';
+
+                if (style.backgroundColor) element.style.backgroundColor = style.backgroundColor;
+            }
+
+            async function handleInput(cellId, rawValue) {
+                let computedValue = rawValue;
+                let formulaText = rawValue;
+
+                if (rawValue.startsWith('=')) {
+                    computedValue = await evaluateFormula(rawValue);
                 }
+
+                engine.setCell(cellId, computedValue, formulaText);
                 
-                const oldValue = spreadsheetData[cellId].value;
-                spreadsheetData[cellId].value = value;
-
-                if (value.startsWith('=')) {
-                    spreadsheetData[cellId].formula = value;
-                    evaluateFormula(cellId, value);
-                } else {
-                    nexusFeatures.recordChange(cellId, oldValue, value);
+                // Se a fórmula gerou valor diferente, atualiza visualmente sem perder o cursor
+                if (rawValue.startsWith('=') && activeCellElement && activeCellElement.id === cellId) {
+                    // Mantém a visualização limpa
                 }
             }
 
-            async function evaluateFormula(cellId, formula) {
-                const cell = document.getElementById(cellId);
-                
-                if (formula.toUpperCase().startsWith('=FETCH(')) {
-                    const match = formula.match(/=FETCH\("(.*?)"(?:,\s*"(.*?)")?\)/i);
-                    if (match) {
-                        cell.textContent = 'Carregando API...';
-                        const result = await nexusFeatures.fetchApiData(match[1], match[2]);
-                        cell.textContent = result;
-                        spreadsheetData[cellId].value = result;
-                    } else {
-                        cell.textContent = 'Erro sintaxe FETCH';
+            // Engine de Avaliação de Fórmulas Avançada (Substitui referências como A1, B2)
+            async function evaluateFormula(formula) {
+                try {
+                    let cleanFormula = formula.substring(1).trim();
+
+                    // 1. Tratamento de API =FETCH("url", "path")
+                    if (cleanFormula.toUpperCase().startsWith('FETCH(')) {
+                        const match = cleanFormula.match(/FETCH\("(.*?)"(?:,\s*"(.*?)")?\)/i);
+                        if (match) {
+                            const res = await fetch(match[1]);
+                            const data = await res.json();
+                            if (match[2]) {
+                                return match[2].split('.').reduce((o, k) => o?.[k], data) ?? 'Erro Chave';
+                            }
+                            return JSON.stringify(data);
+                        }
+                        return '#SINTAXE_FETCH';
                     }
-                } else {
-                    try {
-                        const cleanFormula = formula.substring(1);
-                        const res = eval(cleanFormula);
-                        cell.textContent = res;
-                        spreadsheetData[cellId].value = res;
-                    } catch (err) {
-                        cell.textContent = '#ERRO!';
+
+                    // 2. Tratamento de Funções de Intervalo (=SUM(A1:A5))
+                    if (cleanFormula.toUpperCase().startsWith('SUM(')) {
+                        const rangeMatch = cleanFormula.match(/SUM\(([A-Z]+[0-9]+):([A-Z]+[0-9]+)\)/i);
+                        if (rangeMatch) {
+                            const vals = getRangeValues(rangeMatch[1], rangeMatch[2]);
+                            return vals.reduce((acc, v) => acc + (parseFloat(v) || 0), 0);
+                        }
                     }
+
+                    // 3. Substituir referências de células (ex: A1, B2) pelos seus valores reais
+                    cleanFormula = cleanFormula.replace(/[A-Z]+[0-9]+/g, (match) => {
+                        const val = engine.getCell(match).value;
+                        return isNaN(val) || val === '' ? 0 : val;
+                    });
+
+                    // Execução segura via eval aritmético básico
+                    const result = eval(cleanFormula);
+                    return result !== undefined ? result : '#ERRO';
+                } catch (e) {
+                    return '#FÓRMULA_ERRO';
                 }
             }
 
+            function getRangeValues(startId, endId) {
+                const colStart = startId.match(/[A-Z]+/)[0];
+                const rowStart = parseInt(startId.match(/[0-9]+/)[0]);
+                const colEnd = endId.match(/[A-Z]+/)[0];
+                const rowEnd = parseInt(endId.match(/[0-9]+/)[0]);
+
+                let values = [];
+                for (let r = rowStart; r <= rowEnd; r++) {
+                    for (let c = colStart.charCodeAt(0); c <= colEnd.charCodeAt(0); c++) {
+                        const id = `${String.fromCharCode(c)}${r}`;
+                        values.push(engine.getCell(id).value);
+                    }
+                }
+                return values;
+            }
+
+            // Navegação por teclado estilo Excel
+            function handleKeyNavigation(e, colLetter, rowNum) {
+                let targetRow = rowNum;
+                let targetColCode = colLetter.charCodeAt(0);
+
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    targetRow = Math.min(engine.rows, rowNum + 1);
+                } else if (e.key === 'Tab') {
+                    e.preventDefault();
+                    targetColCode = Math.min(65 + engine.cols - 1, targetColCode + 1);
+                } else if (e.key === 'ArrowDown') {
+                    targetRow = Math.min(engine.rows, rowNum + 1);
+                } else if (e.key === 'ArrowUp') {
+                    targetRow = Math.max(1, rowNum - 1);
+                } else if (e.key === 'ArrowRight') {
+                    targetColCode = Math.min(65 + engine.cols - 1, targetColCode + 1);
+                } else if (e.key === 'ArrowLeft') {
+                    targetColCode = Math.max(65, targetColCode - 1);
+                } else {
+                    return;
+                }
+
+                const nextCellId = `${String.fromCharCode(targetColCode)}${targetRow}`;
+                const nextCellEl = document.getElementById(nextCellId);
+                if (nextCellEl) {
+                    nextCellEl.focus();
+                }
+            }
+
+            // Sincronizar input da barra superior com a célula ativa
             formulaInput.addEventListener('input', (e) => {
-                if (activeCell) {
-                    activeCell.textContent = e.target.value;
-                    handleCellInput(activeCell.id, e.target.value);
+                if (activeCellElement) {
+                    activeCellElement.textContent = e.target.value;
+                    handleInput(activeCellElement.id, e.target.value);
                 }
             });
 
+            // Botões da Toolbar
             document.getElementById('btn-fetch').addEventListener('click', () => {
-                if (activeCell) {
-                    formulaInput.value = '=FETCH("https://api.coinbase.com/v2/prices/BTC-BRL/spot", "data.amount")';
+                if (activeCellElement) {
+                    const formula = '=FETCH("https://api.coinbase.com/v2/prices/BTC-BRL/spot", "data.amount")';
+                    formulaInput.value = formula;
                     formulaInput.dispatchEvent(new Event('input'));
                 }
             });
 
-            document.getElementById('btn-history').addEventListener('click', () => {
-                if (activeCell) {
-                    const history = nexusFeatures.getHistory(activeCell.id);
-                    alert(`Histórico da célula ${activeCell.id}:\n` + JSON.stringify(history, null, 2));
+            document.getElementById('btn-bold').addEventListener('click', () => {
+                if (activeCellElement) {
+                    const info = engine.getCell(activeCellElement.id);
+                    const isBold = !info.style.bold;
+                    engine.setCell(activeCellElement.id, activeCellElement.textContent, undefined, { bold: isBold });
+                    applyStylesToElement(activeCellElement, engine.getCell(activeCellElement.id).style);
                 }
             });
 
-            createGrid();
+            document.getElementById('btn-italic').addEventListener('click', () => {
+                if (activeCellElement) {
+                    const info = engine.getCell(activeCellElement.id);
+                    const isItalic = !info.style.italic;
+                    engine.setCell(activeCellElement.id, activeCellElement.textContent, undefined, { italic: isItalic });
+                    applyStylesToElement(activeCellElement, engine.getCell(activeCellElement.id).style);
+                }
+            });
+
+            document.getElementById('cell-bg-color').addEventListener('input', (e) => {
+                if (activeCellElement) {
+                    const color = e.target.value;
+                    engine.setCell(activeCellElement.id, activeCellElement.textContent, undefined, { backgroundColor: color });
+                    applyStylesToElement(activeCellElement, engine.getCell(activeCellElement.id).style);
+                }
+            });
+
+            document.getElementById('btn-clear').addEventListener('click', () => {
+                if (activeCellElement) {
+                    engine.clearCell(activeCellElement.id);
+                    activeCellElement.textContent = '';
+                    formulaInput.value = '';
+                }
+            });
+
+            document.getElementById('btn-history').addEventListener('click', () => {
+                if (activeCellElement) {
+                    const history = engine.cellHistory[activeCellElement.id] || [{ msg: 'Sem alterações registradas' }];
+                    alert(`Histórico da célula ${activeCellElement.id}:\n` + JSON.stringify(history, null, 2));
+                }
+            });
+
+            // Exportar CSV
+            document.getElementById('menu-export').addEventListener('click', () => {
+                let csvContent = "data:text/csv;charset=utf-8,";
+                for (let r = 1; r <= 20; r++) {
+                    let row = [];
+                    for (let c = 0; c < 10; c++) {
+                        const id = `${String.fromCharCode(65 + c)}${r}`;
+                        row.value = engine.getCell(id).value || '';
+                        row.push(`"${row.value}"`);
+                    }
+                    csvContent += row.join(",") + "\r\n";
+                }
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "nexus_sheet_export.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+
+            buildGrid();
         });
     </script>
 </body>
