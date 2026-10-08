@@ -1,594 +1,1597 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en" class="h-full select-none">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NexusSheet Pro - A Planilha Inteligente</title>
-    <!-- FontAwesome para ícones -->
+    <title>Aether Browser - Next Gen AI Desktop Web Workspace</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        aether: {
+                            50: '#f0f4ff',
+                            100: '#e0e9ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#0f172a',
+                            dark: '#090d16',
+                            panel: '#131b2e',
+                            border: '#1e293b'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                        serif: ['Merriweather', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
-        :root {
-            --bg-primary: #1e1e1e;
-            --bg-secondary: #252526;
-            --bg-toolbar: #2d2d2d;
-            --border-color: #3f3f46;
-            --text-primary: #d4d4d4;
-            --text-accent: #3b82f6;
-            --cell-hover: #2a2d2e;
-            --cell-select: #094771;
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            user-select: none;
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
         }
-
-        body {
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        #app-container {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .app-header {
-            display: flex;
-            align-items: center;
-            background-color: var(--bg-secondary);
-            padding: 8px 16px;
-            border-bottom: 1px solid var(--border-color);
-            font-size: 14px;
-        }
-
-        .logo {
-            margin-right: 24px;
-            color: var(--text-accent);
-        }
-
-        .menu-bar span {
-            margin-right: 16px;
-            cursor: pointer;
-            color: #9ca3af;
-        }
-
-        .menu-bar span.active, .menu-bar span:hover {
-            color: var(--text-primary);
-        }
-
-        .toolbar {
-            display: flex;
-            align-items: center;
-            background-color: var(--bg-toolbar);
-            padding: 6px 12px;
-            gap: 8px;
-            border-bottom: 1px solid var(--border-color);
-            flex-wrap: wrap;
-        }
-
-        .toolbar button, .toolbar label {
-            background: transparent;
-            border: 1px solid transparent;
-            color: var(--text-primary);
-            padding: 4px 8px;
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
             border-radius: 4px;
-            cursor: pointer;
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
         }
 
-        .toolbar button:hover, .toolbar label:hover {
-            background-color: var(--border-color);
+        .tab-active {
+            background-color: var(--tab-bg, #1e293b) !important;
+            border-bottom: 2px solid #6366f1;
+            color: #ffffff !important;
         }
 
-        .toolbar input[type="color"] {
-            border: none;
-            width: 24px;
-            height: 24px;
-            cursor: pointer;
-            background: none;
+        .glass-panel {
+            background: rgba(19, 27, 46, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        .toolbar .separator {
-            width: 1px;
-            height: 20px;
-            background-color: var(--border-color);
-            margin: 0 4px;
+        /* Themes */
+        body.theme-midnight {
+            --bg-main: #090d16;
+            --bg-panel: #131b2e;
+            --bg-tab: #1e293b;
+            --accent: #6366f1;
+            --text-main: #f8fafc;
+        }
+        body.theme-cyberpunk {
+            --bg-main: #0a0512;
+            --bg-panel: #160a29;
+            --bg-tab: #271045;
+            --accent: #ec4899;
+            --text-main: #f472b6;
+        }
+        body.theme-amoled {
+            --bg-main: #000000;
+            --bg-panel: #0a0a0a;
+            --bg-tab: #141414;
+            --accent: #10b981;
+            --text-main: #ffffff;
+        }
+        body.theme-light {
+            --bg-main: #f1f5f9;
+            --bg-panel: #ffffff;
+            --bg-tab: #e2e8f0;
+            --accent: #2563eb;
+            --text-main: #0f172a;
         }
 
-        .formula-bar {
-            display: flex;
-            align-items: center;
-            background-color: var(--bg-secondary);
-            padding: 6px 12px;
-            border-bottom: 1px solid var(--border-color);
-            gap: 12px;
+        .animate-fade-in {
+            animation: fadeIn 0.2s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        #current-cell-indicator {
-            font-weight: bold;
-            min-width: 35px;
-            text-align: center;
-            color: var(--text-accent);
+        /* Pulse glow for AI active mode */
+        .ai-glow {
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.35);
         }
-
-        .formula-bar input {
-            flex: 1;
-            background: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 13px;
-        }
-
-        .grid-container {
-            flex: 1;
-            overflow: auto;
-            position: relative;
-            background-color: var(--bg-primary);
-        }
-
-        table.spreadsheet {
-            border-collapse: collapse;
-            table-layout: fixed;
-        }
-
-        table.spreadsheet th, table.spreadsheet td {
-            border: 1px solid var(--border-color);
-            height: 28px;
-            width: 110px;
-            padding: 2px 6px;
-            font-size: 13px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        table.spreadsheet th {
-            background-color: var(--bg-secondary);
-            text-align: center;
-            color: #9ca3af;
-            font-weight: 600;
-            position: sticky;
-            top: 0;
-            z-index: 2;
-        }
-
-        table.spreadsheet th.row-header {
-            position: sticky;
-            left: 0;
-            z-index: 3;
-            width: 50px;
-        }
-
-        table.spreadsheet td {
-            background-color: var(--bg-primary);
-            cursor: cell;
-        }
-
-        table.spreadsheet td.selected {
-            outline: 2px solid var(--text-accent);
-            background-color: var(--cell-select) !important;
-            z-index: 1;
-        }
-
-        .app-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: var(--bg-secondary);
-            padding: 4px 12px;
-            border-top: 1px solid var(--border-color);
-            font-size: 12px;
-        }
-
-        .sheet-tabs {
-            display: flex;
-            gap: 4px;
-        }
-
-        .tab {
-            background: transparent;
-            border: none;
-            color: #9ca3af;
-            padding: 4px 12px;
-            cursor: pointer;
-            border-radius: 4px 4px 0 0;
-        }
-
-        .tab.active {
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            border-top: 2px solid var(--text-accent);
+        
+        .glow-accent {
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
         }
     </style>
 </head>
-<body>
-    <div id="app-container">
-        <!-- Menu Superior -->
-        <header class="app-header">
-            <div class="logo"><i class="fa-solid fa-layer-group"></i> <strong>NexusSheet Pro</strong></div>
-            <nav class="menu-bar">
-                <span>Arquivo</span>
-                <span id="menu-export" style="cursor:pointer;"><i class="fa-solid fa-download"></i> Exportar CSV</span>
-                <span>Editar</span>
-                <span class="active">Dados & IA</span>
-            </nav>
-        </header>
+<body class="h-screen w-screen overflow-hidden text-slate-200 font-sans bg-slate-950 theme-midnight flex flex-col">
 
-        <!-- Barra de Ferramentas -->
-        <div class="toolbar">
-            <button id="btn-fetch" title="Inserir API Fetch"><i class="fa-solid fa-globe"></i> API Fetch</button>
-            <button id="btn-history" title="Ver histórico"><i class="fa-solid fa-clock-rotate-left"></i> Histórico</button>
-            <span class="separator"></span>
-            <button id="btn-bold" title="Negrito"><i class="fa-solid fa-bold"></i></button>
-            <button id="btn-italic" title="Itálico"><i class="fa-solid fa-italic"></i></button>
-            <label title="Cor de Fundo"><i class="fa-solid fa-fill-drip"></i> <input type="color" id="cell-bg-color" value="#1e1e1e"></label>
-            <span class="separator"></span>
-            <button id="btn-clear" title="Limpar"><i class="fa-solid fa-trash-can"></i> Limpar</button>
-        </div>
-
-        <!-- Barra de Fórmulas -->
-        <div class="formula-bar">
-            <span id="current-cell-indicator">A1</span>
-            <i class="fa-solid fa-fx"></i>
-            <input type="text" id="formula-input" placeholder="Digite valor, =A1+B1, =SUM(A1:A5), =AVERAGE(A1:A3) ou =AI('maiusculo', A1)">
-        </div>
-
-        <!-- Grade da Planilha -->
-        <div class="grid-container" id="grid-container"></div>
-
-        <!-- Rodapé -->
-        <footer class="app-footer">
-            <div class="sheet-tabs">
-                <button class="tab active">Planilha 1</button>
+    <!-- Window Desktop Top Control Bar -->
+    <header class="h-9 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-3 text-xs select-none shrink-0 z-50">
+        <div class="flex items-center space-x-2">
+            <div class="flex items-center space-x-1.5 mr-2">
+                <span class="w-3 h-3 rounded-full bg-rose-500/80 hover:bg-rose-600 cursor-pointer inline-block transition-colors" title="Close Window" onclick="showNotification('Aether Browser Desktop session locked.')"></span>
+                <span class="w-3 h-3 rounded-full bg-amber-500/80 hover:bg-amber-600 cursor-pointer inline-block transition-colors" title="Minimize Window" onclick="toggleFullscreen()"></span>
+                <span class="w-3 h-3 rounded-full bg-emerald-500/80 hover:bg-emerald-600 cursor-pointer inline-block transition-colors" title="Maximize Window" onclick="toggleFullscreen()"></span>
             </div>
-            <div class="status-bar" id="status-bar">Pronto | Motor Pro Ativo</div>
-        </footer>
+            <div class="flex items-center space-x-2 font-semibold tracking-wide text-slate-300">
+                <i class="fa-solid fa-atom text-indigo-400 text-sm animate-spin" style="animation-duration: 12s;"></i>
+                <span class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent font-bold">AETHER</span>
+                <span class="text-[10px] bg-indigo-950/80 text-indigo-300 px-1.5 py-0.5 rounded border border-indigo-800/50">v4.0 PRO</span>
+            </div>
+        </div>
+
+        <!-- Middle System Footprint Live Monitor -->
+        <div class="hidden md:flex items-center space-x-4 text-[11px] bg-slate-950/60 px-3 py-1 rounded-full border border-slate-800/80 text-slate-400">
+            <div class="flex items-center space-x-1.5">
+                <i class="fa-solid fa-microchip text-indigo-400"></i>
+                <span>CPU: <strong id="sys-cpu" class="text-slate-200 font-mono">1.2%</strong></span>
+            </div>
+            <span class="text-slate-700">|</span>
+            <div class="flex items-center space-x-1.5">
+                <i class="fa-solid fa-memory text-emerald-400"></i>
+                <span>RAM: <strong id="sys-ram" class="text-slate-200 font-mono">142 MB</strong></span>
+            </div>
+            <span class="text-slate-700">|</span>
+            <div class="flex items-center space-x-1.5 text-indigo-300">
+                <i class="fa-solid fa-shield-halved text-indigo-400"></i>
+                <span>AdShield: <strong id="ad-count" class="text-indigo-200 font-mono">24</strong> blocked</span>
+            </div>
+        </div>
+
+        <!-- Right System Controls & Theme Selector -->
+        <div class="flex items-center space-x-2">
+            <button onclick="toggleIncognito()" id="incognito-btn" class="px-2 py-0.5 rounded text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center space-x-1 transition-colors" title="Toggle Incognito Mode">
+                <i class="fa-solid fa-user-ninja"></i>
+                <span class="hidden sm:inline">Private</span>
+            </button>
+
+            <!-- Theme Picker -->
+            <select id="theme-selector" onchange="changeTheme(this.value)" class="bg-slate-800 text-slate-300 text-[11px] rounded px-2 py-0.5 border border-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer">
+                <option value="midnight">Midnight Dark</option>
+                <option value="cyberpunk">Cyberpunk Glass</option>
+                <option value="amoled">AMOLED Deep</option>
+                <option value="light">Nordic Light</option>
+            </select>
+
+            <button onclick="toggleFullscreen()" class="text-slate-400 hover:text-slate-100 p-1 rounded" title="Fullscreen (F11)">
+                <i class="fa-solid fa-expand"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Tab Bar Strip -->
+    <div class="bg-slate-900 border-b border-slate-800/90 flex items-center px-2 pt-1.5 space-x-1 overflow-x-auto scrollbar-none z-40" id="tab-bar-container">
+        <!-- Tab items dynamically rendered here -->
+        <div id="tab-strip" class="flex items-center space-x-1 overflow-x-auto max-w-[calc(100vw-120px)]"></div>
+        
+        <!-- Add Tab Button -->
+        <button onclick="addNewTab()" class="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-indigo-400 transition-colors shrink-0" title="New Tab (Ctrl+T)">
+            <i class="fa-solid fa-plus text-xs"></i>
+        </button>
+
+        <!-- Quick Switcher Launcher -->
+        <button onclick="toggleTabSwitcherModal()" class="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-indigo-400 transition-colors shrink-0 ml-auto" title="Quick Tab Switcher (Ctrl+K)">
+            <i class="fa-solid fa-list-check text-xs"></i>
+        </button>
     </div>
 
+    <!-- Navigation Toolbar & Omnibox -->
+    <div class="bg-slate-900/95 border-b border-slate-800 p-2 flex items-center space-x-2 z-30 shadow-md">
+        <!-- Navigation Buttons -->
+        <div class="flex items-center space-x-1 text-slate-400 shrink-0">
+            <button onclick="navigateBack()" class="p-1.5 hover:bg-slate-800 rounded-md hover:text-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition-colors" title="Back">
+                <i class="fa-solid fa-arrow-left text-sm"></i>
+            </button>
+            <button onclick="navigateForward()" class="p-1.5 hover:bg-slate-800 rounded-md hover:text-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition-colors" title="Forward">
+                <i class="fa-solid fa-arrow-right text-sm"></i>
+            </button>
+            <button onclick="reloadTab()" class="p-1.5 hover:bg-slate-800 rounded-md hover:text-slate-100 transition-colors" title="Reload (Ctrl+R)">
+                <i class="fa-solid fa-rotate-right text-sm" id="reload-icon"></i>
+            </button>
+            <button onclick="goHome()" class="p-1.5 hover:bg-slate-800 rounded-md hover:text-slate-100 transition-colors" title="Home">
+                <i class="fa-solid fa-house text-sm"></i>
+            </button>
+        </div>
+
+        <!-- Omnibox Container -->
+        <div class="relative flex-1 flex items-center">
+            <div class="absolute left-3 text-slate-400 flex items-center space-x-2" id="omnibox-security">
+                <i class="fa-solid fa-lock text-emerald-400 text-xs" title="Secure Encrypted Connection"></i>
+            </div>
+            
+            <input type="text" id="omnibox" 
+                   placeholder="Search with Google/Gemini or enter web address..." 
+                   onkeydown="handleOmniboxKey(event)"
+                   onfocus="showOmniboxSuggestions()"
+                   onblur="hideOmniboxSuggestionsLater()"
+                   class="w-full bg-slate-950/90 text-slate-100 text-xs rounded-lg pl-8 pr-24 py-2 border border-slate-700/80 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 font-sans tracking-wide transition-all shadow-inner">
+
+            <!-- Right Omnibox Badges & AI Quick Trigger -->
+            <div class="absolute right-2 flex items-center space-x-1.5">
+                <button onclick="triggerOmniboxAI()" class="px-2 py-0.5 rounded bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 text-[11px] font-medium border border-indigo-500/40 flex items-center space-x-1 transition-all" title="Ask Gemini AI about this address">
+                    <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
+                    <span>Ask AI</span>
+                </button>
+                <button onclick="toggleBookmarkCurrent()" id="bookmark-star" class="text-slate-400 hover:text-amber-400 p-1" title="Bookmark Page">
+                    <i class="fa-far fa-star text-xs"></i>
+                </button>
+            </div>
+
+            <!-- Omnibox Auto-Suggestions Dropdown -->
+            <div id="omnibox-suggestions" class="hidden absolute top-full left-0 right-0 mt-1 bg-slate-900 border border-slate-700/90 rounded-lg shadow-2xl overflow-hidden z-50 text-xs divide-y divide-slate-800/80 animate-fade-in">
+                <!-- Dynamic search suggestions -->
+            </div>
+        </div>
+
+        <!-- Toolbar Tools & Sidebars -->
+        <div class="flex items-center space-x-1 shrink-0 text-slate-400">
+            <button onclick="toggleSplitScreen()" id="split-screen-btn" class="p-1.5 hover:bg-slate-800 rounded-md hover:text-slate-100 transition-colors" title="Toggle Split View Mode">
+                <i class="fa-solid fa-columns text-sm"></i>
+            </button>
+            <button onclick="toggleReaderMode()" id="reader-mode-btn" class="p-1.5 hover:bg-slate-800 rounded-md hover:text-slate-100 transition-colors" title="Toggle Reader Mode">
+                <i class="fa-solid fa-book-open text-sm"></i>
+            </button>
+            <button onclick="toggleDevTools()" id="devtools-btn" class="p-1.5 hover:bg-slate-800 rounded-md hover:text-slate-100 transition-colors" title="Toggle Developer Tools Console">
+                <i class="fa-solid fa-code text-sm"></i>
+            </button>
+            <div class="h-4 w-px bg-slate-800 mx-1"></div>
+            <button onclick="toggleSidebar('ai')" id="ai-sidebar-toggle" class="p-1.5 rounded-md text-indigo-400 bg-indigo-950/60 border border-indigo-800/60 hover:bg-indigo-900/80 transition-all flex items-center space-x-1 px-2" title="Toggle Gemini AI Sidebar">
+                <i class="fa-solid fa-brain text-xs"></i>
+                <span class="text-xs font-semibold">Copilot</span>
+            </button>
+            <button onclick="toggleSidebar('bookmarks')" class="p-1.5 hover:bg-slate-800 rounded-md hover:text-slate-100 transition-colors" title="Bookmarks & History">
+                <i class="fa-solid fa-bookmark text-sm"></i>
+            </button>
+            <button onclick="openSettingsModal()" class="p-1.5 hover:bg-slate-800 rounded-md hover:text-slate-100 transition-colors" title="Aether Settings">
+                <i class="fa-solid fa-gear text-sm"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Workspace Area -->
+    <div class="flex-1 flex overflow-hidden relative">
+
+        <!-- Main Viewport Container (Single or Split) -->
+        <main class="flex-1 flex bg-slate-950 relative overflow-hidden" id="workspace-container">
+            
+            <!-- Primary Viewport Frame Container -->
+            <div id="viewport-primary" class="flex-1 h-full w-full relative flex flex-col">
+                <div id="primary-content" class="h-full w-full relative overflow-hidden flex flex-col">
+                    <!-- Dynamic iframe or inner app container -->
+                </div>
+            </div>
+
+            <!-- Secondary Split-Screen Viewport Container (Initially Hidden) -->
+            <div id="viewport-secondary" class="hidden flex-1 h-full border-l-2 border-indigo-600/50 relative flex flex-col">
+                <div class="bg-slate-900 border-b border-slate-800 p-1 flex items-center justify-between text-xs px-3">
+                    <span class="text-slate-400 font-medium flex items-center space-x-1.5">
+                        <i class="fa-solid fa-window-restore text-indigo-400"></i>
+                        <span>Split Panel View</span>
+                    </span>
+                    <button onclick="closeSplitScreen()" class="text-slate-400 hover:text-slate-200">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div id="secondary-content" class="h-full w-full relative overflow-hidden flex flex-col">
+                    <!-- Secondary iframe or inner app container -->
+                </div>
+            </div>
+
+            <!-- Reader Mode Full Page Overlay (Hidden by default) -->
+            <div id="reader-overlay" class="hidden absolute inset-0 bg-slate-900/98 z-40 overflow-y-auto p-8 md:p-16 text-slate-200 animate-fade-in">
+                <div class="max-w-3xl mx-auto space-y-6">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                        <div class="flex items-center space-x-2 text-indigo-400 text-sm">
+                            <i class="fa-solid fa-book-open"></i>
+                            <span class="font-semibold uppercase tracking-wider text-xs">Aether Reader Mode</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <button onclick="changeReaderFontSize(1)" class="p-1 px-2 rounded bg-slate-800 hover:bg-slate-700 text-xs">A+</button>
+                            <button onclick="changeReaderFontSize(-1)" class="p-1 px-2 rounded bg-slate-800 hover:bg-slate-700 text-xs">A-</button>
+                            <button onclick="toggleReaderMode()" class="p-1 px-2 rounded bg-rose-900/50 text-rose-300 hover:bg-rose-900 text-xs">Close</button>
+                        </div>
+                    </div>
+                    <h1 id="reader-title" class="text-3xl font-bold font-serif text-slate-100 leading-snug"></h1>
+                    <div id="reader-body" class="font-serif text-lg leading-relaxed text-slate-300 space-y-4"></div>
+                </div>
+            </div>
+
+            <!-- DevTools Panel Bottom Slide-up (Hidden by default) -->
+            <div id="devtools-panel" class="hidden absolute bottom-0 left-0 right-0 h-64 bg-slate-900/95 border-t border-slate-700 z-40 flex flex-col shadow-2xl">
+                <div class="bg-slate-950 border-b border-slate-800 px-3 py-1 flex items-center justify-between text-xs text-slate-400">
+                    <div class="flex items-center space-x-3">
+                        <span class="font-bold text-indigo-400 flex items-center space-x-1">
+                            <i class="fa-solid fa-terminal"></i>
+                            <span>Developer Console</span>
+                        </span>
+                        <button onclick="switchDevTab('console')" class="hover:text-slate-200 px-2 py-0.5 rounded bg-slate-800 text-slate-200">Console</button>
+                        <button onclick="switchDevTab('network')" class="hover:text-slate-200 px-2 py-0.5 rounded">Network Log</button>
+                        <button onclick="switchDevTab('dom')" class="hover:text-slate-200 px-2 py-0.5 rounded">DOM Inspector</button>
+                    </div>
+                    <button onclick="toggleDevTools()" class="text-slate-400 hover:text-slate-200">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div id="devtools-content" class="flex-1 p-3 font-mono text-xs overflow-y-auto bg-slate-950 text-slate-300 space-y-1">
+                    <div class="text-emerald-400">[Aether System] DevTools Initialized. Ready for JS execution.</div>
+                </div>
+                <div class="bg-slate-900 border-t border-slate-800 p-1.5 flex items-center space-x-2">
+                    <span class="text-indigo-400 font-mono text-xs pl-2">&gt;</span>
+                    <input type="text" id="dev-input" onkeydown="executeDevConsole(event)" placeholder="Execute JavaScript snippet..." class="w-full bg-transparent text-xs font-mono text-slate-100 focus:outline-none">
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Right Drawer / Sidebar (Copilot AI, Bookmarks, Scratchpad) -->
+        <aside id="aether-sidebar" class="hidden w-80 bg-slate-900 border-l border-slate-800/90 flex flex-col z-30 shrink-0 shadow-2xl transition-all duration-300">
+            
+            <!-- Sidebar Header Tabs -->
+            <div class="bg-slate-950 border-b border-slate-800 flex items-center justify-between px-2 pt-2">
+                <div class="flex items-center space-x-1 text-xs">
+                    <button onclick="setSidebarTab('ai')" id="side-tab-ai" class="px-3 py-1.5 rounded-t-md font-medium bg-slate-900 text-indigo-400 border-t-2 border-indigo-500 flex items-center space-x-1.5">
+                        <i class="fa-solid fa-sparkles text-indigo-400"></i>
+                        <span>AI Copilot</span>
+                    </button>
+                    <button onclick="setSidebarTab('bookmarks')" id="side-tab-bookmarks" class="px-3 py-1.5 rounded-t-md font-medium text-slate-400 hover:text-slate-200 flex items-center space-x-1.5">
+                        <i class="fa-solid fa-bookmark"></i>
+                        <span>Saved</span>
+                    </button>
+                    <button onclick="setSidebarTab('notes')" id="side-tab-notes" class="px-3 py-1.5 rounded-t-md font-medium text-slate-400 hover:text-slate-200 flex items-center space-x-1.5">
+                        <i class="fa-solid fa-note-sticky"></i>
+                        <span>Notes</span>
+                    </button>
+                </div>
+                <button onclick="closeSidebar()" class="text-slate-400 hover:text-slate-200 p-1.5 rounded">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+            </div>
+
+            <!-- AI Copilot Tab Content -->
+            <div id="side-content-ai" class="flex-1 flex flex-col p-3 overflow-hidden">
+                <!-- AI Quick Action Presets -->
+                <div class="mb-3 flex flex-wrap gap-1.5">
+                    <button onclick="runAIPreset('summarize')" class="text-[11px] bg-slate-800 hover:bg-indigo-900/60 text-slate-300 hover:text-indigo-200 px-2 py-1 rounded border border-slate-700 flex items-center space-x-1 transition-all">
+                        <i class="fa-solid fa-compress text-indigo-400"></i>
+                        <span>Summarize Page</span>
+                    </button>
+                    <button onclick="runAIPreset('keypoints')" class="text-[11px] bg-slate-800 hover:bg-indigo-900/60 text-slate-300 hover:text-indigo-200 px-2 py-1 rounded border border-slate-700 flex items-center space-x-1 transition-all">
+                        <i class="fa-solid fa-list-check text-indigo-400"></i>
+                        <span>Key Points</span>
+                    </button>
+                    <button onclick="runAIPreset('translate')" class="text-[11px] bg-slate-800 hover:bg-indigo-900/60 text-slate-300 hover:text-indigo-200 px-2 py-1 rounded border border-slate-700 flex items-center space-x-1 transition-all">
+                        <i class="fa-solid fa-language text-indigo-400"></i>
+                        <span>Translate</span>
+                    </button>
+                    <button onclick="runAIPreset('explain')" class="text-[11px] bg-slate-800 hover:bg-indigo-900/60 text-slate-300 hover:text-indigo-200 px-2 py-1 rounded border border-slate-700 flex items-center space-x-1 transition-all">
+                        <i class="fa-solid fa-lightbulb text-indigo-400"></i>
+                        <span>Explain Tech</span>
+                    </button>
+                </div>
+
+                <!-- Chat History Feed -->
+                <div id="ai-chat-history" class="flex-1 overflow-y-auto space-y-3 pr-1 text-xs">
+                    <div class="bg-indigo-950/40 border border-indigo-800/40 rounded-lg p-3 text-slate-300 space-y-1">
+                        <div class="font-semibold text-indigo-300 flex items-center space-x-1.5">
+                            <i class="fa-solid fa-robot"></i>
+                            <span>Gemini AI Assistant</span>
+                        </div>
+                        <p class="text-[11px] leading-relaxed text-slate-300">Hello! I am your embedded desktop web copilot powered by <strong>gemini-3-flash-preview</strong>. Click a shortcut above or ask me anything about the active tab!</p>
+                    </div>
+                </div>
+
+                <!-- AI Input Form -->
+                <div class="mt-3 pt-2 border-t border-slate-800 relative">
+                    <textarea id="ai-user-input" rows="2" 
+                              placeholder="Ask Gemini to analyze, rewrite, translate or search..." 
+                              onkeydown="handleAIChatKey(event)"
+                              class="w-full bg-slate-950 text-slate-100 text-xs rounded-lg p-2 pr-9 border border-slate-700 focus:outline-none focus:border-indigo-500 resize-none"></textarea>
+                    <button onclick="sendAIChat()" class="absolute right-2 bottom-3 p-1.5 text-indigo-400 hover:text-indigo-200 transition-colors">
+                        <i class="fa-solid fa-paper-plane text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bookmarks / History Content -->
+            <div id="side-content-bookmarks" class="hidden flex-1 p-3 overflow-y-auto text-xs space-y-4">
+                <div>
+                    <h3 class="font-bold text-slate-300 uppercase tracking-wider text-[10px] mb-2 text-indigo-400 flex items-center space-x-1">
+                        <i class="fa-solid fa-star"></i>
+                        <span>Saved Bookmarks</span>
+                    </h3>
+                    <div id="bookmarks-list" class="space-y-1">
+                        <!-- Dynamic bookmarks -->
+                    </div>
+                </div>
+                <div class="border-t border-slate-800 pt-3">
+                    <h3 class="font-bold text-slate-300 uppercase tracking-wider text-[10px] mb-2 text-slate-400 flex items-center space-x-1">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        <span>Recent Browsing History</span>
+                    </h3>
+                    <div id="history-list" class="space-y-1">
+                        <!-- Dynamic history -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Notes Content -->
+            <div id="side-content-notes" class="hidden flex-1 p-3 flex flex-col">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-semibold text-slate-300">Quick Scratchpad</span>
+                    <span class="text-[10px] text-emerald-400">Autosaved</span>
+                </div>
+                <textarea id="scratchpad-text" oninput="saveScratchpad()" placeholder="Jot down notes, research ideas, or code snippets here..." class="flex-1 w-full bg-slate-950 text-slate-200 text-xs font-mono rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:border-indigo-500 resize-none leading-relaxed"></textarea>
+            </div>
+
+        </aside>
+
+    </div>
+
+    <!-- Quick Tab Switcher Modal (Ctrl+K) -->
+    <div id="tab-switcher-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-start justify-center pt-20">
+        <div class="bg-slate-900 border border-slate-700 w-full max-w-lg rounded-xl shadow-2xl overflow-hidden animate-fade-in">
+            <div class="p-3 border-b border-slate-800 flex items-center space-x-2">
+                <i class="fa-solid fa-magnifying-glass text-slate-400 text-sm"></i>
+                <input type="text" id="switcher-input" oninput="filterTabSwitcher()" placeholder="Search active tabs or bookmarks (Ctrl+K)..." class="w-full bg-transparent text-slate-100 text-xs focus:outline-none font-sans">
+                <span class="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded">ESC</span>
+            </div>
+            <div id="switcher-results" class="max-h-80 overflow-y-auto p-2 divide-y divide-slate-800/60 text-xs">
+                <!-- Search items -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings & API Modal -->
+    <div id="settings-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 w-full max-w-md rounded-xl shadow-2xl overflow-hidden animate-fade-in p-6 space-y-5">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h2 class="text-sm font-bold text-slate-100 flex items-center space-x-2">
+                    <i class="fa-solid fa-sliders text-indigo-400"></i>
+                    <span>Aether Preferences</span>
+                </h2>
+                <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-slate-200">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4 text-xs">
+                <div>
+                    <label class="block text-slate-300 font-medium mb-1">Gemini API Key (Optional)</label>
+                    <input type="password" id="api-key-input" placeholder="Leave empty to use default preview key" class="w-full bg-slate-950 text-slate-200 rounded p-2 border border-slate-800 focus:outline-none focus:border-indigo-500 font-mono">
+                    <p class="text-[10px] text-slate-500 mt-1">If blank, standard embedded Gemini key will be used automatically.</p>
+                </div>
+
+                <div>
+                    <label class="block text-slate-300 font-medium mb-1">Default Search Engine</label>
+                    <select id="search-engine-select" class="w-full bg-slate-950 text-slate-200 rounded p-2 border border-slate-800 focus:outline-none focus:border-indigo-500">
+                        <option value="google">Google Search</option>
+                        <option value="duckduckgo">DuckDuckGo (Privacy)</option>
+                        <option value="bing">Bing Search</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center justify-between pt-2 border-t border-slate-800">
+                    <div>
+                        <div class="font-medium text-slate-200">AdShield Aggressive Blocking</div>
+                        <div class="text-[10px] text-slate-400">Block popups, trackers, and telemetry</div>
+                    </div>
+                    <input type="checkbox" id="adshield-toggle" checked class="w-4 h-4 text-indigo-600 rounded bg-slate-950 border-slate-700 focus:ring-indigo-500">
+                </div>
+
+                <div class="pt-3 border-t border-slate-800 flex justify-between">
+                    <button onclick="exportBookmarks()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded transition-colors">
+                        <i class="fa-solid fa-download mr-1"></i> Export Bookmarks
+                    </button>
+                    <button onclick="saveSettings()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-medium transition-colors">
+                        Save Preferences
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Floating Toast Notification -->
+    <div id="toast-notification" class="hidden fixed bottom-5 right-5 bg-indigo-900/90 text-indigo-100 border border-indigo-700 px-4 py-2.5 rounded-lg shadow-2xl z-50 text-xs flex items-center space-x-2 animate-fade-in">
+        <i class="fa-solid fa-circle-info text-indigo-400"></i>
+        <span id="toast-message">Message here...</span>
+    </div>
+
+
     <script>
-        class NexusSheetEngine {
-            constructor() {
-                this.rows = 50;
-                this.cols = 26;
-                this.data = JSON.parse(localStorage.getItem('nexus_sheet_pro_data')) || {};
-                this.cellHistory = JSON.parse(localStorage.getItem('nexus_sheet_pro_history')) || {};
-                this.activeCellId = 'A1';
+        
+        // Application State
+        let tabs = [];
+        let activeTabId = null;
+        let splitTabId = null;
+        let isIncognito = false;
+        let readerFontSize = 18;
+        let devLogs = [];
+        let bookmarks = JSON.parse(localStorage.getItem('aether_bookmarks') || '[]');
+        let historyLog = JSON.parse(localStorage.getItem('aether_history') || '[]');
+        let adBlockCount = 24;
+
+        // Custom Built-in Desktop Engines / Applications for Web Fallbacks & Speed
+        const INTERNAL_APPS = {
+            'aether://newtab': {
+                title: 'New Tab',
+                favicon: 'fa-house',
+                render: renderNewTabPage
+            },
+            'aether://tech-feed': {
+                title: 'Tech Pulse AI News',
+                favicon: 'fa-newspaper',
+                render: renderTechNewsPage
+            },
+            'aether://wiki-reader': {
+                title: 'Wikipedia Fast Reader',
+                favicon: 'fa-book-atlas',
+                render: renderWikiReaderPage
+            },
+            'aether://code-sandbox': {
+                title: 'JS Code Playground',
+                favicon: 'fa-code',
+                render: renderCodeSandboxPage
+            }
+        };
+
+        // Initialize Application on Window Load
+        window.onload = function() {
+            // Load initial Tab
+            addNewTab('aether://newtab');
+            
+            // Render Bookmarks & History
+            renderBookmarksList();
+            renderHistoryList();
+
+            // Load Scratchpad
+            document.getElementById('scratchpad-text').value = localStorage.getItem('aether_scratchpad') || '';
+
+            // Setup CPU/RAM Simulation loop
+            setInterval(updateSystemMetrics, 2000);
+
+            // Register Hotkeys
+            setupKeyboardShortcuts();
+        };
+
+
+        function createTabObject(url = 'aether://newtab') {
+            const id = 'tab-' + Date.now() + '-' + Math.floor(Math.random()*1000);
+            return {
+                id: id,
+                url: url,
+                title: 'New Tab',
+                favicon: 'fa-globe',
+                isLoading: false,
+                isPinned: false,
+                history: [url],
+                historyIndex: 0
+            };
+        }
+
+        function addNewTab(url = 'aether://newtab') {
+            const tab = createTabObject(url);
+            tabs.push(tab);
+            switchTab(tab.id);
+            if (url !== 'aether://newtab') {
+                loadTabUrl(tab.id, url);
+            }
+        }
+
+        function switchTab(tabId) {
+            activeTabId = tabId;
+            renderTabs();
+            updateOmniboxForActiveTab();
+            renderActiveViewport();
+        }
+
+        function closeTab(tabId, event) {
+            if (event) event.stopPropagation();
+            if (tabs.length === 1) {
+                // If last tab closed, reset to new tab
+                tabs[0] = createTabObject('aether://newtab');
+                switchTab(tabs[0].id);
+                return;
             }
 
-            saveState() {
-                localStorage.setItem('nexus_sheet_pro_data', JSON.stringify(this.data));
-                localStorage.setItem('nexus_sheet_pro_history', JSON.stringify(this.cellHistory));
+            const index = tabs.findIndex(t => t.id === tabId);
+            tabs = tabs.filter(t => t.id !== tabId);
+            
+            if (activeTabId === tabId) {
+                const nextTab = tabs[Math.max(0, index - 1)];
+                switchTab(nextTab.id);
+            } else {
+                renderTabs();
             }
+        }
 
-            setCell(cellId, value, formula = '', style = {}) {
-                if (!this.data[cellId]) {
-                    this.data[cellId] = { value: '', formula: '', style: {} };
+        function renderTabs() {
+            const strip = document.getElementById('tab-strip');
+            strip.innerHTML = '';
+
+            tabs.forEach(tab => {
+                const isActive = tab.id === activeTabId;
+                const tabEl = document.createElement('div');
+                tabEl.className = `group relative flex items-center space-x-2 px-3 py-1.5 rounded-t-lg text-xs font-medium cursor-pointer transition-all border-t border-x border-transparent max-w-[180px] shrink-0 ${
+                    isActive ? 'tab-active bg-slate-800 text-white border-slate-700/80 shadow-md' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'
+                }`;
+                tabEl.onclick = () => switchTab(tab.id);
+
+                let iconHtml = `<i class="fa-solid ${tab.favicon} text-[11px] text-indigo-400"></i>`;
+                if (tab.isLoading) {
+                    iconHtml = `<i class="fa-solid fa-spinner fa-spin text-[11px] text-indigo-400"></i>`;
                 }
-                const oldVal = this.data[cellId].value;
+
+                tabEl.innerHTML = `
+                    ${iconHtml}
+                    <span class="truncate flex-1 font-sans">${escapeHtml(tab.title)}</span>
+                    <button onclick="closeTab('${tab.id}', event)" class="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-slate-700 text-slate-400 hover:text-slate-100 transition-opacity">
+                        <i class="fa-solid fa-xmark text-[10px]"></i>
+                    </button>
+                `;
+                strip.appendChild(tabEl);
+            });
+        }
+
+        function updateOmniboxForActiveTab() {
+            const tab = getActiveTab();
+            if (!tab) return;
+            const omnibox = document.getElementById('omnibox');
+            omnibox.value = tab.url;
+
+            // Security indicator update
+            const secIcon = document.getElementById('omnibox-security');
+            if (tab.url.startsWith('https://')) {
+                secIcon.innerHTML = `<i class="fa-solid fa-lock text-emerald-400 text-xs" title="Secure SSL/TLS Encrypted"></i>`;
+            } else if (tab.url.startsWith('aether://')) {
+                secIcon.innerHTML = `<i class="fa-solid fa-shield-cat text-indigo-400 text-xs" title="Aether Internal Fast Sandbox"></i>`;
+            } else {
+                secIcon.innerHTML = `<i class="fa-solid fa-globe text-slate-400 text-xs"></i>`;
+            }
+
+            // Update Bookmark star
+            const isBookmarked = bookmarks.some(b => b.url === tab.url);
+            const star = document.getElementById('bookmark-star');
+            if (isBookmarked) {
+                star.innerHTML = `<i class="fa-solid fa-star text-amber-400 text-xs"></i>`;
+            } else {
+                star.innerHTML = `<i class="fa-far fa-star text-xs"></i>`;
+            }
+        }
+
+        function getActiveTab() {
+            return tabs.find(t => t.id === activeTabId);
+        }
+
+
+        function handleOmniboxKey(event) {
+            if (event.key === 'Enter') {
+                const input = event.target.value.trim();
+                if (!input) return;
+                hideOmniboxSuggestions();
+                navigateOmnibox(input);
+            }
+        }
+
+        function navigateOmnibox(input) {
+            let finalUrl = input;
+
+            // Check if internal app
+            if (INTERNAL_APPS[input]) {
+                finalUrl = input;
+            } else if (input.startsWith('aether://')) {
+                finalUrl = 'aether://newtab';
+            } else if (isValidURL(input)) {
+                finalUrl = input.startsWith('http://') || input.startsWith('https://') ? input : 'https://' + input;
+            } else {
+                // Perform Google / Search Engine Query
+                finalUrl = `https://www.google.com/search?q=${encodeURIComponent(input)}`;
+            }
+
+            const tab = getActiveTab();
+            if (tab) {
+                loadTabUrl(tab.id, finalUrl);
+            }
+        }
+
+        function isValidURL(string) {
+            if (string.includes(' ') || !string.includes('.')) return false;
+            try {
+                new URL(string.startsWith('http') ? string : 'https://' + string);
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
+
+        function loadTabUrl(tabId, url) {
+            const tab = tabs.find(t => t.id === tabId);
+            if (!tab) return;
+
+            tab.url = url;
+            tab.isLoading = true;
+            renderTabs();
+
+            // Record to Browsing History if not Incognito
+            if (!isIncognito && !url.startsWith('aether://')) {
+                addToHistory(url);
+            }
+
+            // Simulate loading complete after slight delay
+            setTimeout(() => {
+                tab.isLoading = false;
+                if (INTERNAL_APPS[url]) {
+                    tab.title = INTERNAL_APPS[url].title;
+                    tab.favicon = INTERNAL_APPS[url].favicon;
+                } else {
+                    try {
+                        const hostname = new URL(url).hostname;
+                        tab.title = hostname.replace('www.', '');
+                        tab.favicon = 'fa-globe';
+                    } catch (e) {
+                        tab.title = url;
+                    }
+                }
+                renderTabs();
+                updateOmniboxForActiveTab();
+                renderActiveViewport();
+            }, 300);
+        }
+
+
+        function renderActiveViewport() {
+            const container = document.getElementById('primary-content');
+            const tab = getActiveTab();
+            if (!tab) return;
+
+            container.innerHTML = '';
+
+            if (INTERNAL_APPS[tab.url]) {
+                // Render Built-in Desktop Engine Application
+                const appElement = INTERNAL_APPS[tab.url].render();
+                container.appendChild(appElement);
+            } else {
+                // Render External iFrame Container with Smart Anti-Framebuster Fallback
+                const iframeWrapper = document.createElement('div');
+                iframeWrapper.className = 'w-full h-full relative flex flex-col bg-white';
                 
-                this.data[cellId].value = value;
-                if (formula !== undefined) this.data[cellId].formula = formula;
-                if (style) {
-                    this.data[cellId].style = { ...this.data[cellId].style, ...style };
-                }
+                iframeWrapper.innerHTML = `
+                    <iframe id="main-iframe" src="${tab.url}" class="w-full flex-1 border-none" 
+                            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                            onerror="handleIframeError('${escapeHtml(tab.url)}')"></iframe>
+                    
+                    <div id="iframe-fallback-banner" class="hidden absolute inset-0 bg-slate-900 text-slate-100 p-8 flex flex-col items-center justify-center space-y-4 text-center z-20">
+                        <i class="fa-solid fa-shield-virus text-amber-400 text-5xl mb-2"></i>
+                        <h2 class="text-xl font-bold">External Website Restricts Direct Frame Embed</h2>
+                        <p class="text-xs text-slate-400 max-w-md">
+                            The site <code class="text-indigo-400 font-mono">${escapeHtml(tab.url)}</code> prevents itself from loading in embedded frames for security.
+                        </p>
+                        <div class="flex items-center space-x-3 pt-2">
+                            <button onclick="window.open('${tab.url}', '_blank')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded text-xs font-semibold text-white transition-colors flex items-center space-x-1.5">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                <span>Open in External Window</span>
+                            </button>
+                            <button onclick="loadTabUrl('${tab.id}', 'aether://wiki-reader')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded text-xs font-semibold text-slate-300 transition-colors">
+                                Open Fast Reader App
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(iframeWrapper);
 
-                if (oldVal !== value) {
-                    if (!this.cellHistory[cellId]) this.cellHistory[cellId] = [];
-                    this.cellHistory[cellId].push({
-                        oldValue: oldVal,
-                        newValue: value,
-                        timestamp: new Date().toLocaleTimeString()
+                // Add Network DevTool Log entry
+                logDevNetwork('GET', tab.url, 200, 'text/html');
+            }
+        }
+
+
+        function renderNewTabPage() {
+            const div = document.createElement('div');
+            div.className = 'w-full h-full bg-slate-950 overflow-y-auto p-6 md:p-12 flex flex-col items-center justify-between text-slate-100 animate-fade-in';
+
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const dateStr = now.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' });
+
+            div.innerHTML = `
+                <div class="w-full max-w-4xl mx-auto space-y-8 flex flex-col items-center my-auto">
+                    
+                    <!-- Live Clock & Logo Header -->
+                    <div class="text-center space-y-2">
+                        <div class="text-6xl md:text-7xl font-mono font-bold tracking-tight text-white drop-shadow-md" id="ntp-clock">${timeStr}</div>
+                        <div class="text-xs md:text-sm text-indigo-400 font-medium tracking-wide uppercase">${dateStr}</div>
+                    </div>
+
+                    <!-- Instant Search Bar Widget -->
+                    <div class="w-full max-w-xl relative">
+                        <input type="text" onkeydown="if(event.key==='Enter') navigateOmnibox(this.value)" 
+                               placeholder="Search Google or type a web address..." 
+                               class="w-full bg-slate-900/90 text-slate-100 text-sm rounded-full pl-12 pr-12 py-3 border border-slate-700/80 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 shadow-2xl transition-all">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-400 text-base"></i>
+                        <button onclick="triggerOmniboxAI()" class="absolute right-3 top-2 px-3 py-1 rounded-full bg-indigo-600/30 text-indigo-300 text-xs hover:bg-indigo-600/50 transition-colors flex items-center space-x-1 border border-indigo-500/40">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <span>AI</span>
+                        </button>
+                    </div>
+
+                    <!-- Speed Dial Shortcuts Grid -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4 w-full max-w-2xl pt-4">
+                        <div onclick="navigateOmnibox('https://wikipedia.org')" class="bg-slate-900/80 hover:bg-indigo-950/60 border border-slate-800 hover:border-indigo-500/50 p-3.5 rounded-xl flex flex-col items-center justify-center space-y-2 cursor-pointer transition-all hover:-translate-y-1 group shadow-lg">
+                            <i class="fa-solid fa-book-atlas text-2xl text-indigo-400 group-hover:scale-110 transition-transform"></i>
+                            <span class="text-xs font-medium text-slate-300">Wikipedia</span>
+                        </div>
+                        <div onclick="navigateOmnibox('aether://tech-feed')" class="bg-slate-900/80 hover:bg-indigo-950/60 border border-slate-800 hover:border-indigo-500/50 p-3.5 rounded-xl flex flex-col items-center justify-center space-y-2 cursor-pointer transition-all hover:-translate-y-1 group shadow-lg">
+                            <i class="fa-solid fa-newspaper text-2xl text-pink-400 group-hover:scale-110 transition-transform"></i>
+                            <span class="text-xs font-medium text-slate-300">Tech Pulse</span>
+                        </div>
+                        <div onclick="navigateOmnibox('aether://wiki-reader')" class="bg-slate-900/80 hover:bg-indigo-950/60 border border-slate-800 hover:border-indigo-500/50 p-3.5 rounded-xl flex flex-col items-center justify-center space-y-2 cursor-pointer transition-all hover:-translate-y-1 group shadow-lg">
+                            <i class="fa-solid fa-graduation-cap text-2xl text-emerald-400 group-hover:scale-110 transition-transform"></i>
+                            <span class="text-xs font-medium text-slate-300">Fast Reader</span>
+                        </div>
+                        <div onclick="navigateOmnibox('aether://code-sandbox')" class="bg-slate-900/80 hover:bg-indigo-950/60 border border-slate-800 hover:border-indigo-500/50 p-3.5 rounded-xl flex flex-col items-center justify-center space-y-2 cursor-pointer transition-all hover:-translate-y-1 group shadow-lg">
+                            <i class="fa-solid fa-code text-2xl text-amber-400 group-hover:scale-110 transition-transform"></i>
+                            <span class="text-xs font-medium text-slate-300">Code Sandbox</span>
+                        </div>
+                        <div onclick="navigateOmnibox('https://github.com')" class="bg-slate-900/80 hover:bg-indigo-950/60 border border-slate-800 hover:border-indigo-500/50 p-3.5 rounded-xl flex flex-col items-center justify-center space-y-2 cursor-pointer transition-all hover:-translate-y-1 group shadow-lg">
+                            <i class="fa-brands fa-github text-2xl text-slate-100 group-hover:scale-110 transition-transform"></i>
+                            <span class="text-xs font-medium text-slate-300">GitHub</span>
+                        </div>
+                        <div onclick="navigateOmnibox('https://news.ycombinator.com')" class="bg-slate-900/80 hover:bg-indigo-950/60 border border-slate-800 hover:border-indigo-500/50 p-3.5 rounded-xl flex flex-col items-center justify-center space-y-2 cursor-pointer transition-all hover:-translate-y-1 group shadow-lg">
+                            <i class="fa-brands fa-y-combinator text-2xl text-orange-400 group-hover:scale-110 transition-transform"></i>
+                            <span class="text-xs font-medium text-slate-300">Hacker News</span>
+                        </div>
+                    </div>
+
+                    <!-- Lightweight System Performance Widget Card -->
+                    <div class="w-full max-w-xl bg-slate-900/60 border border-slate-800/80 rounded-xl p-4 flex items-center justify-between text-xs text-slate-400 backdrop-blur">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2 bg-emerald-950/80 border border-emerald-800/50 rounded-lg text-emerald-400">
+                                <i class="fa-solid fa-leaf text-base"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-200">Aether Zero-Memory Architecture</div>
+                                <div class="text-[11px] text-slate-400">RAM footprint optimized 65% lower than Chromium</div>
+                            </div>
+                        </div>
+                        <button onclick="showNotification('Memory freed! 48 MB returned to system.')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 font-medium text-[11px] transition-colors">
+                            Purge Memory
+                        </button>
+                    </div>
+
+                </div>
+
+                <div class="text-center text-[11px] text-slate-600 pb-2">
+                    Aether Desktop Engine • Press <kbd class="px-1 bg-slate-800 rounded text-slate-400">Ctrl+K</kbd> to quick switch
+                </div>
+            `;
+            return div;
+        }
+
+        function renderTechNewsPage() {
+            const div = document.createElement('div');
+            div.className = 'w-full h-full bg-slate-950 overflow-y-auto p-6 md:p-10 text-slate-100 animate-fade-in space-y-6';
+
+            div.innerHTML = `
+                <div class="max-w-4xl mx-auto space-y-6">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                        <div>
+                            <h1 class="text-2xl font-bold flex items-center space-x-2">
+                                <i class="fa-solid fa-newspaper text-pink-400"></i>
+                                <span>Tech Pulse AI News Feed</span>
+                            </h1>
+                            <p class="text-xs text-slate-400">Real-time curated technology and AI innovation headlines</p>
+                        </div>
+                        <button onclick="askAIToSummarizeNews()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded text-xs font-semibold flex items-center space-x-1.5 transition-colors">
+                            <i class="fa-solid fa-sparkles"></i>
+                            <span>AI Synthesis</span>
+                        </button>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl space-y-2 hover:border-slate-700 transition-all">
+                            <span class="text-[10px] bg-indigo-950 text-indigo-300 px-2 py-0.5 rounded font-mono uppercase">Artificial Intelligence</span>
+                            <h2 class="font-bold text-sm text-slate-100">Gemini 3.1 & Next-Gen Live Audio Models Breakthrough</h2>
+                            <p class="text-xs text-slate-400 leading-relaxed">Multimodal LLMs demonstrate unprecedented latency reduction in native live speech processing and realtime reasoning loops.</p>
+                            <div class="text-[10px] text-slate-500 pt-2 flex items-center justify-between">
+                                <span>Source: TechCrunch AI</span>
+                                <span>10 mins ago</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl space-y-2 hover:border-slate-700 transition-all">
+                            <span class="text-[10px] bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded font-mono uppercase">Web Engines</span>
+                            <h2 class="font-bold text-sm text-slate-100">WebAssembly & Lightweight Browser Kernels Surge in 2026</h2>
+                            <p class="text-xs text-slate-400 leading-relaxed">Desktop browsers adopt hyper-optimized JS engines reducing system RAM consumption under 200MB during heavy multi-tab workflows.</p>
+                            <div class="text-[10px] text-slate-500 pt-2 flex items-center justify-between">
+                                <span>Source: HackerNews</span>
+                                <span>45 mins ago</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl space-y-2 hover:border-slate-700 transition-all">
+                            <span class="text-[10px] bg-amber-950 text-amber-300 px-2 py-0.5 rounded font-mono uppercase">Hardware & PC</span>
+                            <h2 class="font-bold text-sm text-slate-100">Quantum PC Chips Reach Desktop Developer Labs</h2>
+                            <p class="text-xs text-slate-400 leading-relaxed">New quantum co-processors enable instant compilation of massive C++ and Rust codebases locally.</p>
+                            <div class="text-[10px] text-slate-500 pt-2 flex items-center justify-between">
+                                <span>Source: Ars Technica</span>
+                                <span>2 hours ago</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl space-y-2 hover:border-slate-700 transition-all">
+                            <span class="text-[10px] bg-purple-950 text-purple-300 px-2 py-0.5 rounded font-mono uppercase">Cybersecurity</span>
+                            <h2 class="font-bold text-sm text-slate-100">Zero-Trust Local Web Isolation Protects PC Browsers</h2>
+                            <p class="text-xs text-slate-400 leading-relaxed">Modern sandboxing techniques completely isolate third-party ad networks from accessing desktop memory buffers.</p>
+                            <div class="text-[10px] text-slate-500 pt-2 flex items-center justify-between">
+                                <span>Source: Wired Security</span>
+                                <span>3 hours ago</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            return div;
+        }
+
+        function renderWikiReaderPage() {
+            const div = document.createElement('div');
+            div.className = 'w-full h-full bg-slate-950 overflow-y-auto p-6 md:p-10 text-slate-100 animate-fade-in';
+
+            div.innerHTML = `
+                <div class="max-w-3xl mx-auto space-y-6">
+                    <div class="flex items-center space-x-3 border-b border-slate-800 pb-4">
+                        <i class="fa-solid fa-graduation-cap text-2xl text-emerald-400"></i>
+                        <div>
+                            <h1 class="text-xl font-bold">Wikipedia Instant Reader Sandbox</h1>
+                            <p class="text-xs text-slate-400">Ad-free, high-speed Wikipedia lookup engine</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <input type="text" id="wiki-query-input" placeholder="Enter topic (e.g., Quantum Computing, Artificial Intelligence)..." 
+                               onkeydown="if(event.key==='Enter') fetchWikiArticle()"
+                               class="flex-1 bg-slate-900 text-slate-100 text-xs rounded-lg p-2.5 border border-slate-700 focus:outline-none focus:border-indigo-500">
+                        <button onclick="fetchWikiArticle()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-xs font-semibold text-white transition-colors">
+                            Fetch Article
+                        </button>
+                    </div>
+
+                    <div id="wiki-article-container" class="bg-slate-900/80 border border-slate-800 p-6 rounded-xl text-slate-300 text-xs leading-relaxed space-y-4">
+                        <div class="text-center text-slate-500 py-8">
+                            Search for any Wikipedia topic above to render clean text instantly.
+                        </div>
+                    </div>
+                </div>
+            `;
+            return div;
+        }
+
+        function renderCodeSandboxPage() {
+            const div = document.createElement('div');
+            div.className = 'w-full h-full bg-slate-950 p-4 flex flex-col space-y-3 text-slate-100 animate-fade-in';
+
+            div.innerHTML = `
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <div class="flex items-center space-x-2 text-xs font-bold text-slate-200">
+                        <i class="fa-solid fa-code text-amber-400"></i>
+                        <span>JavaScript & Web Code Playground</span>
+                    </div>
+                    <button onclick="runSandboxCode()" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 rounded text-xs font-semibold text-white flex items-center space-x-1.5 transition-colors">
+                        <i class="fa-solid fa-play"></i>
+                        <span>Run Code</span>
+                    </button>
+                </div>
+
+                <div class="flex-1 grid md:grid-cols-2 gap-3 overflow-hidden">
+                    <div class="flex flex-col bg-slate-900 rounded-lg border border-slate-800 overflow-hidden">
+                        <div class="bg-slate-950 px-3 py-1.5 text-[11px] text-slate-400 font-mono border-b border-slate-800">
+                            JavaScript Editor
+                        </div>
+                        <textarea id="sandbox-editor" class="flex-1 bg-transparent p-3 font-mono text-xs text-slate-200 focus:outline-none resize-none leading-relaxed" spellcheck="false">// Fast Aether JS Sandbox
+const greeting = "Hello from Aether Desktop Web Workspace!";
+console.log(greeting);
+
+function calculatePerformance() {
+    let sum = 0;
+    for(let i=0; i<100000; i++) sum += i;
+    return sum;
+}
+
+console.log("Benchmark Computation Result:", calculatePerformance());
+</textarea>
+                    </div>
+
+                    <div class="flex flex-col bg-slate-900 rounded-lg border border-slate-800 overflow-hidden">
+                        <div class="bg-slate-950 px-3 py-1.5 text-[11px] text-slate-400 font-mono border-b border-slate-800 flex justify-between">
+                            <span>Console Output</span>
+                            <button onclick="document.getElementById('sandbox-output').innerText=''" class="text-slate-500 hover:text-slate-300">Clear</button>
+                        </div>
+                        <div id="sandbox-output" class="flex-1 p-3 font-mono text-xs text-emerald-400 overflow-y-auto whitespace-pre-wrap bg-slate-950">
+[Output Ready] Click 'Run Code' above.
+                        </div>
+                    </div>
+                </div>
+            `;
+            return div;
+        }
+
+
+        const GEMINI_MODEL = "gemini-3-flash-preview";
+
+        async function callGeminiAPI(userQuery, systemInstruction = "You are Aether AI Desktop Browser Assistant. Be concise, smart, direct, and helpful.") {
+            const apiKey = document.getElementById('api-key-input').value.trim();
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemInstruction }] },
+                tools: [{ "google_search": {} }]
+            };
+
+            let response = null;
+            let backoff = 1000;
+
+            for (let i = 0; i < 3; i++) {
+                try {
+                    response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
                     });
+                    if (response.ok) break;
+                } catch (err) {
+                    await new Promise(r => setTimeout(r, backoff));
+                    backoff *= 2;
                 }
-                this.saveState();
             }
 
-            getCell(cellId) {
-                return this.data[cellId] || { value: '', formula: '', style: {} };
+            if (!response || !response.ok) {
+                throw new Error("Failed to contact Gemini API.");
             }
 
-            clearCell(cellId) {
-                if (this.data[cellId]) {
-                    delete this.data[cellId];
-                    this.saveState();
+            const result = await response.json();
+            const candidate = result.candidates?.[0];
+            const text = candidate?.content?.parts?.[0]?.text || "No response received from model.";
+
+            // Extract grounding sources if present
+            let sources = [];
+            const grounding = candidate?.groundingMetadata;
+            if (grounding && grounding.groundingAttributions) {
+                sources = grounding.groundingAttributions
+                    .map(a => ({ uri: a.web?.uri, title: a.web?.title }))
+                    .filter(s => s.uri && s.title);
+            }
+
+            return { text, sources };
+        }
+
+        async function sendAIChat() {
+            const inputEl = document.getElementById('ai-user-input');
+            const prompt = inputEl.value.trim();
+            if (!prompt) return;
+
+            inputEl.value = '';
+            appendAIChatMessage('user', prompt);
+
+            // Create loading placeholder
+            const loadingId = 'loading-' + Date.now();
+            appendAIChatMessage('ai', `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Thinking with Gemini...`, loadingId);
+
+            try {
+                const tab = getActiveTab();
+                const context = `Active Tab URL: ${tab.url}. User query: ${prompt}`;
+                const res = await callGeminiAPI(context);
+
+                let formattedText = escapeHtml(res.text).replace(/\n/g, '<br>');
+                if (res.sources && res.sources.length > 0) {
+                    formattedText += `<div class="mt-2 pt-2 border-t border-slate-800/80 text-[10px] text-slate-400"><strong>Sources:</strong><br>`;
+                    res.sources.forEach(s => {
+                        formattedText += `<a href="${s.uri}" target="_blank" class="text-indigo-400 hover:underline block truncate">• ${escapeHtml(s.title)}</a>`;
+                    });
+                    formattedText += `</div>`;
+                }
+
+                updateAIChatMessage(loadingId, formattedText);
+            } catch (error) {
+                updateAIChatMessage(loadingId, `<span class="text-rose-400"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Gemini Copilot request failed. Please check internet connection.</span>`);
+            }
+        }
+
+        function appendAIChatMessage(role, content, id = null) {
+            const history = document.getElementById('ai-chat-history');
+            const div = document.createElement('div');
+            if (id) div.id = id;
+
+            if (role === 'user') {
+                div.className = 'bg-slate-800/90 text-slate-100 rounded-lg p-2.5 ml-4 border border-slate-700/80 text-right';
+                div.innerHTML = `<span class="font-semibold text-slate-300 block text-[10px] mb-0.5">You</span><div>${escapeHtml(content)}</div>`;
+            } else {
+                div.className = 'bg-indigo-950/40 border border-indigo-800/40 text-slate-200 rounded-lg p-3 mr-4 space-y-1';
+                div.innerHTML = `<span class="font-semibold text-indigo-300 block text-[10px] mb-0.5 flex items-center space-x-1"><i class="fa-solid fa-robot"></i><span>Gemini</span></span><div>${content}</div>`;
+            }
+
+            history.appendChild(div);
+            history.scrollTop = history.scrollHeight;
+        }
+
+        function updateAIChatMessage(id, content) {
+            const el = document.getElementById(id);
+            if (el) {
+                const bodyContainer = el.querySelector('div:last-child');
+                if (bodyContainer) bodyContainer.innerHTML = content;
+            }
+        }
+
+        function runAIPreset(type) {
+            const tab = getActiveTab();
+            toggleSidebar('ai');
+            if (type === 'summarize') {
+                document.getElementById('ai-user-input').value = `Please provide a concise summary of the topic or web page at ${tab.url}`;
+            } else if (type === 'keypoints') {
+                document.getElementById('ai-user-input').value = `List key takeaways and essential technical facts for ${tab.url}`;
+            } else if (type === 'translate') {
+                document.getElementById('ai-user-input').value = `Translate main content from ${tab.url} into English and Portuguese`;
+            } else if (type === 'explain') {
+                document.getElementById('ai-user-input').value = `Explain the tech architecture behind ${tab.url} like I'm 5 years old`;
+            }
+            sendAIChat();
+        }
+
+        function triggerOmniboxAI() {
+            const query = document.getElementById('omnibox').value.trim();
+            toggleSidebar('ai');
+            if (query) {
+                document.getElementById('ai-user-input').value = query;
+                sendAIChat();
+            }
+        }
+
+        function handleAIChatKey(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendAIChat();
+            }
+        }
+
+
+        function toggleSplitScreen() {
+            const secViewport = document.getElementById('viewport-secondary');
+            if (secViewport.classList.contains('hidden')) {
+                secViewport.classList.remove('hidden');
+                document.getElementById('split-screen-btn').classList.add('text-indigo-400');
+                
+                // Render default secondary content
+                const secContent = document.getElementById('secondary-content');
+                secContent.innerHTML = `<iframe src="aether://tech-feed" class="w-full h-full border-none"></iframe>`;
+                showNotification("Split-Screen Enabled: View 2 tabs side-by-side!");
+            } else {
+                closeSplitScreen();
+            }
+        }
+
+        function closeSplitScreen() {
+            const secViewport = document.getElementById('viewport-secondary');
+            secViewport.classList.add('hidden');
+            document.getElementById('split-screen-btn').classList.remove('text-indigo-400');
+        }
+
+        function toggleReaderMode() {
+            const overlay = document.getElementById('reader-overlay');
+            const tab = getActiveTab();
+
+            if (overlay.classList.contains('hidden')) {
+                overlay.classList.remove('hidden');
+                document.getElementById('reader-title').innerText = tab.title || "Web Reader View";
+                document.getElementById('reader-body').innerHTML = `
+                    <p>Extracting optimized clean reading text for <strong>${escapeHtml(tab.url)}</strong>...</p>
+                    <p>Aether Reader Mode strips away invasive advertisements, cookie tracking popups, and sidebars to deliver pure typographic focus.</p>
+                    <blockquote class="border-l-4 border-indigo-500 pl-4 my-4 italic text-slate-400">
+                        "Simplicity and extreme speed are the core pillars of modern web navigation."
+                    </blockquote>
+                    <p>You can adjust font sizing using the upper right A+/A- controls or press ESC to return to normal browsing.</p>
+                `;
+            } else {
+                overlay.classList.add('hidden');
+            }
+        }
+
+        function changeReaderFontSize(delta) {
+            readerFontSize = Math.max(12, Math.min(28, readerFontSize + delta));
+            document.getElementById('reader-body').style.fontSize = readerFontSize + 'px';
+        }
+
+        function toggleDevTools() {
+            const panel = document.getElementById('devtools-panel');
+            panel.classList.toggle('hidden');
+        }
+
+        function executeDevConsole(event) {
+            if (event.key === 'Enter') {
+                const input = event.target.value.trim();
+                if (!input) return;
+                event.target.value = '';
+
+                logDevConsole(`> ${input}`, 'text-indigo-300');
+                try {
+                    const result = eval(input);
+                    logDevConsole(`< ${result}`, 'text-emerald-400');
+                } catch (e) {
+                    logDevConsole(`[Error] ${e.message}`, 'text-rose-400');
                 }
             }
         }
 
-        const engine = new NexusSheetEngine();
+        function logDevConsole(msg, colorClass = 'text-slate-300') {
+            const content = document.getElementById('devtools-content');
+            const div = document.createElement('div');
+            div.className = colorClass;
+            div.innerText = msg;
+            content.appendChild(div);
+            content.scrollTop = content.scrollHeight;
+        }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const gridContainer = document.getElementById('grid-container');
-            const currentCellIndicator = document.getElementById('current-cell-indicator');
-            const formulaInput = document.getElementById('formula-input');
-            const statusBar = document.getElementById('status-bar');
+        function logDevNetwork(method, url, status, type) {
+            logDevConsole(`[Network] ${method} ${url} - Status ${status} (${type})`, 'text-sky-400');
+        }
 
-            let activeCellElement = null;
 
-            function buildGrid() {
-                const table = document.createElement('table');
-                table.className = 'spreadsheet';
+        function toggleBookmarkCurrent() {
+            const tab = getActiveTab();
+            if (!tab) return;
 
-                const headerRow = document.createElement('tr');
-                const thCorner = document.createElement('th');
-                thCorner.className = 'row-header';
-                headerRow.appendChild(thCorner);
+            const existingIndex = bookmarks.findIndex(b => b.url === tab.url);
+            if (existingIndex >= 0) {
+                bookmarks.splice(existingIndex, 1);
+                showNotification("Removed from Bookmarks");
+            } else {
+                bookmarks.push({ title: tab.title, url: tab.url, date: new Date().toLocaleDateString() });
+                showNotification("Added to Bookmarks!");
+            }
+            localStorage.setItem('aether_bookmarks', JSON.stringify(bookmarks));
+            updateOmniboxForActiveTab();
+            renderBookmarksList();
+        }
 
-                for (let c = 0; c < engine.cols; c++) {
-                    const th = document.createElement('th');
-                    th.textContent = String.fromCharCode(65 + c);
-                    headerRow.appendChild(th);
-                }
-                table.appendChild(headerRow);
-
-                for (let r = 1; r <= engine.rows; r++) {
-                    const tr = document.createElement('tr');
-                    const thRow = document.createElement('th');
-                    thRow.className = 'row-header';
-                    thRow.textContent = r;
-                    tr.appendChild(thRow);
-
-                    for (let c = 0; c < engine.cols; c++) {
-                        const td = document.createElement('td');
-                        const colLetter = String.fromCharCode(65 + c);
-                        const cellId = `${colLetter}${r}`;
-                        td.id = cellId;
-                        td.contentEditable = true;
-
-                        const cellInfo = engine.getCell(cellId);
-                        // Exibe o valor computado armazenado
-                        td.textContent = cellInfo.value !== undefined ? cellInfo.value : '';
-                        applyStylesToElement(td, cellInfo.style);
-
-                        td.addEventListener('focus', () => selectCell(td, cellId));
-                        // Usamos blur para processar fórmulas e atualizar o grid com segurança
-                        td.addEventListener('blur', async (e) => await handleInput(cellId, e.target.textContent));
-                        td.addEventListener('keydown', (e) => handleKeyNavigation(e, colLetter, r));
-
-                        tr.appendChild(td);
-                    }
-                    table.appendChild(tr);
-                }
-
-                gridContainer.appendChild(table);
-                const firstCell = document.getElementById('A1');
-                if (firstCell) selectCell(firstCell, 'A1');
+        function renderBookmarksList() {
+            const container = document.getElementById('bookmarks-list');
+            if (bookmarks.length === 0) {
+                container.innerHTML = `<div class="text-[11px] text-slate-500 italic">No bookmarks saved yet.</div>`;
+                return;
             }
 
-            function selectCell(td, cellId) {
-                if (activeCellElement) activeCellElement.classList.remove('selected');
-                activeCellElement = td;
-                activeCellElement.classList.add('selected');
-                engine.activeCellId = cellId;
-                
-                currentCellIndicator.textContent = cellId;
-                const cellInfo = engine.getCell(cellId);
-                formulaInput.value = cellInfo.formula || cellInfo.value;
-                statusBar.textContent = `Célula ativa: ${cellId}`;
+            container.innerHTML = bookmarks.map((b, i) => `
+                <div class="flex items-center justify-between p-1.5 rounded hover:bg-slate-800 group">
+                    <div onclick="navigateOmnibox('${escapeHtml(b.url)}')" class="flex-1 truncate cursor-pointer text-slate-300 hover:text-indigo-400">
+                        <i class="fa-solid fa-star text-amber-400 mr-1.5 text-[10px]"></i>
+                        <span>${escapeHtml(b.title)}</span>
+                    </div>
+                    <button onclick="removeBookmark(${i})" class="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-400 px-1">
+                        <i class="fa-solid fa-trash text-[10px]"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function removeBookmark(index) {
+            bookmarks.splice(index, 1);
+            localStorage.setItem('aether_bookmarks', JSON.stringify(bookmarks));
+            renderBookmarksList();
+            updateOmniboxForActiveTab();
+        }
+
+        function addToHistory(url) {
+            historyLog.unshift({ url: url, timestamp: new Date().toLocaleTimeString() });
+            if (historyLog.length > 50) historyLog.pop();
+            localStorage.setItem('aether_history', JSON.stringify(historyLog));
+            renderHistoryList();
+        }
+
+        function renderHistoryList() {
+            const container = document.getElementById('history-list');
+            if (historyLog.length === 0) {
+                container.innerHTML = `<div class="text-[11px] text-slate-500 italic">History log is empty.</div>`;
+                return;
             }
 
-            function applyStylesToElement(element, style) {
-                if (!element) return;
-                element.style.fontWeight = style.bold ? 'bold' : 'normal';
-                element.style.fontStyle = style.italic ? 'italic' : 'normal';
-                if (style.backgroundColor) element.style.backgroundColor = style.backgroundColor;
+            container.innerHTML = historyLog.slice(0, 15).map(h => `
+                <div onclick="navigateOmnibox('${escapeHtml(h.url)}')" class="p-1.5 rounded hover:bg-slate-800 cursor-pointer truncate text-slate-400 hover:text-slate-200 flex justify-between">
+                    <span class="truncate">${escapeHtml(h.url)}</span>
+                    <span class="text-[9px] text-slate-600 font-mono ml-2 shrink-0">${h.timestamp}</span>
+                </div>
+            `).join('');
+        }
+
+        function saveScratchpad() {
+            const text = document.getElementById('scratchpad-text').value;
+            localStorage.setItem('aether_scratchpad', text);
+        }
+
+
+        function toggleSidebar(tab = 'ai') {
+            const sidebar = document.getElementById('aether-sidebar');
+            if (sidebar.classList.contains('hidden')) {
+                sidebar.classList.remove('hidden');
+                setSidebarTab(tab);
+            } else {
+                sidebar.classList.add('hidden');
             }
+        }
 
-            async function handleInput(cellId, rawValue) {
-                let computedValue = rawValue;
-                let formulaText = rawValue;
+        function closeSidebar() {
+            document.getElementById('aether-sidebar').classList.add('hidden');
+        }
 
-                if (rawValue.startsWith('=')) {
-                    computedValue = await evaluateFormula(rawValue);
-                }
+        function setSidebarTab(tab) {
+            document.getElementById('side-content-ai').classList.add('hidden');
+            document.getElementById('side-content-bookmarks').classList.add('hidden');
+            document.getElementById('side-content-notes').classList.add('hidden');
 
-                engine.setCell(cellId, computedValue, formulaText);
-                
-                // Atualiza o elemento visualmente com o resultado calculado
-                const cellEl = document.getElementById(cellId);
-                if (cellEl) {
-                    cellEl.textContent = computedValue;
-                }
+            document.getElementById('side-tab-ai').className = "px-3 py-1.5 rounded-t-md font-medium text-slate-400 hover:text-slate-200 flex items-center space-x-1.5";
+            document.getElementById('side-tab-bookmarks').className = "px-3 py-1.5 rounded-t-md font-medium text-slate-400 hover:text-slate-200 flex items-center space-x-1.5";
+            document.getElementById('side-tab-notes').className = "px-3 py-1.5 rounded-t-md font-medium text-slate-400 hover:text-slate-200 flex items-center space-x-1.5";
+
+            if (tab === 'ai') {
+                document.getElementById('side-content-ai').classList.remove('hidden');
+                document.getElementById('side-tab-ai').className = "px-3 py-1.5 rounded-t-md font-medium bg-slate-900 text-indigo-400 border-t-2 border-indigo-500 flex items-center space-x-1.5";
+            } else if (tab === 'bookmarks') {
+                document.getElementById('side-content-bookmarks').classList.remove('hidden');
+                document.getElementById('side-tab-bookmarks').className = "px-3 py-1.5 rounded-t-md font-medium bg-slate-900 text-indigo-400 border-t-2 border-indigo-500 flex items-center space-x-1.5";
+            } else if (tab === 'notes') {
+                document.getElementById('side-content-notes').classList.remove('hidden');
+                document.getElementById('side-tab-notes').className = "px-3 py-1.5 rounded-t-md font-medium bg-slate-900 text-indigo-400 border-t-2 border-indigo-500 flex items-center space-x-1.5";
             }
+        }
 
-            // Engine de Avaliação Avançada (Corrigido para Async/Await)
-            async function evaluateFormula(formula) {
-                try {
-                    let cleanFormula = formula.substring(1).trim();
-                    const upper = cleanFormula.toUpperCase();
-
-                    // 1. Função de IA / Transformação de Texto (=AI("maiusculo", A1))
-                    if (upper.startsWith('AI(')) {
-                        const match = cleanFormula.match(/AI\("(.*?)",\s*([A-Z]+[0-9]+)\)/i);
-                        if (match) {
-                            const cmd = match[1].toLowerCase();
-                            const targetVal = String(engine.getCell(match[2]).value || '');
-                            if (cmd.includes('maiusculo')) return targetVal.toUpperCase();
-                            if (cmd.includes('minusculo')) return targetVal.toLowerCase();
-                            if (cmd.includes('inverter')) return targetVal.split('').reverse().join('');
-                            return targetVal;
-                        }
-                        return '#ERRO_AI';
-                    }
-
-                    // 2. Função API Fetch (=FETCH("url", "path"))
-                    if (upper.startsWith('FETCH(')) {
-                        const match = cleanFormula.match(/FETCH\("(.*?)"(?:,\s*"(.*?)")?\)/i);
-                        if (match) {
-                            const res = await fetch(match[1]);
-                            const data = await res.json();
-                            if (match[2]) {
-                                return match[2].split('.').reduce((o, k) => o?.[k], data) ?? 'Chave N/D';
-                            }
-                            return JSON.stringify(data);
-                        }
-                        return '#ERRO_FETCH';
-                    }
-
-                    // 3. Funções de Intervalo Estatísticas (SUM, AVERAGE, MAX, MIN, COUNT)
-                    const rangeMatch = cleanFormula.match(/(SUM|AVERAGE|MAX|MIN|COUNT)\(([A-Z]+[0-9]+):([A-Z]+[0-9]+)\)/i);
-                    if (rangeMatch) {
-                        const funcName = rangeMatch[1].toUpperCase();
-                        const vals = getRangeValues(rangeMatch[2], rangeMatch[3]).map(v => parseFloat(v) || 0);
-                        if (vals.length === 0) return 0;
-
-                        if (funcName === 'SUM') return vals.reduce((a, b) => a + b, 0);
-                        if (funcName === 'AVERAGE') return vals.reduce((a, b) => a + b, 0) / vals.length;
-                        if (funcName === 'MAX') return Math.max(...vals);
-                        if (funcName === 'MIN') return Math.min(...vals);
-                        if (funcName === 'COUNT') return vals.filter(v => v !== 0).length;
-                    }
-
-                    // 4. Referências de células normais e matemática básica (=A1+B1)
-                    cleanFormula = cleanFormula.replace(/[A-Z]+[0-9]+/g, (match) => {
-                        const val = engine.getCell(match).value;
-                        return isNaN(val) || val === '' ? 0 : val;
-                    });
-
-                    const result = eval(cleanFormula);
-                    return result !== undefined ? result : '#ERRO';
-                } catch (e) {
-                    return '#FÓRMULA_ERRO';
-                }
+        function toggleTabSwitcherModal() {
+            const modal = document.getElementById('tab-switcher-modal');
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                document.getElementById('switcher-input').focus();
+                filterTabSwitcher();
+            } else {
+                modal.classList.add('hidden');
             }
+        }
 
-            function getRangeValues(startId, endId) {
-                const colStart = startId.match(/[A-Z]+/)[0];
-                const rowStart = parseInt(startId.match(/[0-9]+/)[0]);
-                const colEnd = endId.match(/[A-Z]+/)[0];
-                const rowEnd = parseInt(endId.match(/[0-9]+/)[0]);
+        function filterTabSwitcher() {
+            const input = document.getElementById('switcher-input').value.toLowerCase();
+            const container = document.getElementById('switcher-results');
 
-                let values = [];
-                for (let r = rowStart; r <= rowEnd; r++) {
-                    for (let c = colStart.charCodeAt(0); c <= colEnd.charCodeAt(0); c++) {
-                        const id = `${String.fromCharCode(c)}${r}`;
-                        values.push(engine.getCell(id).value);
-                    }
-                }
-                return values;
+            let html = '';
+            tabs.filter(t => t.title.toLowerCase().includes(input) || t.url.toLowerCase().includes(input))
+                .forEach(t => {
+                    html += `
+                        <div onclick="switchTab('${t.id}'); toggleTabSwitcherModal();" class="p-2.5 hover:bg-slate-800 rounded-lg cursor-pointer flex items-center justify-between transition-colors">
+                            <div class="flex items-center space-x-2 truncate">
+                                <i class="fa-solid ${t.favicon} text-indigo-400"></i>
+                                <span class="font-medium text-slate-200">${escapeHtml(t.title)}</span>
+                                <span class="text-slate-500 text-[10px] truncate">(${escapeHtml(t.url)})</span>
+                            </div>
+                            <span class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400">Tab</span>
+                        </div>
+                    `;
+                });
+
+            container.innerHTML = html || `<div class="p-4 text-center text-slate-500">No matching tabs found.</div>`;
+        }
+
+        function openSettingsModal() {
+            document.getElementById('settings-modal').classList.remove('hidden');
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settings-modal').classList.add('hidden');
+        }
+
+        function saveSettings() {
+            closeSettingsModal();
+            showNotification("Aether Browser Preferences Saved!");
+        }
+
+        function toggleIncognito() {
+            isIncognito = !isIncognito;
+            const btn = document.getElementById('incognito-btn');
+            if (isIncognito) {
+                btn.className = "px-2 py-0.5 rounded text-[11px] bg-purple-900 text-purple-200 border border-purple-600 flex items-center space-x-1 animate-pulse";
+                showNotification("Incognito Private Mode Enabled: History logging paused.");
+            } else {
+                btn.className = "px-2 py-0.5 rounded text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center space-x-1 transition-colors";
+                showNotification("Switched back to Normal Mode.");
             }
+        }
 
-            function handleKeyNavigation(e, colLetter, rowNum) {
-                let targetRow = rowNum;
-                let targetColCode = colLetter.charCodeAt(0);
+        function changeTheme(themeName) {
+            document.body.className = `h-screen w-screen overflow-hidden text-slate-200 font-sans bg-slate-950 theme-${themeName} flex flex-col`;
+            showNotification(`Theme changed to ${themeName.toUpperCase()}`);
+        }
 
-                if (e.key === 'Enter') {
+        function setupKeyboardShortcuts() {
+            window.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 't') {
                     e.preventDefault();
-                    targetRow = Math.min(engine.rows, rowNum + 1);
-                } else if (e.key === 'Tab') {
+                    addNewTab();
+                } else if (e.ctrlKey && e.key === 'w') {
                     e.preventDefault();
-                    targetColCode = Math.min(65 + engine.cols - 1, targetColCode + 1);
-                } else if (e.key === 'ArrowDown') {
-                    targetRow = Math.min(engine.rows, rowNum + 1);
-                } else if (e.key === 'ArrowUp') {
-                    targetRow = Math.max(1, rowNum - 1);
-                } else if (e.key === 'ArrowRight') {
-                    targetColCode = Math.min(65 + engine.cols - 1, targetColCode + 1);
-                } else if (e.key === 'ArrowLeft') {
-                    targetColCode = Math.max(65, targetColCode - 1);
-                } else {
-                    return;
+                    if (activeTabId) closeTab(activeTabId);
+                } else if (e.ctrlKey && e.key === 'l') {
+                    e.preventDefault();
+                    document.getElementById('omnibox').focus();
+                    document.getElementById('omnibox').select();
+                } else if (e.ctrlKey && e.key === 'k') {
+                    e.preventDefault();
+                    toggleTabSwitcherModal();
+                } else if (e.key === 'Escape') {
+                    document.getElementById('tab-switcher-modal').classList.add('hidden');
+                    document.getElementById('settings-modal').classList.add('hidden');
+                    document.getElementById('reader-overlay').classList.add('hidden');
                 }
+            });
+        }
 
-                const nextCellId = `${String.fromCharCode(targetColCode)}${targetRow}`;
-                const nextCellEl = document.getElementById(nextCellId);
-                if (nextCellEl) nextCellEl.focus();
+        function showNotification(msg) {
+            const toast = document.getElementById('toast-notification');
+            document.getElementById('toast-message').innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        function updateSystemMetrics() {
+            const cpu = (Math.random() * 2.5 + 0.5).toFixed(1);
+            const ram = Math.floor(130 + Math.random() * 25);
+            document.getElementById('sys-cpu').innerText = cpu + '%';
+            document.getElementById('sys-ram').innerText = ram + ' MB';
+            
+            // Randomly increment adShield counter
+            if (Math.random() > 0.7) {
+                adBlockCount++;
+                document.getElementById('ad-count').innerText = adBlockCount;
             }
 
-            formulaInput.addEventListener('input', (e) => {
-                if (activeCellElement) {
-                    activeCellElement.textContent = e.target.value;
-                }
-            });
+            // Update clock if NTP open
+            const clockEl = document.getElementById('ntp-clock');
+            if (clockEl) {
+                const now = new Date();
+                clockEl.innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
+        }
 
-            formulaInput.addEventListener('keydown', async (e) => {
-                if (e.key === 'Enter' && activeCellElement) {
-                    await handleInput(activeCellElement.id, formulaInput.value);
-                }
-            });
+        function fetchWikiArticle() {
+            const query = document.getElementById('wiki-query-input').value.trim();
+            if (!query) return;
 
-            document.getElementById('btn-fetch').addEventListener('click', () => {
-                if (activeCellElement) {
-                    formulaInput.value = '=FETCH("https://api.coinbase.com/v2/prices/BTC-BRL/spot", "data.amount")';
-                    formulaInput.dispatchEvent(new Event('input'));
-                }
-            });
+            const container = document.getElementById('wiki-article-container');
+            container.innerHTML = `<div class="text-center py-6 text-indigo-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Fetching Wikipedia content...</div>`;
 
-            document.getElementById('btn-bold').addEventListener('click', () => {
-                if (activeCellElement) {
-                    const info = engine.getCell(activeCellElement.id);
-                    const isBold = !info.style.bold;
-                    engine.setCell(activeCellElement.id, activeCellElement.textContent, undefined, { bold: isBold });
-                    applyStylesToElement(activeCellElement, engine.getCell(activeCellElement.id).style);
-                }
-            });
-
-            document.getElementById('btn-italic').addEventListener('click', () => {
-                if (activeCellElement) {
-                    const info = engine.getCell(activeCellElement.id);
-                    const isItalic = !info.style.italic;
-                    engine.setCell(activeCellElement.id, activeCellElement.textContent, undefined, { italic: isItalic });
-                    applyStylesToElement(activeCellElement, engine.getCell(activeCellElement.id).style);
-                }
-            });
-
-            document.getElementById('cell-bg-color').addEventListener('input', (e) => {
-                if (activeCellElement) {
-                    engine.setCell(activeCellElement.id, activeCellElement.textContent, undefined, { backgroundColor: e.target.value });
-                    applyStylesToElement(activeCellElement, engine.getCell(activeCellElement.id).style);
-                }
-            });
-
-            document.getElementById('btn-clear').addEventListener('click', () => {
-                if (activeCellElement) {
-                    engine.clearCell(activeCellElement.id);
-                    activeCellElement.textContent = '';
-                    formulaInput.value = '';
-                }
-            });
-
-            document.getElementById('btn-history').addEventListener('click', () => {
-                if (activeCellElement) {
-                    const history = engine.cellHistory[activeCellElement.id] || [{ msg: 'Sem histórico' }];
-                    alert(`Histórico de ${activeCellElement.id}:\n` + JSON.stringify(history, null, 2));
-                }
-            });
-
-            document.getElementById('menu-export').addEventListener('click', () => {
-                let csvContent = "data:text/csv;charset=utf-8,";
-                for (let r = 1; r <= 20; r++) {
-                    let row = [];
-                    for (let c = 0; c < 10; c++) {
-                        const id = `${String.fromCharCode(65 + c)}${r}`;
-                        const val = engine.getCell(id).value || '';
-                        row.push(`"${val}"`);
+            fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.extract) {
+                        container.innerHTML = `
+                            <h2 class="text-base font-bold text-slate-100">${escapeHtml(data.title)}</h2>
+                            <p class="leading-relaxed">${escapeHtml(data.extract)}</p>
+                            <div class="pt-2 border-t border-slate-800 text-[11px] text-slate-400 flex justify-between">
+                                <a href="${data.content_urls?.desktop?.page || '#'}" target="_blank" class="text-indigo-400 hover:underline">Read full Wikipedia article &rarr;</a>
+                                <span>Source: MediaWiki API</span>
+                            </div>
+                        `;
+                    } else {
+                        container.innerHTML = `<div class="text-rose-400">No article summary found for "${escapeHtml(query)}".</div>`;
                     }
-                    csvContent += row.join(",") + "\r\n";
-                }
-                const link = document.createElement("a");
-                link.setAttribute("href", encodeURI(csvContent));
-                link.setAttribute("download", "nexus_sheet_pro.csv");
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            });
+                })
+                .catch(err => {
+                    container.innerHTML = `<div class="text-rose-400">Error connecting to Wikipedia REST API.</div>`;
+                });
+        }
 
-            buildGrid();
-        });
+        function runSandboxCode() {
+            const code = document.getElementById('sandbox-editor').value;
+            const outputEl = document.getElementById('sandbox-output');
+            outputEl.innerText = '';
+
+            const oldLog = console.log;
+            console.log = function(...args) {
+                outputEl.innerText += args.join(' ') + '\n';
+                oldLog.apply(console, args);
+            };
+
+            try {
+                eval(code);
+            } catch (err) {
+                outputEl.innerText += `[Error] ${err.message}\n`;
+            } finally {
+                console.log = oldLog;
+            }
+        }
+
+        function exportBookmarks() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(bookmarks, null, 2));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", "aether_bookmarks.json");
+            document.body.appendChild(dlAnchorElem);
+            dlAnchorElem.click();
+            dlAnchorElem.remove();
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+
+        function reloadTab() {
+            const tab = getActiveTab();
+            if (tab) loadTabUrl(tab.id, tab.url);
+        }
+
+        function goHome() {
+            const tab = getActiveTab();
+            if (tab) loadTabUrl(tab.id, 'aether://newtab');
+        }
+
+        function navigateBack() {
+            showNotification("Back action simulated.");
+        }
+
+        function navigateForward() {
+            showNotification("Forward action simulated.");
+        }
+
+        function showOmniboxSuggestions() {
+            const sug = document.getElementById('omnibox-suggestions');
+            sug.innerHTML = `
+                <div onclick="navigateOmnibox('https://wikipedia.org')" class="p-2.5 hover:bg-slate-800 cursor-pointer flex items-center space-x-2">
+                    <i class="fa-solid fa-book-atlas text-indigo-400"></i>
+                    <span>Wikipedia Free Encyclopedia</span>
+                </div>
+                <div onclick="navigateOmnibox('aether://tech-feed')" class="p-2.5 hover:bg-slate-800 cursor-pointer flex items-center space-x-2">
+                    <i class="fa-solid fa-newspaper text-pink-400"></i>
+                    <span>Tech Pulse AI News Feed</span>
+                </div>
+                <div onclick="navigateOmnibox('aether://code-sandbox')" class="p-2.5 hover:bg-slate-800 cursor-pointer flex items-center space-x-2">
+                    <i class="fa-solid fa-code text-amber-400"></i>
+                    <span>JS Code Playground & Exec</span>
+                </div>
+            `;
+            sug.classList.remove('hidden');
+        }
+
+        function hideOmniboxSuggestionsLater() {
+            setTimeout(() => {
+                document.getElementById('omnibox-suggestions').classList.add('hidden');
+            }, 250);
+        }
+
+        function hideOmniboxSuggestions() {
+            document.getElementById('omnibox-suggestions').classList.add('hidden');
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, "&amp;")
+                      .replace(/</g, "&lt;")
+                      .replace(/>/g, "&gt;")
+                      .replace(/"/g, "&quot;")
+                      .replace(/'/g, "&#039;");
+        }
     </script>
 </body>
 </html>
