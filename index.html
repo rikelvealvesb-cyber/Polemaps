@@ -1,1028 +1,308 @@
+
 <!DOCTYPE html>
-<html lang="pt-BR" class="h-full dark">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ApexSmart Browser - Navagador Anti-Bloqueio & Ultra Rápido</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#eef2ff',
-                            100: '#e0e7ff',
-                            500: '#6366f1',
-                            600: '#4f46e5',
-                            700: '#4338ca',
-                            900: '#1e1b4b',
-                        },
-                        darkbg: '#090d16',
-                        darkcard: '#111827',
-                        darkborder: '#1f2937'
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
-                    }
-                }
-            }
-        }
-    </script>
-
-    <style>
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(15, 23, 42, 0.6);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(99, 102, 241, 0.4);
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(99, 102, 241, 0.7);
-        }
-
-        .glass-panel {
-            background: rgba(17, 24, 39, 0.82);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .glass-header {
-            background: rgba(9, 13, 22, 0.90);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .tab-active {
-            background: rgba(17, 24, 39, 1);
-            border-top: 2px solid #6366f1;
-            color: #ffffff;
-        }
-
-        .tab-inactive {
-            background: rgba(9, 13, 22, 0.5);
-            color: #9ca3af;
-        }
-        .tab-inactive:hover {
-            background: rgba(17, 24, 39, 0.6);
-            color: #f3f4f6;
-        }
-
-        .gradient-text {
-            background: linear-gradient(135deg, #818cf8 0%, #c084fc 50%, #38bdf8 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        /* Loading Spinner Pulse */
-        @keyframes pulseGlow {
-            0%, 100% { opacity: 0.4; }
-            50% { opacity: 0.9; }
-        }
-        .proxy-loading {
-            animation: pulseGlow 1.5s infinite ease-in-out;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#111318">
+<title>EngineDesk</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg:#111318;
+  --panel:#191c24;
+  --panel2:#222631;
+  --line:#303542;
+  --text:#f3f5f9;
+  --muted:#9ba3b5;
+  --blue:#5688ff;
+  --green:#40ce91;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--text);
+  font:15px system-ui,-apple-system,sans-serif;
+}
+button,input { font:inherit; }
+button { cursor:pointer; }
+.app { max-width:1050px; margin:auto; padding:18px; }
+header {
+  display:flex; align-items:center; justify-content:space-between;
+  gap:12px; padding:12px 0 22px;
+}
+.brand { display:flex; align-items:center; gap:12px; }
+.logo {
+  width:44px;height:44px;border-radius:13px;
+  background:var(--blue);display:grid;place-items:center;
+  font-size:23px;font-weight:800;
+}
+h1 { margin:0;font-size:22px; }
+.subtitle { color:var(--muted);font-size:12px; }
+.status { color:var(--green);font-size:12px; }
+.grid { display:grid;grid-template-columns:1fr 1fr;gap:16px; }
+.card {
+  background:var(--panel);border:1px solid var(--line);
+  border-radius:17px;padding:19px;min-width:0;
+}
+.card h2 { margin:0 0 8px;font-size:17px; }
+p { color:var(--muted);line-height:1.55; }
+.label { display:block;color:var(--muted);font-size:12px;margin:17px 0 7px; }
+.idbox {
+  display:flex;align-items:center;gap:8px;
+  background:var(--panel2);padding:12px;border-radius:10px;
+}
+.idvalue { font-size:19px;font-weight:750;letter-spacing:1px;overflow-wrap:anywhere;flex:1; }
+button {
+  border:0;border-radius:10px;padding:11px 14px;
+  background:var(--blue);color:white;font-weight:650;
+}
+button.secondary { background:var(--panel2);border:1px solid var(--line); }
+button:disabled { opacity:.5;cursor:not-allowed; }
+input {
+  width:100%;padding:13px;background:var(--panel2);
+  border:1px solid var(--line);border-radius:10px;color:white;
+  outline:none;
+}
+input:focus { border-color:var(--blue); }
+.full { width:100%;margin-top:10px; }
+.notice {
+  border:1px solid var(--line);border-radius:12px;
+  padding:13px;margin-top:12px;color:var(--muted);
+  overflow-wrap:anywhere;
+}
+.item {
+  padding:13px 0;border-bottom:1px solid var(--line);
+}
+.item:last-child { border:0; }
+.item strong { display:block;margin-bottom:5px; }
+.small { font-size:12px;color:var(--muted); }
+#requests button { margin:8px 6px 0 0; }
+footer { text-align:center;padding:25px 0;color:var(--muted);font-size:12px; }
+@media(max-width:650px) {
+  .grid { grid-template-columns:1fr; }
+  .app { padding:13px; }
+  header { align-items:flex-start; }
+}
+</style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans h-screen flex flex-col overflow-hidden select-none">
-
-    <header class="glass-header flex items-center justify-between px-3 py-1.5 text-xs z-50">
-        <div class="flex items-center space-x-2">
-            <!-- Window Controls -->
-            <div class="flex items-center space-x-1.5 mr-2">
-                <button title="Fechar" class="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 transition flex items-center justify-center group">
-                    <i class="fa-solid fa-xmark text-[8px] text-red-950 opacity-0 group-hover:opacity-100"></i>
-                </button>
-                <button title="Minimizar" class="w-3 h-3 rounded-full bg-yellow-500 hover:bg-yellow-600 transition flex items-center justify-center group">
-                    <i class="fa-solid fa-minus text-[8px] text-yellow-950 opacity-0 group-hover:opacity-100"></i>
-                </button>
-                <button title="Maximizar" class="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 transition flex items-center justify-center group">
-                    <i class="fa-solid fa-expand text-[8px] text-green-950 opacity-0 group-hover:opacity-100"></i>
-                </button>
-            </div>
-            <div class="flex items-center space-x-2 border-l border-slate-800 pl-3">
-                <i class="fa-solid fa-bolt text-indigo-400"></i>
-                <span class="font-bold tracking-wide text-slate-200">ApexSmart <span class="text-indigo-400 font-mono text-[10px] bg-indigo-950/80 px-1.5 py-0.5 rounded border border-indigo-800/50">PRO v4.0</span></span>
-            </div>
-        </div>
-
-        <!-- System Diagnostic Indicators -->
-        <div class="flex items-center space-x-4 text-slate-400 text-[11px] font-mono">
-            <span class="flex items-center space-x-1" title="Engine Proxy Bypass Ativa">
-                <i class="fa-solid fa-shield-virus text-emerald-400"></i>
-                <span id="proxy-status-tag" class="text-emerald-400 font-semibold">Proxy CORS: Ativo</span>
-            </span>
-            <span class="flex items-center space-x-1" title="Consumo Estimado de Memória">
-                <i class="fa-solid fa-microchip text-indigo-400"></i>
-                <span id="ram-indicator">118 MB RAM</span>
-            </span>
-            <span class="hidden sm:inline-block text-slate-700">|</span>
-            <span id="clock-display" class="font-semibold text-slate-300">00:00:00</span>
-        </div>
-    </header>
-
-    <nav class="bg-slate-950/90 border-b border-slate-800/80 flex items-center px-2 pt-1 gap-1 overflow-x-auto scrollbar-none z-40">
-        <div id="tabs-container" class="flex items-center gap-1 overflow-x-auto max-w-[calc(100vw-120px)]">
-            <!-- Dynamic tab buttons rendered via JS -->
-        </div>
-        
-        <button id="btn-new-tab" onclick="createNewTab()" title="Nova Aba (Ctrl+T)" class="p-1.5 px-2.5 text-slate-400 hover:text-white hover:bg-slate-800/80 rounded-lg transition-all text-xs flex items-center gap-1">
-            <i class="fa-solid fa-plus"></i>
-        </button>
-    </nav>
-
-    <div class="glass-header px-3 py-2 flex items-center gap-2 z-30 shadow-lg">
-        <!-- Navigation Buttons -->
-        <div class="flex items-center space-x-1">
-            <button onclick="navigateActiveTab('back')" title="Voltar" class="p-1.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white disabled:opacity-30 transition text-sm">
-                <i class="fa-solid fa-arrow-left"></i>
-            </button>
-            <button onclick="navigateActiveTab('forward')" title="Avançar" class="p-1.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white disabled:opacity-30 transition text-sm">
-                <i class="fa-solid fa-arrow-right"></i>
-            </button>
-            <button onclick="reloadActiveTab()" title="Recarregar" class="p-1.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition text-sm">
-                <i id="reload-icon" class="fa-solid fa-rotate-right"></i>
-            </button>
-            <button onclick="goHome()" title="Página Inicial" class="p-1.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition text-sm">
-                <i class="fa-solid fa-house"></i>
-            </button>
-        </div>
-
-        <!-- Address Bar Input Container -->
-        <div class="flex-1 relative flex items-center">
-            <!-- Badge Indicator -->
-            <div class="absolute left-2.5 flex items-center gap-1.5 text-slate-400 text-xs">
-                <button id="security-badge" onclick="toggleProxyGlobalMode()" title="Clique para alternar o Modo Anti-Bloqueio" class="flex items-center gap-1 text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 rounded-md hover:bg-emerald-900/60 transition">
-                    <i class="fa-solid fa-shield-halved text-[10px]"></i>
-                    <span id="badge-proxy-text" class="hidden md:inline font-mono text-[10px]">Proxy Bypass ON</span>
-                </button>
-            </div>
-
-            <input type="text" id="address-input" 
-                   placeholder="Digite uma URL ou pesquise no Google/Gemini..." 
-                   onkeydown="handleAddressBarKeydown(event)"
-                   class="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500/80 focus:ring-2 focus:ring-indigo-500/30 text-slate-100 text-sm rounded-xl pl-36 pr-32 py-1.5 transition-all outline-none font-mono shadow-inner">
-
-            <!-- Search Engine Selector and Actions -->
-            <div class="absolute right-2 flex items-center gap-1.5">
-                <select id="search-engine-select" class="bg-slate-900 text-slate-300 text-[11px] rounded-lg px-2 py-1 border border-slate-700/80 focus:outline-none cursor-pointer">
-                    <option value="google">🔍 Google</option>
-                    <option value="gemini">🤖 Gemini IA</option>
-                    <option value="duckduckgo">🦆 DuckDuckGo</option>
-                    <option value="wikipedia">📚 Wikipedia</option>
-                </select>
-
-                <button onclick="toggleBookmarkCurrent()" id="star-bookmark-btn" title="Adicionar aos Favoritos" class="p-1 px-1.5 text-slate-400 hover:text-amber-400 transition text-xs">
-                    <i class="fa-regular fa-star"></i>
-                </button>
-            </div>
-        </div>
-
-        <!-- Anti-Block Toggle Control & Utilities -->
-        <div class="flex items-center space-x-1">
-            <!-- Global Proxy Mode Switch Button -->
-            <button id="proxy-toggle-btn" onclick="toggleProxyGlobalMode()" title="Alternar Modo Proxy Anti-Bloqueio (Resolve Conexão Recusada)" class="px-2.5 py-1.5 rounded-lg bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-600/30 font-medium text-xs flex items-center gap-1.5 transition">
-                <i class="fa-solid fa-network-wired text-xs"></i>
-                <span class="hidden xl:inline text-[11px]">Anti-Bloqueio</span>
-            </button>
-
-            <button onclick="toggleHistoryModal()" title="Histórico de Navegação" class="p-1.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-indigo-400 transition text-sm">
-                <i class="fa-solid fa-clock-rotate-left"></i>
-            </button>
-            <button onclick="toggleSidebar()" id="sidebar-toggle-btn" title="Alternar Assistente IA Copilot" class="p-1.5 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs flex items-center gap-1.5 shadow-lg shadow-indigo-600/20 transition">
-                <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i>
-                <span class="hidden sm:inline">IA Copilot</span>
-            </button>
-        </div>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="logo">E</div>
+      <div>
+        <h1>EngineDesk</h1>
+        <div class="subtitle">Conecte. Compartilhe. Resolva.</div>
+      </div>
     </div>
-
-    <div class="flex-1 flex overflow-hidden relative">
-        <!-- Web Views Host -->
-        <main id="views-container" class="flex-1 bg-slate-950 relative overflow-hidden">
-            <!-- Active Tab Views and Iframe Renderers Mounted Dynamically -->
-        </main>
-
-        <aside id="ai-sidebar" class="w-80 md:w-96 glass-panel border-l border-slate-800 flex flex-col transition-all duration-300 transform translate-x-0 z-20 shadow-2xl">
-            <!-- Sidebar Header -->
-            <div class="p-3 border-b border-slate-800/80 flex items-center justify-between bg-slate-900/80">
-                <div class="flex items-center space-x-2">
-                    <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-md">
-                        <i class="fa-solid fa-brain text-xs"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-xs font-bold text-slate-100 flex items-center gap-1.5">
-                            Gemini AI Copilot
-                            <span class="text-[9px] bg-indigo-500/20 text-indigo-300 px-1.5 py-0.2 rounded border border-indigo-500/30">Live</span>
-                        </h3>
-                        <p class="text-[10px] text-slate-400">Navegação Assistida & Resumos</p>
-                    </div>
-                </div>
-                <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white p-1">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <!-- Context Quick Actions -->
-            <div class="p-2 border-b border-slate-800/60 bg-slate-900/40 flex gap-1 overflow-x-auto text-[11px]">
-                <button onclick="aiQuickAction('resumir')" class="px-2.5 py-1 rounded-md bg-indigo-950/80 border border-indigo-800/60 text-indigo-200 hover:bg-indigo-900 transition flex items-center gap-1 shrink-0">
-                    <i class="fa-solid fa-compress text-indigo-400"></i> Resumir
-                </button>
-                <button onclick="aiQuickAction('explicar')" class="px-2.5 py-1 rounded-md bg-purple-950/80 border border-purple-800/60 text-purple-200 hover:bg-purple-900 transition flex items-center gap-1 shrink-0">
-                    <i class="fa-solid fa-lightbulb text-purple-400"></i> Explicar
-                </button>
-                <button onclick="aiQuickAction('traduzir')" class="px-2.5 py-1 rounded-md bg-emerald-950/80 border border-emerald-800/60 text-emerald-200 hover:bg-emerald-900 transition flex items-center gap-1 shrink-0">
-                    <i class="fa-solid fa-language text-emerald-400"></i> Traduzir
-                </button>
-            </div>
-
-            <!-- Chat Messages Log -->
-            <div id="ai-messages" class="flex-1 p-3 overflow-y-auto space-y-3 text-xs">
-                <div class="flex items-start space-x-2">
-                    <div class="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-white shrink-0 mt-0.5">
-                        <i class="fa-solid fa-robot text-[10px]"></i>
-                    </div>
-                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-slate-200 leading-relaxed max-w-[85%] shadow-sm">
-                        Olá! O motor <strong>Proxy CORS Anti-Bloqueio</strong> está ativo. Qualquer site como Google, Wikipedia ou GitHub será carregado via desvio seguro de cabeçalho.
-                    </div>
-                </div>
-            </div>
-
-            <!-- Chat Input Area -->
-            <div class="p-3 border-t border-slate-800/80 bg-slate-900/80">
-                <form onsubmit="handleAiChatSubmit(event)" class="relative">
-                    <textarea id="ai-input" rows="2" 
-                              placeholder="Pergunte ao Gemini Copilot..." 
-                              onkeydown="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); handleAiChatSubmit(event); }"
-                              class="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl p-2.5 pr-10 text-xs text-slate-100 placeholder-slate-500 focus:outline-none resize-none"></textarea>
-                    <button type="submit" class="absolute right-2 bottom-2.5 w-7 h-7 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg flex items-center justify-center transition shadow-md">
-                        <i class="fa-solid fa-paper-plane text-xs"></i>
-                    </button>
-                </form>
-            </div>
-        </aside>
-    </div>
-
-    <div id="history-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center z-50 p-4">
-        <div class="glass-panel w-full max-w-lg rounded-2xl border border-slate-800 p-5 shadow-2xl flex flex-col max-h-[80vh]">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-3">
-                <h3 class="text-sm font-bold flex items-center gap-2 text-indigo-300">
-                    <i class="fa-solid fa-clock-rotate-left"></i> Histórico de Navegação
-                </h3>
-                <button onclick="toggleHistoryModal()" class="text-slate-400 hover:text-white">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <div id="history-list" class="flex-1 overflow-y-auto space-y-2 text-xs">
-                <!-- History list items -->
-            </div>
-            <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
-                <button onclick="clearHistory()" class="text-rose-400 hover:text-rose-300 transition flex items-center gap-1">
-                    <i class="fa-solid fa-trash"></i> Limpar Histórico
-                </button>
-                <button onclick="toggleHistoryModal()" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-200">Fechar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast Notifications Container -->
-    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
-
-    <script>
-        let tabs = [];
-        let activeTabId = null;
-        let tabCounter = 0;
-        let isProxyGlobalEnabled = true; // Default to Proxy Anti-Blocking Enabled
-
-        let historyStore = JSON.parse(localStorage.getItem('apex_history') || '[]');
-        let bookmarksStore = JSON.parse(localStorage.getItem('apex_bookmarks') || JSON.stringify([
-            { title: 'Google', url: 'https://www.google.com', icon: 'fa-brands fa-google' },
-            { title: 'Wikipedia', url: 'https://pt.wikipedia.org', icon: 'fa-solid fa-book' },
-            { title: 'DuckDuckGo', url: 'https://duckduckgo.com', icon: 'fa-solid fa-shield-halved' },
-            { title: 'GitHub', url: 'https://github.com', icon: 'fa-brands fa-github' },
-            { title: 'Notícias (G1)', url: 'https://g1.globo.com', icon: 'fa-solid fa-newspaper' },
-            { title: 'StackOverflow', url: 'https://stackoverflow.com', icon: 'fa-brands fa-stack-overflow' }
-        ]));
-
-        window.addEventListener('DOMContentLoaded', () => {
-            updateClock();
-            setInterval(updateClock, 1000);
-            setInterval(simulateRamUsage, 4000);
-
-            // Create initial default new tab
-            createNewTab();
-
-            // Keyboard Shortcuts
-            document.addEventListener('keydown', (e) => {
-                if (e.ctrlKey && e.key.toLowerCase() === 't') {
-                    e.preventDefault();
-                    createNewTab();
-                }
-                if (e.ctrlKey && e.key.toLowerCase() === 'w') {
-                    e.preventDefault();
-                    if (activeTabId) closeTab(activeTabId);
-                }
-                if (e.ctrlKey && e.key.toLowerCase() === 'l') {
-                    e.preventDefault();
-                    const input = document.getElementById('address-input');
-                    input.focus();
-                    input.select();
-                }
-            });
-        });
-
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('clock-display').innerText = now.toLocaleTimeString('pt-BR');
-        }
-
-        function simulateRamUsage() {
-            const baseRam = 110 + (tabs.length * 38);
-            const variation = Math.floor(Math.random() * 12) - 6;
-            document.getElementById('ram-indicator').innerText = `${baseRam + variation} MB RAM`;
-        }
-
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `pointer-events-auto px-4 py-2.5 rounded-xl shadow-xl text-xs flex items-center space-x-2 border transition-all duration-300 transform translate-y-2 opacity-0 ${
-                type === 'error' ? 'bg-rose-950 border-rose-800 text-rose-200' :
-                type === 'success' ? 'bg-emerald-950 border-emerald-800 text-emerald-200' :
-                'bg-indigo-950 border-indigo-800 text-indigo-200'
-            }`;
-            
-            toast.innerHTML = `
-                <i class="fa-solid ${type === 'error' ? 'fa-triangle-exclamation' : type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i>
-                <span>${message}</span>
-            `;
-            
-            container.appendChild(toast);
-            setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'translate-y-2');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        function createNewTab(url = 'about:newtab', customTitle = null) {
-            tabCounter++;
-            const tabId = `tab-${tabCounter}`;
-            const isNewTab = url === 'about:newtab';
-            
-            const newTab = {
-                id: tabId,
-                title: customTitle || (isNewTab ? 'Nova Aba' : extractDomain(url)),
-                url: url,
-                historyStack: [url],
-                historyIndex: 0,
-                useProxy: isProxyGlobalEnabled,
-                favicon: isNewTab ? 'fa-solid fa-compass' : 'fa-solid fa-globe'
-            };
-
-            tabs.push(newTab);
-            renderTabsNav();
-            switchTab(tabId);
-
-            if (!isNewTab) {
-                addToHistory(newTab.title, url);
-            }
-        }
-
-        function closeTab(tabId, event) {
-            if (event) event.stopPropagation();
-            if (tabs.length === 1) {
-                tabs = [];
-                renderTabsNav();
-                createNewTab();
-                return;
-            }
-
-            const index = tabs.findIndex(t => t.id === tabId);
-            tabs = tabs.filter(t => t.id !== tabId);
-
-            const viewEl = document.getElementById(`view-${tabId}`);
-            if (viewEl) viewEl.remove();
-
-            if (activeTabId === tabId) {
-                const nextTab = tabs[Math.max(0, index - 1)];
-                switchTab(nextTab.id);
-            } else {
-                renderTabsNav();
-            }
-        }
-
-        function switchTab(tabId) {
-            activeTabId = tabId;
-            const currentTab = tabs.find(t => t.id === tabId);
-            if (!currentTab) return;
-
-            renderTabsNav();
-            renderActiveTabContent(currentTab);
-            updateAddressBarInput(currentTab.url);
-            updateBookmarkStarState(currentTab.url);
-        }
-
-        function renderTabsNav() {
-            const container = document.getElementById('tabs-container');
-            container.innerHTML = '';
-
-            tabs.forEach(tab => {
-                const isActive = tab.id === activeTabId;
-                const tabBtn = document.createElement('div');
-                tabBtn.className = `group relative flex items-center space-x-2 px-3 py-1.5 rounded-t-xl text-xs font-medium cursor-pointer transition-all min-w-[130px] max-w-[200px] border-r border-slate-800/50 ${
-                    isActive ? 'tab-active' : 'tab-inactive'
-                }`;
-                tabBtn.onclick = () => switchTab(tab.id);
-
-                tabBtn.innerHTML = `
-                    <i class="${tab.favicon} text-[11px] ${isActive ? 'text-indigo-400' : 'text-slate-500'}"></i>
-                    <span class="truncate flex-1">${escapeHtml(tab.title)}</span>
-                    <button onclick="closeTab('${tab.id}', event)" class="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-slate-700/60 rounded-full transition text-slate-400 hover:text-white">
-                        <i class="fa-solid fa-xmark text-[10px] w-3 h-3 flex items-center justify-center"></i>
-                    </button>
-                `;
-
-                container.appendChild(tabBtn);
-            });
-        }
-
-        function updateAddressBarInput(url) {
-            const addressInput = document.getElementById('address-input');
-            if (url === 'about:newtab') {
-                addressInput.value = '';
-                addressInput.placeholder = 'Pesquise no Google, Gemini IA ou digite uma URL...';
-            } else {
-                addressInput.value = url;
-            }
-        }
-
-        function handleAddressBarKeydown(event) {
-            if (event.key === 'Enter') {
-                const inputVal = event.target.value.trim();
-                if (!inputVal) return;
-
-                const selectedEngine = document.getElementById('search-engine-select').value;
-                navigateUrlOrSearch(inputVal, selectedEngine);
-            }
-        }
-
-        function navigateUrlOrSearch(query, engine = 'google') {
-            if (!activeTabId) return;
-            const currentTab = tabs.find(t => t.id === activeTabId);
-            if (!currentTab) return;
-
-            let targetUrl = '';
-            const isUrlPattern = /^https?:\/\//i.test(query) || (query.includes('.') && !query.includes(' '));
-
-            if (isUrlPattern) {
-                targetUrl = query.startsWith('http') ? query : `https://${query}`;
-                currentTab.title = extractDomain(targetUrl);
-            } else {
-                if (engine === 'gemini') {
-                    targetUrl = `apex://ai-search?q=${encodeURIComponent(query)}`;
-                    currentTab.title = `IA: ${query}`;
-                } else if (engine === 'duckduckgo') {
-                    targetUrl = `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
-                    currentTab.title = `DuckDuckGo: ${query}`;
-                } else if (engine === 'wikipedia') {
-                    targetUrl = `https://pt.wikipedia.org/w/index.php?search=${encodeURIComponent(query)}`;
-                    currentTab.title = `Wiki: ${query}`;
-                } else {
-                    // Google Default
-                    targetUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-                    currentTab.title = `Google: ${query}`;
-                }
-            }
-
-            currentTab.url = targetUrl;
-            currentTab.historyStack.push(targetUrl);
-            currentTab.historyIndex = currentTab.historyStack.length - 1;
-
-            addToHistory(currentTab.title, targetUrl);
-            renderTabsNav();
-            renderActiveTabContent(currentTab);
-            updateAddressBarInput(targetUrl);
-            updateBookmarkStarState(targetUrl);
-        }
-
-        function renderActiveTabContent(tab) {
-            const container = document.getElementById('views-container');
-            document.querySelectorAll('.tab-view-body').forEach(el => el.classList.add('hidden'));
-
-            let viewEl = document.getElementById(`view-${tab.id}`);
-            if (!viewEl) {
-                viewEl = document.createElement('div');
-                viewEl.id = `view-${tab.id}`;
-                viewEl.className = 'tab-view-body w-full h-full relative';
-                container.appendChild(viewEl);
-            } else {
-                viewEl.classList.remove('hidden');
-            }
-
-            if (tab.url === 'about:newtab') {
-                renderNewTabDashboard(viewEl);
-                return;
-            }
-
-            if (tab.url.startsWith('apex://ai-search')) {
-                const urlParams = new URLSearchParams(tab.url.split('?')[1]);
-                const query = urlParams.get('q') || '';
-                renderAiSearchResultView(viewEl, query);
-                return;
-            }
-
-            // Decide between Proxy Bypass or Direct Iframe
-            if (tab.useProxy || isProxyGlobalEnabled) {
-                renderProxiedView(viewEl, tab.url);
-            } else {
-                renderDirectIframeView(viewEl, tab.url);
-            }
-        }
-
-        async function renderProxiedView(container, url) {
-            container.innerHTML = `
-                <div class="w-full h-full relative bg-slate-950 flex flex-col items-center justify-center">
-                    <div id="proxy-loading-indicator" class="flex flex-col items-center space-y-3 p-6 glass-panel rounded-2xl border border-slate-800 z-10">
-                        <div class="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-                        <div class="text-center">
-                            <h4 class="text-xs font-bold text-slate-200">Carregando via Anti-Bloqueio CORS Proxy...</h4>
-                            <p class="text-[11px] text-slate-400 font-mono mt-1">${escapeHtml(url)}</p>
-                        </div>
-                    </div>
-                    <iframe id="iframe-proxied-${activeTabId}" class="w-full h-full border-none absolute inset-0 bg-white hidden" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
-                </div>
-            `;
-
-            const iframe = container.querySelector(`#iframe-proxied-${activeTabId}`);
-            const loader = container.querySelector('#proxy-loading-indicator');
-
-            try {
-                // Fetch site HTML using CorsProxy or AllOrigins
-                const proxyEndpoints = [
-                    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-                    `https://corsproxy.io/?${encodeURIComponent(url)}`
-                ];
-
-                let htmlContent = null;
-
-                for (const endpoint of proxyEndpoints) {
-                    try {
-                        const res = await fetch(endpoint);
-                        if (res.ok) {
-                            htmlContent = await res.text();
-                            if (htmlContent) break;
-                        }
-                    } catch (err) {
-                        console.warn('Proxy endpoint error:', endpoint, err);
-                    }
-                }
-
-                if (htmlContent) {
-                    // Inject <base href="..."> into head so scripts, images, and links resolve target domain relative URLs
-                    const urlObj = new URL(url);
-                    const baseUrl = urlObj.origin + urlObj.pathname;
-                    const baseTag = `<base href="${baseUrl}">`;
-
-                    if (htmlContent.includes('<head>')) {
-                        htmlContent = htmlContent.replace('<head>', `<head>${baseTag}`);
-                    } else if (htmlContent.includes('<HEAD>')) {
-                        htmlContent = htmlContent.replace('<HEAD>', `<HEAD>${baseTag}`);
-                    } else {
-                        htmlContent = `${baseTag}${htmlContent}`;
-                    }
-
-                    iframe.srcdoc = htmlContent;
-                    loader.classList.add('hidden');
-                    iframe.classList.remove('hidden');
-                } else {
-                    throw new Error('Não foi possível obter a página via proxy.');
-                }
-            } catch (error) {
-                // Fallback to error card with choices
-                renderProxyErrorFallback(container, url, error.message);
-            }
-        }
-
-        function renderDirectIframeView(container, url) {
-            container.innerHTML = `
-                <div class="w-full h-full relative bg-white">
-                    <iframe id="iframe-direct" src="${url}" 
-                            class="w-full h-full border-none"
-                            sandbox="allow-scripts allow-same-origin allow-forms allow-popups">
-                    </iframe>
-                </div>
-            `;
-        }
-
-        function renderProxyErrorFallback(container, url, errorDetail) {
-            const domain = extractDomain(url);
-            container.innerHTML = `
-                <div class="w-full h-full bg-slate-950 flex flex-col items-center justify-center p-6 text-center overflow-y-auto">
-                    <div class="glass-panel max-w-lg w-full p-6 rounded-2xl border border-slate-800 shadow-2xl relative">
-                        <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-amber-950/60 border border-amber-800/60 flex items-center justify-center text-amber-400 text-2xl">
-                            <i class="fa-solid fa-triangle-exclamation"></i>
-                        </div>
-
-                        <h3 class="text-base font-bold text-slate-100 mb-1">Falha no Carregamento Direto</h3>
-                        <p class="text-xs text-slate-400 mb-4 font-mono">${escapeHtml(domain)} - ${escapeHtml(errorDetail)}</p>
-
-                        <div class="space-y-2 text-xs">
-                            <a href="${url}" target="_blank" rel="noopener noreferrer" 
-                               class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-medium transition flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir em Nova Aba Externa
-                            </a>
-
-                            <button onclick="navigateUrlOrSearch('${escapeHtml(domain)}', 'gemini')" 
-                                    class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-medium transition flex items-center justify-center gap-2 border border-slate-700">
-                                <i class="fa-solid fa-magnifying-glass text-indigo-400"></i> Buscar via Gemini IA
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderNewTabDashboard(container) {
-            container.innerHTML = `
-                <div class="w-full h-full overflow-y-auto p-6 md:p-12 flex flex-col items-center justify-center relative bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
-                    <!-- Background Glow -->
-                    <div class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[320px] bg-indigo-600/15 blur-[130px] rounded-full pointer-events-none"></div>
-
-                    <!-- Browser Branding -->
-                    <div class="text-center mb-8 relative z-10">
-                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-600 shadow-xl shadow-indigo-600/30 mb-3 border border-indigo-400/30">
-                            <i class="fa-solid fa-bolt text-2xl text-white"></i>
-                        </div>
-                        <h1 class="text-3xl font-extrabold text-white tracking-tight">ApexSmart <span class="gradient-text">Browser</span></h1>
-                        <p class="text-slate-400 text-xs mt-1">Navegador Anti-Bloqueio com Tecnologia CORS Proxy & IA Gemini</p>
-                    </div>
-
-                    <!-- Search Box -->
-                    <div class="w-full max-w-2xl mb-8 relative z-10">
-                        <div class="relative flex items-center">
-                            <i class="fa-solid fa-magnifying-glass absolute left-4 text-indigo-400 text-sm"></i>
-                            <input type="text" 
-                                   placeholder="Pesquise ou digite uma URL..." 
-                                   onkeydown="if(event.key==='Enter') navigateUrlOrSearch(this.value)"
-                                   class="w-full bg-slate-900/90 border border-slate-700/80 focus:border-indigo-500 rounded-2xl py-3.5 pl-11 pr-24 text-sm text-slate-100 shadow-2xl focus:outline-none focus:ring-4 focus:ring-indigo-500/20 transition">
-                            <button onclick="navigateUrlOrSearch(this.previousElementSibling.value)" class="absolute right-2 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-xl shadow-md transition">
-                                Pesquisar
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Speed Dial Shortcuts -->
-                    <div class="w-full max-w-3xl relative z-10">
-                        <div class="flex items-center justify-between mb-3 text-xs text-slate-400 px-1">
-                            <span class="font-semibold text-slate-300 flex items-center gap-1.5"><i class="fa-solid fa-star text-amber-400"></i> Principais Atalhos</span>
-                        </div>
-
-                        <div id="speed-dial-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-                            ${bookmarksStore.map(b => `
-                                <div onclick="navigateUrlOrSearch('${b.url}')" class="glass-panel p-3 rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-indigo-500/50 hover:bg-slate-800/80 transition group shadow-md">
-                                    <div class="w-10 h-10 rounded-xl bg-slate-800 group-hover:bg-indigo-600/20 text-indigo-400 group-hover:text-indigo-300 flex items-center justify-center text-lg transition">
-                                        <i class="${b.icon || 'fa-solid fa-globe'}"></i>
-                                    </div>
-                                    <span class="text-xs text-slate-300 group-hover:text-white font-medium truncate w-full text-center">${escapeHtml(b.title)}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        async function renderAiSearchResultView(container, query) {
-            container.innerHTML = `
-                <div class="w-full h-full bg-slate-950 overflow-y-auto p-6 md:p-10 text-slate-200 flex flex-col items-center">
-                    <div class="max-w-3xl w-full">
-                        <div class="flex items-center space-x-3 mb-6 border-b border-slate-800 pb-4">
-                            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white text-xl shadow-lg">
-                                <i class="fa-solid fa-brain"></i>
-                            </div>
-                            <div>
-                                <h2 class="text-lg font-bold text-slate-100">Resultado da Pesquisa Gemini IA</h2>
-                                <p class="text-xs text-slate-400">Consulta: <span class="text-indigo-300 font-mono">"${escapeHtml(query)}"</span></p>
-                            </div>
-                        </div>
-
-                        <div id="ai-search-output" class="glass-panel p-6 rounded-2xl border border-slate-800 shadow-xl leading-relaxed text-sm min-h-[200px] flex items-center justify-center">
-                            <div class="flex items-center space-x-2 text-indigo-400 text-xs">
-                                <i class="fa-solid fa-circle-notch fa-spin"></i>
-                                <span>Processando resposta com busca no Google...</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            try {
-                const responseText = await callGeminiApi(query, true);
-                const outputEl = document.getElementById('ai-search-output');
-                if (outputEl) {
-                    outputEl.className = 'glass-panel p-6 rounded-2xl border border-slate-800 shadow-xl leading-relaxed text-sm text-slate-200 whitespace-pre-wrap';
-                    outputEl.innerHTML = formatMarkdownText(responseText);
-                }
-            } catch (err) {
-                const outputEl = document.getElementById('ai-search-output');
-                if (outputEl) {
-                    outputEl.innerHTML = `<span class="text-rose-400">Erro ao consultar a IA: ${escapeHtml(err.message)}</span>`;
-                }
-            }
-        }
-
-        async function callGeminiApi(promptText, useSearch = false) {
-            const apiKey = ""; // API key is runtime injected by environment
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
-
-            const payload = {
-                contents: [{ parts: [{ text: promptText }] }],
-                systemInstruction: {
-                    parts: [{ text: "Você é o assistente virtual do ApexSmart Browser. Responda com clareza em Português do Brasil." }]
-                }
-            };
-
-            if (useSearch) {
-                payload.tools = [{ "google_search": {} }];
-            }
-
-            let retries = 0;
-            const maxRetries = 3;
-
-            while (retries < maxRetries) {
-                try {
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
-
-                    const result = await response.json();
-                    const candidate = result.candidates?.[0];
-                    if (candidate && candidate.content?.parts?.[0]?.text) {
-                        return candidate.content.parts[0].text;
-                    } else {
-                        throw new Error("Formato de resposta inválido.");
-                    }
-                } catch (err) {
-                    retries++;
-                    if (retries >= maxRetries) throw err;
-                    await new Promise(r => setTimeout(r, Math.pow(2, retries) * 1000));
-                }
-            }
-        }
-
-        async function handleAiChatSubmit(e) {
-            if (e) e.preventDefault();
-            const inputEl = document.getElementById('ai-input');
-            const message = inputEl.value.trim();
-            if (!message) return;
-
-            inputEl.value = '';
-            appendAiChatMessage('user', message);
-            const loadingId = appendAiChatMessage('ai', '<i class="fa-solid fa-circle-notch fa-spin text-indigo-400"></i> Pensando...');
-
-            try {
-                const response = await callGeminiApi(message, true);
-                updateAiChatMessage(loadingId, response);
-            } catch (err) {
-                updateAiChatMessage(loadingId, `Erro: ${err.message}`);
-            }
-        }
-
-        function appendAiChatMessage(sender, text) {
-            const messagesContainer = document.getElementById('ai-messages');
-            const msgId = `msg-${Date.now()}`;
-            const isUser = sender === 'user';
-            
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `flex items-start space-x-2 ${isUser ? 'flex-row-reverse space-x-reverse' : ''}`;
-            msgDiv.id = msgId;
-
-            msgDiv.innerHTML = `
-                <div class="w-6 h-6 rounded-full ${isUser ? 'bg-indigo-500' : 'bg-indigo-600'} flex items-center justify-center text-white shrink-0 mt-0.5">
-                    <i class="fa-solid ${isUser ? 'fa-user' : 'fa-robot'} text-[10px]"></i>
-                </div>
-                <div class="${isUser ? 'bg-indigo-600/90 text-white' : 'bg-slate-900 text-slate-200 border border-slate-800'} rounded-xl p-3 leading-relaxed max-w-[85%] shadow-sm text-xs">
-                    ${formatMarkdownText(text)}
-                </div>
-            `;
-
-            messagesContainer.appendChild(msgDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            return msgId;
-        }
-
-        function updateAiChatMessage(msgId, newText) {
-            const msgDiv = document.getElementById(msgId);
-            if (msgDiv) {
-                const bubble = msgDiv.querySelector('div:nth-child(2)');
-                if (bubble) bubble.innerHTML = formatMarkdownText(newText);
-            }
-        }
-
-        function aiQuickAction(action) {
-            const currentTab = tabs.find(t => t.id === activeTabId);
-            if (!currentTab) return;
-
-            if (action === 'resumir') {
-                const prompt = `Resuma o site ou busca atual: ${currentTab.url}`;
-                document.getElementById('ai-input').value = prompt;
-                handleAiChatSubmit();
-            } else if (action === 'explicar') {
-                const prompt = `Explique o tema principal deste site: ${currentTab.url}`;
-                document.getElementById('ai-input').value = prompt;
-                handleAiChatSubmit();
-            } else if (action === 'traduzir') {
-                const prompt = `Traduza para o português as informações de: ${currentTab.url}`;
-                document.getElementById('ai-input').value = prompt;
-                handleAiChatSubmit();
-            }
-        }
-
-        function toggleProxyGlobalMode() {
-            isProxyGlobalEnabled = !isProxyGlobalEnabled;
-            const statusTag = document.getElementById('proxy-status-tag');
-            const badgeText = document.getElementById('badge-proxy-text');
-            const btn = document.getElementById('proxy-toggle-btn');
-
-            if (isProxyGlobalEnabled) {
-                statusTag.innerText = 'Proxy CORS: Ativo';
-                statusTag.className = 'text-emerald-400 font-semibold';
-                badgeText.innerText = 'Proxy Bypass ON';
-                btn.className = 'px-2.5 py-1.5 rounded-lg bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-600/30 font-medium text-xs flex items-center gap-1.5 transition';
-                showToast('Modo Anti-Bloqueio (CORS Proxy) ATIVADO', 'success');
-            } else {
-                statusTag.innerText = 'Proxy CORS: Desativado';
-                statusTag.className = 'text-slate-400 font-semibold';
-                badgeText.innerText = 'Modo Direto';
-                btn.className = 'px-2.5 py-1.5 rounded-lg bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700 font-medium text-xs flex items-center gap-1.5 transition';
-                showToast('Modo Direto (Iframe) ATIVADO - Podem ocorrer bloqueios de frame', 'info');
-            }
-
-            // Reload current active tab with new mode
-            reloadActiveTab();
-        }
-
-        function toggleBookmarkCurrent() {
-            const currentTab = tabs.find(t => t.id === activeTabId);
-            if (!currentTab || currentTab.url === 'about:newtab') return;
-
-            const existingIndex = bookmarksStore.findIndex(b => b.url === currentTab.url);
-            if (existingIndex >= 0) {
-                bookmarksStore.splice(existingIndex, 1);
-                showToast('Removido dos favoritos');
-            } else {
-                bookmarksStore.push({
-                    title: currentTab.title,
-                    url: currentTab.url,
-                    icon: 'fa-solid fa-globe'
-                });
-                showToast('Adicionado aos favoritos!', 'success');
-            }
-
-            localStorage.setItem('apex_bookmarks', JSON.stringify(bookmarksStore));
-            updateBookmarkStarState(currentTab.url);
-        }
-
-        function updateBookmarkStarState(url) {
-            const starBtn = document.getElementById('star-bookmark-btn');
-            if (!starBtn) return;
-            const isBookmarked = bookmarksStore.some(b => b.url === url);
-            starBtn.innerHTML = isBookmarked ? '<i class="fa-solid fa-star text-amber-400"></i>' : '<i class="fa-regular fa-star"></i>';
-        }
-
-        function addToHistory(title, url) {
-            if (url === 'about:newtab') return;
-            historyStore.unshift({ title, url, time: new Date().toLocaleTimeString('pt-BR') });
-            if (historyStore.length > 50) historyStore.pop();
-            localStorage.setItem('apex_history', JSON.stringify(historyStore));
-        }
-
-        function toggleHistoryModal() {
-            const modal = document.getElementById('history-modal');
-            const listEl = document.getElementById('history-list');
-
-            if (modal.classList.contains('hidden')) {
-                listEl.innerHTML = historyStore.length === 0 ? '<p class="text-slate-500 py-4 text-center">Nenhum histórico registrado.</p>' : '';
-                historyStore.forEach(item => {
-                    const row = document.createElement('div');
-                    row.className = 'p-2 rounded-lg bg-slate-900 hover:bg-slate-800 transition flex items-center justify-between cursor-pointer border border-slate-800';
-                    row.onclick = () => {
-                        toggleHistoryModal();
-                        navigateUrlOrSearch(item.url);
-                    };
-                    row.innerHTML = `
-                        <div class="truncate mr-2">
-                            <p class="font-medium text-slate-200 truncate">${escapeHtml(item.title)}</p>
-                            <p class="text-[10px] text-slate-500 truncate">${escapeHtml(item.url)}</p>
-                        </div>
-                        <span class="text-[10px] font-mono text-slate-500 shrink-0">${item.time}</span>
-                    `;
-                    listEl.appendChild(row);
-                });
-
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-            } else {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            }
-        }
-
-        function clearHistory() {
-            historyStore = [];
-            localStorage.removeItem('apex_history');
-            toggleHistoryModal();
-            showToast('Histórico limpo');
-        }
-
-        function toggleSidebar() {
-            const sidebar = document.getElementById('ai-sidebar');
-            sidebar.classList.toggle('translate-x-full');
-        }
-
-        function navigateActiveTab(direction) {
-            const currentTab = tabs.find(t => t.id === activeTabId);
-            if (!currentTab) return;
-
-            if (direction === 'back' && currentTab.historyIndex > 0) {
-                currentTab.historyIndex--;
-                currentTab.url = currentTab.historyStack[currentTab.historyIndex];
-                renderActiveTabContent(currentTab);
-                updateAddressBarInput(currentTab.url);
-            } else if (direction === 'forward' && currentTab.historyIndex < currentTab.historyStack.length - 1) {
-                currentTab.historyIndex++;
-                currentTab.url = currentTab.historyStack[currentTab.historyIndex];
-                renderActiveTabContent(currentTab);
-                updateAddressBarInput(currentTab.url);
-            }
-        }
-
-        function reloadActiveTab() {
-            const currentTab = tabs.find(t => t.id === activeTabId);
-            if (currentTab) {
-                const icon = document.getElementById('reload-icon');
-                icon.classList.add('fa-spin');
-                renderActiveTabContent(currentTab);
-                setTimeout(() => icon.classList.remove('fa-spin'), 600);
-            }
-        }
-
-        function goHome() {
-            if (activeTabId) {
-                const currentTab = tabs.find(t => t.id === activeTabId);
-                if (currentTab) {
-                    currentTab.url = 'about:newtab';
-                    currentTab.title = 'Nova Aba';
-                    renderTabsNav();
-                    renderActiveTabContent(currentTab);
-                    updateAddressBarInput('about:newtab');
-                }
-            }
-        }
-
-        function extractDomain(url) {
-            try {
-                const parsed = new URL(url.startsWith('http') ? url : `https://${url}`);
-                return parsed.hostname.replace('www.', '');
-            } catch (e) {
-                return url;
-            }
-        }
-
-        function escapeHtml(text) {
-            if (!text) return '';
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-        }
-
-        function formatMarkdownText(text) {
-            if (!text) return '';
-            let formatted = escapeHtml(text);
-            formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
-            formatted = formatted.replace(/`([^`]+)`/g, '<code class="bg-slate-950 px-1 py-0.5 rounded text-indigo-300 font-mono text-[11px]">$1</code>');
-            formatted = formatted.replace(/\n/g, '<br>');
-            return formatted;
-        }
-    </script>
+    <div class="status" id="connectionStatus">● Inicializando</div>
+  </header>
+
+  <div class="grid">
+    <section class="card">
+      <h2>Meu dispositivo</h2>
+      <p>Este é o identificador desta instalação neste navegador.</p>
+      <span class="label">SEU ID</span>
+      <div class="idbox">
+        <div class="idvalue" id="myId">Gerando...</div>
+        <button class="secondary" id="copyBtn">Copiar</button>
+      </div>
+      <div class="notice">
+        <strong>Identidade local</strong>
+        <div class="small">O ID é salvo neste navegador. Limpar os dados do site pode removê-lo. Ele ainda não comprova a identidade do dispositivo.</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Conectar dispositivo</h2>
+      <p>Informe o ID do dispositivo com o qual deseja iniciar uma sessão.</p>
+      <label class="label" for="remoteId">ID DO OUTRO DISPOSITIVO</label>
+      <input id="remoteId" placeholder="Digite ou cole o ID" autocomplete="off">
+      <button class="full" id="connectBtn">Solicitar conexão</button>
+      <div id="connectMessage" class="notice">Nenhuma solicitação enviada.</div>
+    </section>
+
+    <section class="card">
+      <h2>Solicitações recebidas</h2>
+      <p>Pedidos de conexão aparecerão aqui quando o Firebase estiver configurado.</p>
+      <div id="requests"><div class="small">Aguardando configuração do serviço online.</div></div>
+    </section>
+
+    <section class="card">
+      <h2>Estado do sistema</h2>
+      <div class="item">
+        <strong>Identificação local</strong>
+        <span class="small" id="localState">Preparando...</span>
+      </div>
+      <div class="item">
+        <strong>Firebase Realtime Database</strong>
+        <span class="small" id="firebaseState">Não conectado</span>
+      </div>
+      <div class="item">
+        <strong>Controle remoto</strong>
+        <span class="small">Ainda não ativado nesta versão.</span>
+      </div>
+    </section>
+  </div>
+  <footer>EngineDesk • Acesso remoto com autorização</footer>
+</div>
+
+<script type="module">
+import { initializeApp }
+  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import {
+  getDatabase, ref, set, onValue, push, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+
+const $ = id => document.getElementById(id);
+
+function createId() {
+  const bytes = crypto.getRandomValues(new Uint8Array(6));
+  return Array.from(bytes, b => b.toString(16).padStart(2, "0"))
+    .join("").toUpperCase();
+}
+
+let deviceId = localStorage.getItem("engineDeskDeviceId");
+if (!deviceId) {
+  deviceId = createId();
+  localStorage.setItem("engineDeskDeviceId", deviceId);
+}
+
+$("myId").textContent = deviceId;
+$("localState").textContent = "ID local criado";
+$("connectionStatus").textContent = "● Somente local";
+
+$("copyBtn").addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(deviceId);
+    $("copyBtn").textContent = "Copiado!";
+    setTimeout(() => $("copyBtn").textContent = "Copiar", 1500);
+  } catch {
+    $("connectMessage").textContent =
+      "Não foi possível copiar. Selecione e copie o ID manualmente.";
+  }
+});
+
+// Configuração do projeto Firebase informado.
+const firebaseConfig = {
+  apiKey: "AlzaSyCTkq0uXy5kHg9N8rj9--Dooh8cuguYxPE",
+  authDomain: "subjectrobot-49600.firebaseapp.com",
+  databaseURL: "https://subjectrobot-49600-default-rtdb.firebaseio.com",
+  projectId: "subjectrobot-49600-default-rtdb",
+  storageBucket: "subjectrobot-49600.appspot.com",
+  appId: "1:731604558049:android:7f47b30b289445814017a0"
+};
+
+let db = null;
+
+try {
+  const app = initializeApp(firebaseConfig);
+  db = getDatabase(app);
+
+  // Esta escrita só funcionará se as regras do banco permitirem.
+  // Não abra todo o banco publicamente para fazê-la funcionar.
+  await set(ref(db, "engineDesk/devices/" + deviceId), {
+    id: deviceId,
+    lastSeen: serverTimestamp(),
+    client: "browser"
+  });
+
+  $("firebaseState").textContent = "Conectado; registro inicial gravado";
+  $("connectionStatus").textContent = "● Firebase conectado";
+
+  onValue(ref(db, "engineDesk/requests/" + deviceId), snapshot => {
+    const container = $("requests");
+    container.replaceChildren();
+    const data = snapshot.val() || {};
+    const entries = Object.entries(data).filter(
+      ([, item]) => item && item.status === "pending"
+    );
+
+    if (!entries.length) {
+      container.textContent = "Nenhuma solicitação pendente.";
+      container.className = "small";
+      return;
+    }
+
+    container.className = "";
+    for (const [key, request] of entries) {
+      const item = document.createElement("div");
+      item.className = "item";
+      const title = document.createElement("strong");
+      title.textContent = "Dispositivo " + request.from;
+      const description = document.createElement("div");
+      description.className = "small";
+      description.textContent = "Solicitação de acesso remoto";
+      const approve = document.createElement("button");
+      approve.textContent = "Aceitar";
+      const reject = document.createElement("button");
+      reject.textContent = "Recusar";
+      reject.className = "secondary";
+
+      // Nesta versão, a resposta é registrada, mas não inicia
+      // uma sessão de controle remoto.
+      approve.addEventListener("click", async () => {
+        await set(ref(db, "engineDesk/requests/" + deviceId + "/" + key + "/status"),
+          "approved");
+      });
+      reject.addEventListener("click", async () => {
+        await set(ref(db, "engineDesk/requests/" + deviceId + "/" + key + "/status"),
+          "rejected");
+      });
+      item.append(title, description, approve, reject);
+      container.appendChild(item);
+    }
+  });
+
+} catch (error) {
+  console.error(error);
+  $("firebaseState").textContent =
+    "Não foi possível gravar no Firebase. Confira a configuração e as regras.";
+  $("connectionStatus").textContent = "● Modo local";
+}
+
+$("connectBtn").addEventListener("click", async () => {
+  const target = $("remoteId").value.trim().toUpperCase();
+  const message = $("connectMessage");
+
+  if (!target) {
+    message.textContent = "Digite o ID do dispositivo.";
+    return;
+  }
+  if (target === deviceId) {
+    message.textContent = "Esse é o ID deste dispositivo.";
+    return;
+  }
+  if (!/^[A-F0-9]{12}$/.test(target)) {
+    message.textContent = "O formato do ID não é válido.";
+    return;
+  }
+  if (!db) {
+    message.textContent =
+      "Firebase indisponível. Verifique a configuração e as regras de segurança.";
+    return;
+  }
+
+  $("connectBtn").disabled = true;
+  try {
+    const requestRef = push(
+      ref(db, "engineDesk/requests/" + target)
+    );
+    await set(requestRef, {
+      from: deviceId,
+      status: "pending",
+      createdAt: serverTimestamp()
+    });
+    message.textContent =
+      "Solicitação registrada. A conexão remota ainda precisa ser implementada.";
+  } catch (error) {
+    console.error(error);
+    message.textContent =
+      "Solicitação não enviada. O Firebase pode estar bloqueando o acesso.";
+  } finally {
+    $("connectBtn").disabled = false;
+  }
+});
+</script>
 </body>
 </html>
