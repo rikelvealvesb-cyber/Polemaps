@@ -1,364 +1,487 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#111318">
-<title>EngineDesk</title>
-<style>
-:root{color-scheme:dark;--bg:#111318;--panel:#191c24;--panel2:#232733;--line:#303542;--text:#f4f6fb;--muted:#9da5b6;--blue:#5688ff;--green:#40ce91;--red:#ff6878}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font:14px system-ui,sans-serif}
-button,input{font:inherit}button{border:0;border-radius:10px;padding:11px 14px;background:var(--blue);color:white;font-weight:650;cursor:pointer}button:disabled{opacity:.45}button.secondary{background:var(--panel2);border:1px solid var(--line)}button.danger{background:#702b39}
-input{width:100%;padding:12px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;color:white;min-width:0}
-.app{max-width:1150px;margin:auto;padding:15px}
-header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0 20px}
-.brand{display:flex;align-items:center;gap:11px}.logo{background:var(--blue);border-radius:13px;width:44px;height:44px;display:grid;place-items:center;font-size:24px;font-weight:900}
-h1{font-size:21px;margin:0}h2{font-size:16px;margin:0 0 8px}p{color:var(--muted);line-height:1.5}.muted{color:var(--muted)}.small{font-size:12px}.status{color:var(--green);font-size:12px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:16px;min-width:0}
-.label{display:block;color:var(--muted);font-size:11px;font-weight:700;margin:15px 0 7px}
-.idrow{display:flex;align-items:center;gap:8px;padding:10px;background:var(--panel2);border-radius:9px}.id{overflow-wrap:anywhere;flex:1;font-size:12px;font-weight:750}
-.full{width:100%;margin-top:9px}.notice{background:var(--panel2);padding:11px;border-radius:9px;margin-top:10px;overflow-wrap:anywhere;color:var(--muted)}
-.item{padding:12px 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere}.item:last-child{border:0}.item button{margin:8px 6px 0 0}
-#remoteVideo{width:100%;max-height:400px;background:#08090c;border-radius:10px;object-fit:contain}
-#chatLog{height:150px;overflow:auto;background:var(--bg);border-radius:8px;padding:10px;margin:10px 0;overflow-wrap:anywhere}
-.chatline{padding:4px 0}.chatrow{display:flex;gap:6px}.chatrow input{flex:1}
-.fileline{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:8px 0}
-footer{text-align:center;padding:22px;color:var(--muted);font-size:11px}
-@media(max-width:700px){.grid{grid-template-columns:1fr}.app{padding:11px}header{align-items:flex-start}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dev.rik Java IDE</title>
+    <style>
+        :root {
+            --bg-color: #1e1e1e;
+            --sidebar-bg: #252526;
+            --editor-bg: #1e1e1e;
+            --text-color: #d4d4d4;
+            --accent-color: #007acc;
+            --accent-hover: #005999;
+            --error-color: #f48771;
+            --warning-color: #cca700;
+            --border-color: #333333;
+            --console-bg: #111111;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Consolas', 'Courier New', Courier, monospace;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            background-color: var(--sidebar-bg);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        header h1 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        button:hover {
+            background-color: var(--accent-hover);
+        }
+
+        button.secondary {
+            background-color: #3c3c3c;
+        }
+        button.secondary:hover {
+            background-color: #4c4c4c;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background-color: var(--editor-bg);
+        }
+
+        .editor-wrapper {
+            display: flex;
+            flex: 1;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .line-numbers {
+            width: 50px;
+            background-color: var(--editor-bg);
+            color: #858585;
+            padding: 12px 0;
+            text-align: right;
+            font-size: 14px;
+            line-height: 1.5;
+            user-select: none;
+            border-right: 1px solid #333;
+        }
+
+        .line-numbers span {
+            display: block;
+            padding-right: 10px;
+        }
+
+        .line-numbers span.error-line-num {
+            color: var(--error-color);
+            font-weight: bold;
+        }
+
+        textarea {
+            flex: 1;
+            background-color: transparent;
+            color: var(--text-color);
+            border: none;
+            padding: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: none;
+            outline: none;
+            white-space: pre;
+            overflow-wrap: normal;
+            overflow-x: auto;
+            caret-color: #ffffff;
+            tab-size: 4;
+        }
+
+        /* Painel Lateral / Análise Inteligente */
+        .sidebar {
+            width: 320px;
+            background-color: var(--sidebar-bg);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .sidebar-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-bottom: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 10px 15px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #bbbbbb;
+            background-color: #2d2d2d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .diagnostics-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            font-size: 13px;
+        }
+
+        .diagnostic-item {
+            padding: 8px;
+            margin-bottom: 6px;
+            border-radius: 4px;
+            background-color: #2d2d2d;
+            border-left: 4px solid var(--error-color);
+        }
+
+        .diagnostic-item.warning {
+            border-left-color: var(--warning-color);
+        }
+
+        .diagnostic-item .diag-line {
+            font-weight: bold;
+            color: var(--error-color);
+            font-size: 11px;
+        }
+
+        .diagnostic-item.warning .diag-line {
+            color: var(--warning-color);
+        }
+
+        /* Console de Saída */
+        .console-panel {
+            height: 180px;
+            background-color: var(--console-bg);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .console-output {
+            flex: 1;
+            padding: 10px 15px;
+            font-size: 13px;
+            overflow-y: auto;
+            color: #cccccc;
+            white-space: pre-wrap;
+        }
+
+        .status-bar {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 3px 15px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+    </style>
 </head>
 <body>
-<div class="app">
-<header>
-  <div class="brand"><div class="logo">E</div><div><h1>EngineDesk</h1><div class="small muted">Suporte remoto e conexão entre dispositivos</div></div></div>
-  <div id="topStatus" class="status">Inicializando...</div>
-</header>
 
-<div class="grid">
-<section class="card">
-<h2>Meu dispositivo</h2>
-<p>Identificação automática pelo Firebase.</p>
-<label class="label">SEU ID DE CONEXÃO</label>
-<div class="idrow"><div class="id" id="myId">Conectando...</div><button id="copyBtn" class="secondary">Copiar</button></div>
-<div class="notice" id="authInfo">Autenticando dispositivo...</div>
-</section>
+    <header>
+        <h1>☕ Dev.rik Java IDE <span style="font-size: 11px; background: #333; padding: 2px 6px; border-radius: 3px; color: #aaa;">API Online</span></h1>
+        <div class="actions">
+            <button class="secondary" onclick="clearEditor()">Limpar Código</button>
+            <button id="runBtn" onclick="runJavaCode()">▶ Executar Código</button>
+        </div>
+    </header>
 
-<section class="card">
-<h2>Conectar a outro dispositivo</h2>
-<p>Informe o ID Firebase do dispositivo de destino.</p>
-<label class="label" for="targetId">ID DO DESTINO</label>
-<input id="targetId" placeholder="Cole o ID aqui" autocomplete="off">
-<button id="connectBtn" class="full" disabled>Solicitar conexão</button>
-<div class="notice" id="connectInfo">Aguardando autenticação.</div>
-</section>
+    <div class="main-container">
+        <!-- Editor de Código -->
+        <div class="editor-container">
+            <div class="editor-wrapper">
+                <div id="lineNumbers" class="line-numbers"><span>1</span></div>
+                <textarea id="codeEditor" spellcheck="false" placeholder="Escreva seu código Java aqui...">public class Main {
+    public static void main(String[] args) {
+        System.out.println("Olá, Mundo do Java!");
+        
+        int x = 10;
+        int y = 20;
+        System.out.println("Soma: " + (x + y));
+    }
+}</textarea>
+            </div>
+            
+            <!-- Terminal de Saída -->
+            <div class="console-panel">
+                <div class="sidebar-header">Terminal de Saída</div>
+                <div id="consoleOutput" class="console-output">Pronto para compilar e executar... Clique em "Executar Código".</div>
+            </div>
+        </div>
 
-<section class="card">
-<h2>Pedidos recebidos</h2>
-<div id="incoming" class="muted small">Aguardando...</div>
-</section>
+        <!-- Analisador de Erros Em Tempo Real (Linter) -->
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-header">
+                    <span>🔍 Analisador Inteligente</span>
+                    <span id="errorCount" style="background: var(--error-color); color: #000; padding: 1px 6px; border-radius: 10px; font-size: 10px;">0</span>
+                </div>
+                <div id="diagnosticsList" class="diagnostics-list">
+                    <div style="color: #6a9955; font-style: italic;">Nenhum erro estrutural detectado.</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<section class="card">
-<h2>Conexão ativa</h2>
-<div class="notice" id="sessionInfo">Nenhuma sessão ativa.</div>
-<div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0">
-<button id="shareBtn" disabled>Compartilhar tela</button>
-<button id="stopBtn" class="danger" disabled>Encerrar</button>
-</div>
-<video id="remoteVideo" autoplay playsinline></video>
-<div class="small muted" id="videoInfo">A tela remota aparecerá aqui quando o outro dispositivo compartilhar.</div>
-</section>
+    <div class="status-bar">
+        <span id="statusMessage">Java 15.0.2 (Piston API via GitHub Pages)</span>
+        <span id="cursorPosition">Linha 1, Coluna 1</span>
+    </div>
 
-<section class="card">
-<h2>Chat da sessão</h2>
-<div id="chatLog"><div class="muted small">O chat funciona durante uma sessão WebRTC ativa.</div></div>
-<div class="chatrow"><input id="chatInput" placeholder="Escreva uma mensagem"><button id="sendChat" disabled>Enviar</button></div>
-</section>
+    <script>
+        const codeEditor = document.getElementById('codeEditor');
+        const lineNumbers = document.getElementById('lineNumbers');
+        const diagnosticsList = document.getElementById('diagnosticsList');
+        const errorCountBadge = document.getElementById('errorCount');
+        const consoleOutput = document.getElementById('consoleOutput');
+        const cursorPosition = document.getElementById('cursorPosition');
+        const runBtn = document.getElementById('runBtn');
 
-<section class="card">
-<h2>Transferência de arquivos</h2>
-<p>Envie arquivos para o outro participante através do canal de dados WebRTC.</p>
-<input type="file" id="fileInput">
-<div id="fileInfo" class="notice">Nenhuma transferência iniciada.</div>
-</section>
-</div>
-<footer>EngineDesk • Compartilhamento com autorização • WebRTC</footer>
-</div>
+        // Atualização de Linhas e Inspeção Inteligente
+        codeEditor.addEventListener('input', () => {
+            updateLineNumbers();
+            runSmartLinter();
+        });
 
-<script type="module">
-import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import {getAuth,signInAnonymously,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-import {getDatabase,ref,set,get,push,update,onValue,onDisconnect,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+        codeEditor.addEventListener('scroll', () => {
+            lineNumbers.scrollTop = codeEditor.scrollTop;
+        });
 
-const $=id=>document.getElementById(id);
-const config={
- apiKey:"AlzaSyCTkq0uXy5kHg9N8rj9--Dooh8cuguYxPE",
- authDomain:"subjectrobot-49600.firebaseapp.com",
- databaseURL:"https://subjectrobot-49600-default-rtdb.firebaseio.com",
- projectId:"subjectrobot-49600-default-rtdb",
- storageBucket:"subjectrobot-49600.appspot.com",
- appId:"1:731604558049:android:7f47b30b289445814017a0"
-};
+        codeEditor.addEventListener('click', updateCursorPosition);
+        codeEditor.addEventListener('keyup', updateCursorPosition);
 
-let auth,db,uid,pc,channel,sessionId,role,sessionRef;
-let stopIncoming=null,stopSession=null,stopCandidates=null;
-let localStream=null,chatReady=false,fileMeta=null,fileParts=[],fileSize=0;
-const listeners=[];
-const ICE={iceServers:[
- {urls:"stun:stun.l.google.com:19302"},
- {urls:"stun:stun1.l.google.com:19302"}
-]};
+        // Auto-Indentação Padrão ao dar Enter
+        codeEditor.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const cursorPos = codeEditor.selectionStart;
+                const text = codeEditor.value;
+                
+                const lastNewline = text.lastIndexOf('\n', cursorPos - 1);
+                const currentLine = text.substring(lastNewline + 1, cursorPos);
+                
+                const match = currentLine.match(/^([ \t]*)/);
+                let indentation = match ? match[1] : '';
+                
+                if (currentLine.trim().endsWith('{')) {
+                    indentation += '    ';
+                }
 
-function status(text){$("topStatus").textContent=text}
-function info(text){$("connectInfo").textContent=text}
-function log(text){const line=document.createElement("div");line.className="chatline";line.textContent=text;$("chatLog").appendChild(line);$("chatLog").scrollTop=$("chatLog").scrollHeight}
-function err(text){console.error(text);info(text)}
-function safePath(s){return String(s||"").replace(/[.#$[\]/]/g,"_")}
-function cleanupListeners(){for(const fn of listeners.splice(0)){try{fn()}catch{}}}
-function closeSession(){
- cleanupListeners();
- if(stopSession){stopSession();stopSession=null}
- if(stopCandidates){stopCandidates();stopCandidates=null}
- if(pc){pc.onicecandidate=null;pc.ontrack=null;pc.ondatachannel=null;pc.close();pc=null}
- if(channel){try{channel.close()}catch{}channel=null}
- if(localStream){localStream.getTracks().forEach(t=>t.stop());localStream=null}
- $("remoteVideo").srcObject=null;
- $("shareBtn").disabled=true;$("stopBtn").disabled=true;$("sendChat").disabled=true;
- $("sessionInfo").textContent="Nenhuma sessão ativa.";
- $("videoInfo").textContent="Sessão encerrada.";
- chatReady=false;fileMeta=null;fileParts=[];
-}
-function enableSession(){ $("stopBtn").disabled=false;$("shareBtn").disabled=false; }
-function sendData(obj){if(channel?.readyState==="open")channel.send(JSON.stringify(obj))}
-function setupChannel(ch){
- channel=ch;
- ch.onopen=()=>{
-  chatReady=true;$("sendChat").disabled=false;
-  $("sessionInfo").textContent="Canal WebRTC conectado.";
-  log("Canal de comunicação conectado.");
- };
- ch.onclose=()=>{$("sendChat").disabled=true;chatReady=false};
- ch.onmessage=async event=>{
-  if(typeof event.data==="string"){
-   let m;try{m=JSON.parse(event.data)}catch{return}
-   if(m.type==="chat"){log("Remoto: "+String(m.text||"").slice(0,3000))}
-   if(m.type==="file-start"){fileMeta=m;fileParts=[];fileSize=0;$("fileInfo").textContent="Recebendo: "+m.name}
-   if(m.type==="file-end"&&fileMeta){
-    const blob=new Blob(fileParts,{type:fileMeta.mime||"application/octet-stream"});
-    const url=URL.createObjectURL(blob),a=document.createElement("a");
-    a.href=url;a.download=fileMeta.name||"arquivo";a.click();
-    setTimeout(()=>URL.revokeObjectURL(url),60000);
-    $("fileInfo").textContent="Arquivo recebido: "+fileMeta.name;
-    fileMeta=null;fileParts=[];
-   }
-  }else if(fileMeta){
-   fileParts.push(event.data);fileSize+=event.data.byteLength||event.data.size||0;
-   $("fileInfo").textContent="Recebendo arquivo: "+Math.round(fileSize/1024)+" KB";
-  }
- };
-}
-function makePeer(){
- pc=new RTCPeerConnection(ICE);
- pc.onicecandidate=async e=>{
-  if(!e.candidate||!sessionId||!uid)return;
-  try{
-   const side=role==="caller"?"caller":"callee";
-   await push(ref(db,`engineDesk/sessions/${sessionId}/ice/${side}`),e.candidate.toJSON());
-  }catch(e){console.error("ICE:",e)}
- };
- pc.ontrack=e=>{
-  $("remoteVideo").srcObject=e.streams[0];
-  $("videoInfo").textContent="Transmitindo tela remota.";
- };
- pc.onconnectionstatechange=()=>{
-  const s=pc?.connectionState;
-  if(s==="connected"){$("sessionInfo").textContent="Dispositivos conectados por WebRTC.";status("● Sessão conectada")}
-  if(s==="failed"){$("sessionInfo").textContent="Conexão falhou. Pode ser necessário um servidor TURN."}
-  if(s==="disconnected"){$("sessionInfo").textContent="Conexão interrompida."}
- };
- if(role==="caller")setupChannel(pc.createDataChannel("enginedesk-data"));
- else pc.ondatachannel=e=>setupChannel(e.channel);
- return pc;
-}
-async function watchIce(){
- if(stopCandidates)stopCandidates();
- const other=role==="caller"?"callee":"caller";
- stopCandidates=onValue(ref(db,`engineDesk/sessions/${sessionId}/ice/${other}`),snap=>{
-  if(!pc)return;
-  snap.forEach(child=>{
-   const c=child.val();
-   if(c&&pc.remoteDescription)pc.addIceCandidate(new RTCIceCandidate(c)).catch(console.error);
-  });
- });
- // Adiciona também candidatos que chegaram antes da descrição remota.
- const snap=await get(ref(db,`engineDesk/sessions/${sessionId}/ice/${other}`));
- if(pc&&pc.remoteDescription)snap.forEach(child=>{
-  pc.addIceCandidate(new RTCIceCandidate(child.val())).catch(console.error);
- });
-}
-async function startCaller(target){
- role="caller";
- const newRef=push(ref(db,"engineDesk/sessions"));
- sessionId=newRef.key;sessionRef=newRef;
- const offerPc=makePeer();
- const offer=await offerPc.createOffer();
- await offerPc.setLocalDescription(offer);
- await set(newRef,{
-  from:uid,to:target,status:"pending",
-  offer:{type:offer.type,sdp:offer.sdp},
-  createdAt:serverTimestamp()
- });
- await set(ref(db,`engineDesk/incoming/${target}/${sessionId}`),{
-  from:uid,status:"pending",createdAt:serverTimestamp()
- });
- $("sessionInfo").textContent="Pedido enviado. Aguardando aprovação do destino.";
- enableSession();
- stopSession=onValue(newRef,async snap=>{
-  const s=snap.val();if(!s||!pc)return;
-  if(s.status==="rejected"){info("Pedido recusado.");closeSession();return}
-  if(s.answer&&!pc.currentRemoteDescription){
-   await pc.setRemoteDescription(new RTCSessionDescription(s.answer));
-   await watchIce();
-  }
-  if(s.status==="ended"){closeSession()}
- });
-}
-async function acceptRequest(id,from){
- try{
-  const snap=await get(ref(db,"engineDesk/sessions/"+id));
-  const s=snap.val();
-  if(!s||s.from!==from||s.to!==uid||s.status!=="pending")throw Error("Pedido inválido ou expirado.");
-  closeSession();sessionId=id;sessionRef=ref(db,"engineDesk/sessions/"+id);role="callee";
-  makePeer();
-  await pc.setRemoteDescription(new RTCSessionDescription(s.offer));
-  const answer=await pc.createAnswer();
-  await pc.setLocalDescription(answer);
-  await update(sessionRef,{status:"approved",answer:{type:answer.type,sdp:answer.sdp}});
-  await update(ref(db,"engineDesk/incoming/"+uid+"/"+id),{status:"approved"});
-  await watchIce();enableSession();
-  $("sessionInfo").textContent="Pedido aceito. Conectando...";
-  stopSession=onValue(sessionRef,snapshot=>{
-   if(snapshot.val()?.status==="ended")closeSession();
-  });
- }catch(e){console.error(e);$("sessionInfo").textContent="Não foi possível aceitar: "+e.message}
-}
-async function rejectRequest(id){
- try{
-  await update(ref(db,"engineDesk/sessions/"+id),{status:"rejected"});
-  await update(ref(db,"engineDesk/incoming/"+uid+"/"+id),{status:"rejected"});
- }catch(e){console.error(e)}
-}
-function watchIncoming(){
- if(stopIncoming)stopIncoming();
- stopIncoming=onValue(ref(db,"engineDesk/incoming/"+uid),snap=>{
-  const el=$("incoming");el.replaceChildren();
-  const entries=[];
-  snap.forEach(c=>{if(c.val()?.status==="pending")entries.push({id:c.key,...c.val()})});
-  if(!entries.length){el.className="muted small";el.textContent="Nenhum pedido pendente.";return}
-  el.className="";
-  for(const r of entries){
-   const div=document.createElement("div");div.className="item";
-   const title=document.createElement("strong");title.textContent="Pedido de "+r.from;
-   const yes=document.createElement("button");yes.textContent="Aceitar";
-   const no=document.createElement("button");no.textContent="Recusar";no.className="danger";
-   yes.onclick=()=>acceptRequest(r.id,r.from);no.onclick=()=>rejectRequest(r.id);
-   div.append(title,yes,no);el.appendChild(div);
-  }
- });
-}
-async function connect(){
- const target=$("targetId").value.trim();
- if(!uid||!target||target===uid){info("Informe um ID válido diferente do seu.");return}
- $("connectBtn").disabled=true;
- try{
-  const snap=await get(ref(db,"engineDesk/devices/"+safePath(target)));
-  if(!snap.exists())throw Error("Dispositivo não encontrado. Verifique o ID e se está online.");
-  await startCaller(target);
- }catch(e){err(e.message);closeSession()}
- finally{$("connectBtn").disabled=false}
-}
+                const newValue = text.substring(0, cursorPos) + '\n' + indentation + text.substring(codeEditor.selectionEnd);
+                codeEditor.value = newValue;
+                codeEditor.selectionStart = codeEditor.selectionEnd = cursorPos + 1 + indentation.length;
+                
+                updateLineNumbers();
+                runSmartLinter();
+            }
+            
+            // Suporte para tecla Tab
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = codeEditor.selectionStart;
+                const end = codeEditor.selectionEnd;
 
-$("connectBtn").onclick=connect;
-$("copyBtn").onclick=async()=>{
- if(!uid)return;
- try{await navigator.clipboard.writeText(uid);$("copyBtn").textContent="Copiado!";setTimeout(()=>$("copyBtn").textContent="Copiar",1500)}
- catch{info("Copie o ID manualmente.")}
-};
-$("shareBtn").onclick=async()=>{
- try{
-  if(!pc||!sessionId)throw Error("Inicie uma sessão primeiro.");
-  // O navegador exige uma ação explícita e permissão para cada captura.
-  const stream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:false});
-  localStream=stream;
-  for(const track of stream.getTracks())pc.addTrack(track,stream);
-  const offer=await pc.createOffer();
-  await pc.setLocalDescription(offer);
-  await update(sessionRef,{screenOffer:{type:offer.type,sdp:offer.sdp}});
-  $("videoInfo").textContent="Aguardando negociação do compartilhamento de tela.";
- }catch(e){$("videoInfo").textContent="Não foi possível compartilhar: "+e.message}
-};
-$("stopBtn").onclick=async()=>{
- try{if(sessionRef)await update(sessionRef,{status:"ended"});if(uid&&sessionId)await update(ref(db,`engineDesk/incoming/${uid}/${sessionId}`),{status:"ended"})}catch(e){console.error(e)}
- closeSession();
-};
-$("sendChat").onclick=()=>{
- const text=$("chatInput").value.trim();
- if(!text||!chatReady)return;
- sendData({type:"chat",text:text.slice(0,3000)});
- log("Você: "+text.slice(0,3000));$("chatInput").value="";
-};
-$("chatInput").addEventListener("keydown",e=>{if(e.key==="Enter")$("sendChat").click()});
-$("fileInput").onchange=async()=>{
- const file=$("fileInput").files[0];
- if(!file)return;
- if(!channel||channel.readyState!=="open"){ $("fileInfo").textContent="Conecte os dispositivos primeiro.";return}
- if(file.size>50*1024*1024){$("fileInfo").textContent="Limite desta versão: 50 MB por arquivo.";return}
- try{
-  channel.bufferedAmountLowThreshold=256*1024;
-  sendData({type:"file-start",name:file.name,mime:file.type,size:file.size});
-  const chunkSize=48*1024;
-  for(let offset=0;offset<file.size;offset+=chunkSize){
-   while(channel.bufferedAmount>1024*1024)await new Promise(resolve=>{
-    channel.onbufferedamountlow=()=>{channel.onbufferedamountlow=null;resolve()};
-   });
-   channel.send(await file.slice(offset,offset+chunkSize).arrayBuffer());
-   $("fileInfo").textContent="Enviando "+Math.min(100,Math.round((offset+chunkSize)/file.size*100))+"%";
-  }
-  sendData({type:"file-end"});
-  $("fileInfo").textContent="Arquivo enviado: "+file.name;
- }catch(e){$("fileInfo").textContent="Falha no envio: "+e.message}
-};
-window.addEventListener("beforeunload",()=>{
- try{if(sessionRef)update(sessionRef,{status:"ended"})}catch{}
- cleanupListeners();
-});
+                codeEditor.value = codeEditor.value.substring(0, start) + '    ' + codeEditor.value.substring(end);
+                codeEditor.selectionStart = codeEditor.selectionEnd = start + 4;
+            }
+        });
 
-try{
- const app=initializeApp(config);
- auth=getAuth(app);db=getDatabase(app);
- await signInAnonymously(auth);
- onAuthStateChanged(auth,async user=>{
-  if(!user)return;
-  uid=user.uid;
-  $("myId").textContent=uid;
-  $("authInfo").textContent="Autenticação automática ativa. O ID corresponde a esta identidade Firebase.";
-  $("connectBtn").disabled=false;
-  try{
-   const deviceRef=ref(db,"engineDesk/devices/"+uid);
-   await set(deviceRef,{id:uid,online:true,lastSeen:serverTimestamp(),client:"web"});
-   await onDisconnect(deviceRef).remove();
-   status("● Online");
-   watchIncoming();
-  }catch(e){
-   status("Erro no banco");
-   $("authInfo").textContent="A autenticação funcionou, mas as regras do Realtime Database bloquearam o registro: "+e.message;
-  }
- });
-}catch(e){
- console.error(e);status("Erro de configuração");
- $("authInfo").textContent="Falha de autenticação. Habilite Anonymous no Firebase Authentication.";
-}
-</script>
+        function updateLineNumbers() {
+            const lines = codeEditor.value.split('\n');
+            let numbersHTML = '';
+            for (let i = 1; i <= lines.length; i++) {
+                numbersHTML += `<span>${i}</span>`;
+            }
+            lineNumbers.innerHTML = numbersHTML;
+        }
+
+        function updateCursorPosition() {
+            const text = codeEditor.value;
+            const selStart = codeEditor.selectionStart;
+            const line = text.substr(0, selStart).split('\n').length;
+            const col = selStart - text.lastIndexOf('\n', selStart - 1);
+            cursorPosition.innerText = `Linha ${line}, Coluna ${col}`;
+        }
+
+        function clearEditor() {
+            if (confirm("Deseja limpar o código do editor?")) {
+                codeEditor.value = "";
+                updateLineNumbers();
+                runSmartLinter();
+            }
+        }
+
+        // --- LINTER INTELIGENTE ---
+        function runSmartLinter() {
+            const code = codeEditor.value;
+            const lines = code.split('\n');
+            let diagnostics = [];
+            let errorLinesSet = new Set();
+
+            lines.forEach((lineText, index) => {
+                const lineNum = index + 1;
+                const trimmed = lineText.trim();
+
+                // Checagem de ; no final das instruções
+                if (
+                    trimmed !== '' &&
+                    !trimmed.endsWith(';') &&
+                    !trimmed.endsWith('{') &&
+                    !trimmed.endsWith('}') &&
+                    !trimmed.startsWith('//') &&
+                    !trimmed.startsWith('/*') &&
+                    !trimmed.startsWith('*') &&
+                    !trimmed.startsWith('public class') &&
+                    !trimmed.startsWith('class ') &&
+                    !trimmed.startsWith('public static void main') &&
+                    !trimmed.startsWith('if') &&
+                    !trimmed.startsWith('for') &&
+                    !trimmed.startsWith('while') &&
+                    !trimmed.startsWith('else')
+                ) {
+                    diagnostics.push({
+                        line: lineNum,
+                        type: 'error',
+                        message: 'Possível falta de ponto e vírgula (;) no final da linha.'
+                    });
+                    errorLinesSet.add(lineNum);
+                }
+            });
+
+            if (!code.includes('main') && code.trim() !== '') {
+                diagnostics.push({
+                    line: 0,
+                    type: 'warning',
+                    message: 'Aviso: O método "public static void main" não foi encontrado.'
+                });
+            }
+
+            errorCountBadge.innerText = diagnostics.filter(d => d.type === 'error').length;
+            
+            if (diagnostics.length === 0) {
+                diagnosticsList.innerHTML = '<div style="color: #6a9955; font-style: italic;">Nenhum erro estrutural detectado.</div>';
+            } else {
+                let html = '';
+                diagnostics.forEach(diag => {
+                    const isWarn = diag.type === 'warning';
+                    html += `
+                        <div class="diagnostic-item ${isWarn ? 'warning' : ''}">
+                            ${diag.line > 0 ? `<div class="diag-line">Linha ${diag.line}</div>` : ''}
+                            <div>${diag.message}</div>
+                        </div>
+                    `;
+                });
+                diagnosticsList.innerHTML = html;
+            }
+
+            const numSpans = lineNumbers.getElementsByTagName('span');
+            for (let i = 0; i < numSpans.length; i++) {
+                if (errorLinesSet.has(i + 1)) {
+                    numSpans[i].classList.add('error-line-num');
+                } else {
+                    numSpans[i].classList.remove('error-line-num');
+                }
+            }
+        }
+
+        // --- EXECUÇÃO DEDICADA VIA PISTON API ---
+        async function runJavaCode() {
+            const code = codeEditor.value;
+            consoleOutput.innerText = "⏳ Compilando e executando via API Piston...";
+            runBtn.disabled = true;
+
+            try {
+                const response = await fetch('https://emkc.org/api/v2/piston/execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        language: "java",
+                        version: "15.0.2",
+                        files: [
+                            {
+                                name: "Main.java",
+                                content: code
+                            }
+                        ]
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.run) {
+                    let output = "";
+                    if (result.run.stdout) output += result.run.stdout;
+                    if (result.run.stderr) output += "\n[ERRO DE COMPILAÇÃO / EXECUÇÃO]:\n" + result.run.stderr;
+                    consoleOutput.innerText = output || "Código executado com sucesso (sem saída no console).";
+                } else {
+                    consoleOutput.innerText = "Erro: A API respondeu com um formato inesperado.";
+                }
+            } catch (err) {
+                consoleOutput.innerText = "Erro ao conectar com a API de execução. Verifique a internet ou aguarde instabilidades do servidor.";
+            } finally {
+                runBtn.disabled = false;
+            }
+        }
+
+        updateLineNumbers();
+        runSmartLinter();
+    </script>
 </body>
 </html>
