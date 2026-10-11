@@ -281,7 +281,7 @@
     </div>
 
     <div class="status-bar">
-        <span id="statusMessage">Java 15.0.2 (Piston API via GitHub Pages)</span>
+        <span id="statusMessage">Java 15.0.2 (Piston API)</span>
         <span id="cursorPosition">Linha 1, Coluna 1</span>
     </div>
 
@@ -379,7 +379,6 @@
                 const lineNum = index + 1;
                 const trimmed = lineText.trim();
 
-                // Checagem de ; no final das instruções
                 if (
                     trimmed !== '' &&
                     !trimmed.endsWith(';') &&
@@ -441,7 +440,7 @@
             }
         }
 
-        // --- EXECUÇÃO DEDICADA VIA PISTON API ---
+        // --- EXECUÇÃO ROBUSTA VIA PISTON API ---
         async function runJavaCode() {
             const code = codeEditor.value;
             consoleOutput.innerText = "⏳ Compilando e executando via API Piston...";
@@ -463,18 +462,23 @@
                     })
                 });
 
+                if (!response.ok) {
+                    throw new Error("Erro HTTP: " + response.status);
+                }
+
                 const result = await response.json();
                 
-                if (result.run) {
-                    let output = "";
-                    if (result.run.stdout) output += result.run.stdout;
-                    if (result.run.stderr) output += "\n[ERRO DE COMPILAÇÃO / EXECUÇÃO]:\n" + result.run.stderr;
-                    consoleOutput.innerText = output || "Código executado com sucesso (sem saída no console).";
-                } else {
-                    consoleOutput.innerText = "Erro: A API respondeu com um formato inesperado.";
-                }
+                // Tratamento seguro para diferentes versões do payload de retorno da API
+                const outputObj = result.run || result;
+                
+                let output = "";
+                if (outputObj.stdout) output += outputObj.stdout;
+                if (outputObj.stderr) output += "\n[ERRO DE COMPILAÇÃO / EXECUÇÃO]:\n" + outputObj.stderr;
+                if (outputObj.output && !output) output += outputObj.output;
+
+                consoleOutput.innerText = output.trim() || "Código executado com sucesso (sem saída no console).";
             } catch (err) {
-                consoleOutput.innerText = "Erro ao conectar com a API de execução. Verifique a internet ou aguarde instabilidades do servidor.";
+                consoleOutput.innerText = "Erro ao conectar com a API de execução. Verifique a sua conexão com a internet.";
             } finally {
                 runBtn.disabled = false;
             }
