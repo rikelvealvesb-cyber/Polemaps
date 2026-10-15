@@ -1,491 +1,288 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dev.rik Java IDE</title>
-    <style>
-        :root {
-            --bg-color: #1e1e1e;
-            --sidebar-bg: #252526;
-            --editor-bg: #1e1e1e;
-            --text-color: #d4d4d4;
-            --accent-color: #007acc;
-            --accent-hover: #005999;
-            --error-color: #f48771;
-            --warning-color: #cca700;
-            --border-color: #333333;
-            --console-bg: #111111;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Consolas', 'Courier New', Courier, monospace;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        header {
-            background-color: var(--sidebar-bg);
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        header h1 {
-            font-size: 16px;
-            font-weight: 600;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        button {
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 6px 14px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: background 0.2s;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        button:hover {
-            background-color: var(--accent-hover);
-        }
-
-        button.secondary {
-            background-color: #3c3c3c;
-        }
-        button.secondary:hover {
-            background-color: #4c4c4c;
-        }
-
-        .main-container {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
-
-        .editor-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            background-color: var(--editor-bg);
-        }
-
-        .editor-wrapper {
-            display: flex;
-            flex: 1;
-            overflow-y: auto;
-            position: relative;
-        }
-
-        .line-numbers {
-            width: 50px;
-            background-color: var(--editor-bg);
-            color: #858585;
-            padding: 12px 0;
-            text-align: right;
-            font-size: 14px;
-            line-height: 1.5;
-            user-select: none;
-            border-right: 1px solid #333;
-        }
-
-        .line-numbers span {
-            display: block;
-            padding-right: 10px;
-        }
-
-        .line-numbers span.error-line-num {
-            color: var(--error-color);
-            font-weight: bold;
-        }
-
-        textarea {
-            flex: 1;
-            background-color: transparent;
-            color: var(--text-color);
-            border: none;
-            padding: 12px;
-            font-size: 14px;
-            line-height: 1.5;
-            resize: none;
-            outline: none;
-            white-space: pre;
-            overflow-wrap: normal;
-            overflow-x: auto;
-            caret-color: #ffffff;
-            tab-size: 4;
-        }
-
-        /* Painel Lateral / Análise Inteligente */
-        .sidebar {
-            width: 320px;
-            background-color: var(--sidebar-bg);
-            border-left: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        .sidebar-section {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            border-bottom: 1px solid var(--border-color);
-            overflow: hidden;
-        }
-
-        .sidebar-header {
-            padding: 10px 15px;
-            font-size: 12px;
-            font-weight: bold;
-            text-transform: uppercase;
-            color: #bbbbbb;
-            background-color: #2d2d2d;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .diagnostics-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-            font-size: 13px;
-        }
-
-        .diagnostic-item {
-            padding: 8px;
-            margin-bottom: 6px;
-            border-radius: 4px;
-            background-color: #2d2d2d;
-            border-left: 4px solid var(--error-color);
-        }
-
-        .diagnostic-item.warning {
-            border-left-color: var(--warning-color);
-        }
-
-        .diagnostic-item .diag-line {
-            font-weight: bold;
-            color: var(--error-color);
-            font-size: 11px;
-        }
-
-        .diagnostic-item.warning .diag-line {
-            color: var(--warning-color);
-        }
-
-        /* Console de Saída */
-        .console-panel {
-            height: 180px;
-            background-color: var(--console-bg);
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .console-output {
-            flex: 1;
-            padding: 10px 15px;
-            font-size: 13px;
-            overflow-y: auto;
-            color: #cccccc;
-            white-space: pre-wrap;
-        }
-
-        .status-bar {
-            background-color: var(--accent-color);
-            color: white;
-            padding: 3px 15px;
-            font-size: 12px;
-            display: flex;
-            justify-content: space-between;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101820">
+<title>Map3D — Navegação</title>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.css">
+<style>
+:root{--bg:#101820;--panel:#17232d;--panel2:#20303c;--line:#30424f;--text:#f4f7fa;--muted:#aab8c3;--accent:#39d6a3;--blue:#4ea1ff;--danger:#ff6b6b}
+*{box-sizing:border-box}html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+button,input{font:inherit}button{border:0;cursor:pointer;color:inherit}#map{position:absolute;inset:0;background:#d9e3e8}
+.top{position:absolute;z-index:5;top:env(safe-area-inset-top,10px);left:12px;right:12px;display:flex;flex-direction:column;gap:9px;pointer-events:none}
+.brandrow{display:flex;align-items:center;justify-content:space-between;pointer-events:auto}
+.brand{display:flex;align-items:center;gap:9px;background:rgba(16,24,32,.92);padding:9px 13px;border:1px solid #ffffff1c;border-radius:16px;box-shadow:0 8px 25px #0002}
+.logo{width:31px;height:31px;border-radius:10px;background:var(--accent);display:grid;place-items:center;color:#08251c;font-weight:900;font-size:19px}
+.brand strong{letter-spacing:.2px}.brand small{display:block;color:var(--muted);font-size:10px;margin-top:1px}
+.iconbtn{width:43px;height:43px;border-radius:14px;background:rgba(16,24,32,.93);border:1px solid #ffffff1c;font-size:19px;box-shadow:0 5px 18px #0002}
+.searchbox{display:flex;align-items:center;gap:8px;padding:7px;background:rgba(16,24,32,.96);border:1px solid #ffffff20;border-radius:17px;box-shadow:0 8px 25px #0002;pointer-events:auto}
+.searchbox input{min-width:0;flex:1;background:transparent;border:0;outline:0;color:white;padding:8px 5px;font-size:14px}
+.searchbox input::placeholder{color:#aab8c3}.searchbox button{background:var(--accent);color:#08251c;font-weight:800;border-radius:11px;padding:10px 13px}
+.results{display:none;background:rgba(16,24,32,.97);border:1px solid #ffffff20;border-radius:14px;overflow:hidden;pointer-events:auto;max-height:32vh;overflow-y:auto}
+.result{padding:12px;border-bottom:1px solid #ffffff12;font-size:13px;cursor:pointer}.result:last-child{border:0}.result:active{background:var(--panel2)}.result small{display:block;color:var(--muted);margin-top:3px}
+.mapcontrols{position:absolute;z-index:4;right:12px;top:47%;display:flex;flex-direction:column;gap:8px}
+.mapcontrols button{width:43px;height:43px;border-radius:14px;background:rgba(16,24,32,.94);border:1px solid #ffffff20;font-size:19px;box-shadow:0 5px 18px #0002}
+.bottom{position:absolute;z-index:5;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);left:10px;right:10px;display:flex;flex-direction:column;gap:8px}
+.status{align-self:flex-start;background:rgba(16,24,32,.92);border:1px solid #ffffff1c;border-radius:999px;padding:7px 11px;color:#dbe5eb;font-size:11px;box-shadow:0 4px 15px #0002}
+.routecard{display:none;background:rgba(16,24,32,.97);border:1px solid #ffffff20;border-radius:20px;padding:14px;box-shadow:0 10px 30px #0003}
+.routehead{display:flex;align-items:center;justify-content:space-between;gap:10px}.routehead strong{font-size:15px}.routehead small{display:block;color:var(--muted);font-size:12px;margin-top:3px}
+.pill{background:var(--panel2);border-radius:999px;padding:7px 10px;font-size:12px;white-space:nowrap}
+.routeactions{display:flex;gap:8px;margin-top:12px}.routeactions button{flex:1;padding:11px;border-radius:12px;font-weight:750;background:var(--panel2)}.routeactions .primary{background:var(--accent);color:#08251c}
+.navbar{display:flex;gap:6px;justify-content:space-around;background:rgba(16,24,32,.96);border:1px solid #ffffff20;border-radius:19px;padding:7px 5px;box-shadow:0 8px 25px #0002}
+.navitem{background:transparent;color:var(--muted);font-size:10px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:5px 8px;min-width:54px;border-radius:12px}.navitem span{font-size:18px}.navitem.active{color:var(--accent);background:#39d6a315}
+.toast{position:absolute;z-index:10;top:30%;left:50%;transform:translate(-50%,-50%);background:#101820f2;border:1px solid #ffffff25;border-radius:12px;padding:11px 15px;max-width:85%;font-size:13px;display:none;text-align:center}
+.modalbg{position:absolute;z-index:8;inset:0;background:#0008;display:none;align-items:flex-end;justify-content:center}
+.modal{width:100%;max-width:620px;max-height:78%;overflow:auto;background:var(--bg);border:1px solid var(--line);border-radius:24px 24px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom,0px))}
+.modal h2{font-size:18px;margin:0 0 14px}.modal p,.modal label{font-size:13px;color:var(--muted);line-height:1.5}
+.option{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--line);gap:12px}
+.option button{background:var(--panel2);padding:9px 12px;border-radius:10px}
+.close{float:right;background:var(--panel2);border-radius:10px;padding:8px 11px}
+@media(min-width:700px){.top{left:20px;right:auto;width:390px;top:18px}.bottom{left:20px;right:auto;width:390px;bottom:18px}.mapcontrols{right:20px}.modalbg{align-items:center}.modal{border-radius:24px}}
+</style>
 </head>
 <body>
+<div id="map" aria-label="Mapa interativo"></div>
 
-    <header>
-        <h1>☕ Dev.rik Java IDE <span style="font-size: 11px; background: #333; padding: 2px 6px; border-radius: 3px; color: #aaa;">API Online</span></h1>
-        <div class="actions">
-            <button class="secondary" onclick="clearEditor()">Limpar Código</button>
-            <button id="runBtn" onclick="runJavaCode()">▶ Executar Código</button>
-        </div>
-    </header>
+<div class="top">
+  <div class="brandrow">
+    <div class="brand"><div class="logo">M</div><div><strong>Map3D</strong><small>Explore o mundo em outra dimensão</small></div></div>
+    <button class="iconbtn" id="settingsBtn" aria-label="Configurações">⚙</button>
+  </div>
+  <div class="searchbox">
+    <span>⌕</span>
+    <input id="searchInput" autocomplete="off" placeholder="Pesquisar lugar ou endereço">
+    <button id="searchBtn">Buscar</button>
+  </div>
+  <div class="results" id="results"></div>
+</div>
 
-    <div class="main-container">
-        <!-- Editor de Código -->
-        <div class="editor-container">
-            <div class="editor-wrapper">
-                <div id="lineNumbers" class="line-numbers"><span>1</span></div>
-                <textarea id="codeEditor" spellcheck="false" placeholder="Escreva seu código Java aqui...">public class Main {
-    public static void main(String[] args) {
-        System.out.println("Olá, Mundo do Java!");
-        
-        int x = 10;
-        int y = 20;
-        System.out.println("Soma: " + (x + y));
+<div class="mapcontrols">
+  <button id="locateBtn" title="Minha localização">◎</button>
+  <button id="tiltBtn" title="Alternar 3D">3D</button>
+  <button id="northBtn" title="Voltar ao norte">N</button>
+  <button id="zoomIn" title="Aproximar">+</button>
+  <button id="zoomOut" title="Afastar">−</button>
+</div>
+
+<div class="bottom">
+  <div class="status" id="status">Carregando mapa…</div>
+  <div class="routecard" id="routeCard">
+    <div class="routehead"><div><strong id="routeTitle">Rota pronta</strong><small id="routeDetails">Calculando trajeto…</small></div><div class="pill" id="routeMode">🚗 Carro</div></div>
+    <div class="routeactions"><button id="modeBtn">🚶 Caminhar</button><button class="primary" id="startNavBtn">Iniciar rota</button><button id="clearRouteBtn">✕</button></div>
+  </div>
+  <div class="navbar">
+    <button class="navitem active" data-tab="map"><span>⌖</span>Mapa</button>
+    <button class="navitem" data-tab="saved"><span>☆</span>Favoritos</button>
+    <button class="navitem" data-tab="history"><span>◷</span>Recentes</button>
+    <button class="navitem" data-tab="layers"><span>▧</span>Camadas</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<div class="modalbg" id="modalBg"><div class="modal" id="modal"><button class="close" id="closeModal">Fechar</button><h2 id="modalTitle">Map3D</h2><div id="modalContent"></div></div></div>
+
+<script src="https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AlzaSyCTkq0uXy5kHg9N8rj9--Dooh8cuguYxPE",
+  authDomain: "subjectrobot-49600.firebaseapp.com",
+  databaseURL: "https://subjectrobot-49600-default-rtdb.firebaseio.com",
+  projectId: "subjectrobot-49600-default-rtdb",
+  storageBucket: "subjectrobot-49600.appspot.com",
+  appId: "1:731604558049:android:7f47b30b289445814017a0"
+};
+
+const $ = id => document.getElementById(id);
+const savedKey = "map3d_favorites_v1", historyKey = "map3d_history_v1";
+let favorites = readLocal(savedKey, []), history = readLocal(historyKey, []);
+let map, currentPlace = null, routeDestination = null, routeStart = null, routeLayer = false;
+let mode = "driving", navWatch = null, navActive = false, threeD = true, satellite = false, db = null;
+function readLocal(key, fallback){try{return JSON.parse(localStorage.getItem(key)) || fallback}catch{return fallback}}
+function saveLocal(){localStorage.setItem(savedKey,JSON.stringify(favorites));localStorage.setItem(historyKey,JSON.stringify(history))}
+function toast(message){$("toast").textContent=message;$("toast").style.display="block";clearTimeout(toast.timer);toast.timer=setTimeout(()=>$("toast").style.display="none",2800)}
+function setStatus(s){$("status").textContent=s}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+
+map = new maplibregl.Map({
+  container:"map",
+  style:"https://tiles.openfreemap.org/styles/liberty",
+  center:[-46.6333,-23.5505],
+  zoom:12,
+  pitch:threeD?58:0,
+  bearing:-12,
+  maxPitch:75,
+  attributionControl:{compact:true},
+  cooperativeGestures:true
+});
+map.addControl(new maplibregl.NavigationControl({showCompass:false,showZoom:false,visualizePitch:true}),"bottom-right");
+map.on("load",()=>{
+  setStatus("Mapa online • São Paulo");
+  add3DBuildings();
+});
+map.on("error",e=>{if(e?.error) console.warn("Map3D:",e.error.message)});
+function add3DBuildings(){
+  try{
+    const layers=map.getStyle().layers||[];
+    const labelLayer=layers.find(l=>l.type==="symbol"&&l.layout&&l.layout["text-field"]);
+    if(!map.getLayer("map3d-buildings")){
+      map.addLayer({id:"map3d-buildings",source:"openmaptiles", "source-layer":"building",type:"fill-extrusion",
+        minzoom:14,filter:["all",["!=",["get","hide_3d"],true]],
+        paint:{
+          "fill-extrusion-color":["interpolate",["linear"],["get","render_height"],0,"#b8cbd2",80,"#7d9aa6"],
+          "fill-extrusion-height":["interpolate",["linear"],["zoom"],14,0,15,["coalesce",["get","render_height"],["get","height"],8]],
+          "fill-extrusion-base":["coalesce",["get","render_min_height"],0],
+          "fill-extrusion-opacity":0.82
+        }
+      },labelLayer?.id);
     }
-}</textarea>
-            </div>
-            
-            <!-- Terminal de Saída -->
-            <div class="console-panel">
-                <div class="sidebar-header">Terminal de Saída</div>
-                <div id="consoleOutput" class="console-output">Pronto para compilar e executar... Clique em "Executar Código".</div>
-            </div>
-        </div>
+  }catch(e){console.log("Camada 3D indisponível neste estilo",e)}
+}
+function update3D(){threeD=!threeD;map.easeTo({pitch:threeD?58:0,duration:500});$("tiltBtn").textContent=threeD?"3D":"2D";toast(threeD?"Visualização 3D ativada":"Visualização 2D ativada")}
+$("tiltBtn").onclick=update3D;
+$("northBtn").onclick=()=>map.easeTo({bearing:0,pitch:threeD?58:0,duration:400});
+$("zoomIn").onclick=()=>map.zoomIn();$("zoomOut").onclick=()=>map.zoomOut();
+$("locateBtn").onclick=locateUser;
+function locateUser(){
+  if(!navigator.geolocation){toast("Seu navegador não oferece geolocalização.");return}
+  setStatus("Obtendo sua localização…");
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const c=[pos.coords.longitude,pos.coords.latitude];
+    map.flyTo({center:c,zoom:16,pitch:threeD?58:0,duration:1000});
+    currentPlace={name:"Minha localização",center:c};
+    setStatus("Localização encontrada");
+    if(!map.getSource("my-location"))map.addSource("my-location",{type:"geojson",data:{type:"Feature",geometry:{type:"Point",coordinates:c}}});
+    if(!map.getLayer("my-location-dot"))map.addLayer({id:"my-location-dot",type:"circle",source:"my-location",paint:{"circle-radius":8,"circle-color":"#2389ff","circle-stroke-width":3,"circle-stroke-color":"#fff"}});
+    if(navActive) routeStart=c;
+  },err=>{setStatus("Localização indisponível");toast(err.code===1?"Permita a localização nas configurações do navegador.":"Não foi possível obter a localização.")},{enableHighAccuracy:true,timeout:12000,maximumAge:15000});
+}
+async function searchPlaces(){
+  const q=$("searchInput").value.trim();if(!q)return;
+  $("searchBtn").disabled=true;$("searchBtn").textContent="…";setStatus("Pesquisando lugares…");
+  try{
+    const url="https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&q="+encodeURIComponent(q);
+    const r=await fetch(url,{headers:{"Accept-Language":"pt-BR"}});
+    if(!r.ok)throw Error("Pesquisa indisponível");
+    const data=await r.json();renderResults(data);
+    setStatus(data.length?`${data.length} resultado(s) encontrado(s)`:"Nenhum resultado");
+    if(!data.length)toast("Não encontramos esse lugar. Tente adicionar cidade ou estado.");
+  }catch(e){toast("Falha na pesquisa. Verifique sua conexão.");setStatus("Pesquisa indisponível")}
+  finally{$("searchBtn").disabled=false;$("searchBtn").textContent="Buscar"}
+}
+$("searchBtn").onclick=searchPlaces;
+$("searchInput").addEventListener("keydown",e=>{if(e.key==="Enter")searchPlaces()});
+function renderResults(data){
+  const el=$("results");el.innerHTML="";el.style.display=data.length?"block":"none";
+  data.forEach(place=>{
+    const div=document.createElement("div");div.className="result";
+    div.innerHTML=`${escapeHtml(place.name||place.display_name.split(",")[0])}<small>${escapeHtml(place.display_name)}</small>`;
+    div.onclick=()=>selectPlace({name:place.name||place.display_name.split(",")[0],address:place.display_name,center:[Number(place.lon),Number(place.lat)]});
+    el.appendChild(div);
+  });
+}
+function selectPlace(place){
+  currentPlace=place;routeDestination=place.center;$("results").style.display="none";$("searchInput").value=place.name;
+  map.flyTo({center:place.center,zoom:16,pitch:threeD?58:0,duration:1100});
+  new maplibregl.Popup({closeButton:true,offset:18}).setLngLat(place.center).setHTML(`<div style="color:#14212a;max-width:220px"><b>${escapeHtml(place.name)}</b><br><small>${escapeHtml(place.address||"Local selecionado")}</small><br><button id="popupRoute" style="margin-top:8px;padding:7px 10px;background:#39d6a3;border-radius:7px;color:#09251d">Traçar rota</button> <button id="popupSave" style="margin-top:8px;padding:7px 10px;background:#e7eef2;border-radius:7px;color:#14212a">☆ Salvar</button></div>`).addTo(map);
+  setTimeout(()=>{const a=document.getElementById("popupRoute"),b=document.getElementById("popupSave");if(a)a.onclick=()=>prepareRoute(place);if(b)b.onclick=()=>toggleFavorite(place)},100);
+  history.unshift({...place,at:Date.now()});history=history.slice(0,30);saveLocal();
+  $("routeCard").style.display="block";$("routeTitle").textContent=place.name;$("routeDetails").textContent="Destino selecionado • escolha Traçar rota";
+  $("startNavBtn").textContent="Traçar rota";$("startNavBtn").onclick=()=>prepareRoute(place);
+}
+function prepareRoute(place){
+  routeDestination=place.center;
+  if(!routeStart){toast("Obtendo sua localização para calcular a rota…");locateUser();routeStart=null;
+    const retry=()=>{if(routeStart){map.off("moveend",retry);calculateRoute()}};map.on("moveend",retry);setTimeout(()=>{if(!routeStart)toast("Se preferir, toque no mapa para definir a origem.");},2500);return}
+  calculateRoute();
+}
+map.on("click",e=>{if(navActive)return;routeStart=[e.lngLat.lng,e.lngLat.lat];setStatus("Origem definida no mapa");});
+async function calculateRoute(){
+  if(!routeStart||!routeDestination){toast("Defina a origem e o destino primeiro.");return}
+  const profile=mode==="walking"?"foot":"driving";
+  // O serviço público OSRM abaixo oferece rotas de carro; caminhada pode não estar disponível nele.
+  const endpoint=`https://router.project-osrm.org/route/v1/${profile}/${routeStart[0]},${routeStart[1]};${routeDestination[0]},${routeDestination[1]}?overview=full&geometries=geojson&steps=true`;
+  $("routeDetails").textContent="Calculando trajeto…";
+  try{
+    const r=await fetch(endpoint);if(!r.ok)throw Error("Rota indisponível");
+    const data=await r.json();if(data.code!=="Ok"||!data.routes?.length)throw Error("Nenhuma rota");
+    const route=data.routes[0];
+    const geo={type:"Feature",geometry:route.geometry,properties:{}};
+    if(map.getSource("route"))map.getSource("route").setData(geo);
+    else{map.addSource("route",{type:"geojson",data:geo});map.addLayer({id:"route-line",type:"line",source:"route",layout:{"line-cap":"round","line-join":"round"},paint:{"line-color":"#1678ff","line-width":6,"line-opacity":.9}})}
+    routeLayer=true;
+    const bounds=new maplibregl.LngLatBounds();route.geometry.coordinates.forEach(c=>bounds.extend(c));
+    map.fitBounds(bounds,{padding:{top:110,bottom:240,left:35,right:65},duration:800});
+    $("routeDetails").textContent=`${(route.distance/1000).toFixed(1)} km • cerca de ${Math.round(route.duration/60)} min`;
+    $("routeMode").textContent=mode==="walking"?"🚶 Caminhada":"🚗 Carro";
+    $("routeTitle").textContent="Rota calculada";$("startNavBtn").textContent="Iniciar navegação";$("startNavBtn").onclick=startNavigation;
+    setStatus("Rota pronta");toast("Rota calculada");
+  }catch(e){$("routeDetails").textContent="Não foi possível calcular esta rota";toast("O serviço de rotas não respondeu. Tente novamente ou use outro modo.");console.error(e)}
+}
+$("modeBtn").onclick=()=>{mode=mode==="driving"?"walking":"driving";$("modeBtn").textContent=mode==="driving"?"🚶 Caminhar":"🚗 Carro";$("routeMode").textContent=mode==="driving"?"🚗 Carro":"🚶 Caminhada";if(routeStart&&routeDestination)calculateRoute()};
+function startNavigation(){
+  if(!routeDestination){toast("Pesquise um destino primeiro.");return}
+  navActive=true;$("startNavBtn").textContent="Encerrar navegação";$("startNavBtn").onclick=stopNavigation;
+  $("routeTitle").textContent="Navegação ativa";toast("Navegação iniciada. Mantenha o app aberto.");
+  if(navigator.geolocation){navWatch=navigator.geolocation.watchPosition(pos=>{
+    const c=[pos.coords.longitude,pos.coords.latitude];routeStart=c;
+    if(map.getSource("my-location"))map.getSource("my-location").setData({type:"Feature",geometry:{type:"Point",coordinates:c}});
+    map.easeTo({center:c,zoom:16,pitch:threeD?58:0,duration:700});
+  },()=>{}, {enableHighAccuracy:true,maximumAge:3000,timeout:10000})}
+}
+function stopNavigation(){navActive=false;if(navWatch!==null)navigator.geolocation.clearWatch(navWatch);navWatch=null;$("routeTitle").textContent="Navegação encerrada";$("startNavBtn").textContent="Iniciar navegação";$("startNavBtn").onclick=startNavigation;toast("Navegação encerrada")}
+$("clearRouteBtn").onclick=()=>{stopNavigation();if(map.getLayer("route-line"))map.removeLayer("route-line");if(map.getSource("route"))map.removeSource("route");routeDestination=null;$("routeCard").style.display="none";setStatus("Mapa pronto")};
+function toggleFavorite(place){
+  const i=favorites.findIndex(p=>p.name===place.name&&p.center?.[0]===place.center?.[0]&&p.center?.[1]===place.center?.[1]);
+  if(i>=0){favorites.splice(i,1);toast("Removido dos favoritos")}else{favorites.unshift(place);toast("Salvo nos favoritos")}
+  saveLocal();renderList("saved");
+}
+function openModal(title,content){$("modalTitle").textContent=title;$("modalContent").innerHTML=content;$("modalBg").style.display="flex"}
+$("closeModal").onclick=()=>$("modalBg").style.display="none";
+$("modalBg").addEventListener("click",e=>{if(e.target===$("modalBg"))$("modalBg").style.display="none"});
+function renderList(kind){
+  const list=kind==="saved"?favorites:history;const title=kind==="saved"?"Favoritos":"Pesquisas recentes";
+  const body=list.length?list.map((p,i)=>`<div class="option"><div><b>${escapeHtml(p.name)}</b><p>${escapeHtml(p.address||"Local salvo")}</p></div><button data-item="${i}">Abrir</button></div>`).join(""):"<p>Nenhum local salvo ainda. Pesquise um lugar e salve-o nos favoritos.</p>";
+  openModal(title,body);
+  $("modalContent").querySelectorAll("[data-item]").forEach(btn=>btn.onclick=()=>{const p=list[Number(btn.dataset.item)];$("modalBg").style.display="none";selectPlace(p)});
+}
+document.querySelectorAll(".navitem").forEach(btn=>btn.onclick=()=>{
+  document.querySelectorAll(".navitem").forEach(b=>b.classList.toggle("active",b===btn));
+  const tab=btn.dataset.tab;
+  if(tab==="saved")renderList("saved");
+  else if(tab==="history")renderList("history");
+  else if(tab==="layers")openLayers();
+  else{map.easeTo({pitch:threeD?58:0,duration:300});}
+});
+function openLayers(){
+  openModal("Camadas do mapa",`
+    <div class="option"><div><b>Visualização 3D</b><p>Inclina o mapa e exibe prédios quando os dados estão disponíveis.</p></div><button id="layer3d">${threeD?"Ativada":"Desativada"}</button></div>
+    <div class="option"><div><b>Mapa de ruas</b><p>Estilo padrão leve para navegação.</p></div><button id="streets">Selecionar</button></div>
+    <div class="option"><div><b>Satélite</b><p>Requer um provedor de imagens de satélite com tiles e atribuição adequados.</p></div><button id="satellite">Indisponível</button></div>
+    <p>O estilo atual usa OpenFreeMap. A disponibilidade de prédios 3D varia conforme a região e os dados do mapa.</p>`);
+  $("layer3d").onclick=()=>{update3D();$("layer3d").textContent=threeD?"Ativada":"Desativada"};
+  $("streets").onclick=()=>{$("modalBg").style.display="none";toast("Você já está usando o mapa de ruas.")};
+  $("satellite").onclick=()=>toast("Para satélite, configure um provedor de tiles de imagem.");
+}
+$("settingsBtn").onclick=()=>openModal("Configurações",`
+  <div class="option"><div><b>Map3D</b><p>Protótipo de navegação 3D para celular.</p></div><span class="pill">v0.1</span></div>
+  <div class="option"><div><b>Dados salvos</b><p>Favoritos e pesquisas ficam neste dispositivo.</p></div><button id="exportData">Exportar</button></div>
+  <div class="option"><div><b>Apagar dados locais</b><p>Remove favoritos e histórico deste navegador.</p></div><button id="clearData">Apagar</button></div>
+  <p>O mapa e as pesquisas dependem de serviços externos e de conexão com a internet. Para publicar, configure limites, atribuição e termos dos provedores.</p>`);
+$("modalContent").addEventListener("click",e=>{
+  if(e.target.id==="exportData"){const blob=new Blob([JSON.stringify({favorites,history},null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="map3d-dados.json";a.click();URL.revokeObjectURL(a.href)}
+  if(e.target.id==="clearData"&&confirm("Apagar favoritos e histórico deste dispositivo?")){favorites=[];history=[];saveLocal();$("modalBg").style.display="none";toast("Dados locais apagados")}
+});
+map.on("click",()=>{$("results").style.display="none"});
 
-        <!-- Analisador de Erros Em Tempo Real (Linter) -->
-        <div class="sidebar">
-            <div class="sidebar-section">
-                <div class="sidebar-header">
-                    <span>🔍 Analisador Inteligente</span>
-                    <span id="errorCount" style="background: var(--error-color); color: #000; padding: 1px 6px; border-radius: 10px; font-size: 10px;">0</span>
-                </div>
-                <div id="diagnosticsList" class="diagnostics-list">
-                    <div style="color: #6a9955; font-style: italic;">Nenhum erro estrutural detectado.</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="status-bar">
-        <span id="statusMessage">Java 15.0.2 (Piston API)</span>
-        <span id="cursorPosition">Linha 1, Coluna 1</span>
-    </div>
-
-    <script>
-        const codeEditor = document.getElementById('codeEditor');
-        const lineNumbers = document.getElementById('lineNumbers');
-        const diagnosticsList = document.getElementById('diagnosticsList');
-        const errorCountBadge = document.getElementById('errorCount');
-        const consoleOutput = document.getElementById('consoleOutput');
-        const cursorPosition = document.getElementById('cursorPosition');
-        const runBtn = document.getElementById('runBtn');
-
-        // Atualização de Linhas e Inspeção Inteligente
-        codeEditor.addEventListener('input', () => {
-            updateLineNumbers();
-            runSmartLinter();
-        });
-
-        codeEditor.addEventListener('scroll', () => {
-            lineNumbers.scrollTop = codeEditor.scrollTop;
-        });
-
-        codeEditor.addEventListener('click', updateCursorPosition);
-        codeEditor.addEventListener('keyup', updateCursorPosition);
-
-        // Auto-Indentação Padrão ao dar Enter
-        codeEditor.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                const cursorPos = codeEditor.selectionStart;
-                const text = codeEditor.value;
-                
-                const lastNewline = text.lastIndexOf('\n', cursorPos - 1);
-                const currentLine = text.substring(lastNewline + 1, cursorPos);
-                
-                const match = currentLine.match(/^([ \t]*)/);
-                let indentation = match ? match[1] : '';
-                
-                if (currentLine.trim().endsWith('{')) {
-                    indentation += '    ';
-                }
-
-                const newValue = text.substring(0, cursorPos) + '\n' + indentation + text.substring(codeEditor.selectionEnd);
-                codeEditor.value = newValue;
-                codeEditor.selectionStart = codeEditor.selectionEnd = cursorPos + 1 + indentation.length;
-                
-                updateLineNumbers();
-                runSmartLinter();
-            }
-            
-            // Suporte para tecla Tab
-            if (e.key === 'Tab') {
-                e.preventDefault();
-                const start = codeEditor.selectionStart;
-                const end = codeEditor.selectionEnd;
-
-                codeEditor.value = codeEditor.value.substring(0, start) + '    ' + codeEditor.value.substring(end);
-                codeEditor.selectionStart = codeEditor.selectionEnd = start + 4;
-            }
-        });
-
-        function updateLineNumbers() {
-            const lines = codeEditor.value.split('\n');
-            let numbersHTML = '';
-            for (let i = 1; i <= lines.length; i++) {
-                numbersHTML += `<span>${i}</span>`;
-            }
-            lineNumbers.innerHTML = numbersHTML;
-        }
-
-        function updateCursorPosition() {
-            const text = codeEditor.value;
-            const selStart = codeEditor.selectionStart;
-            const line = text.substr(0, selStart).split('\n').length;
-            const col = selStart - text.lastIndexOf('\n', selStart - 1);
-            cursorPosition.innerText = `Linha ${line}, Coluna ${col}`;
-        }
-
-        function clearEditor() {
-            if (confirm("Deseja limpar o código do editor?")) {
-                codeEditor.value = "";
-                updateLineNumbers();
-                runSmartLinter();
-            }
-        }
-
-        // --- LINTER INTELIGENTE ---
-        function runSmartLinter() {
-            const code = codeEditor.value;
-            const lines = code.split('\n');
-            let diagnostics = [];
-            let errorLinesSet = new Set();
-
-            lines.forEach((lineText, index) => {
-                const lineNum = index + 1;
-                const trimmed = lineText.trim();
-
-                if (
-                    trimmed !== '' &&
-                    !trimmed.endsWith(';') &&
-                    !trimmed.endsWith('{') &&
-                    !trimmed.endsWith('}') &&
-                    !trimmed.startsWith('//') &&
-                    !trimmed.startsWith('/*') &&
-                    !trimmed.startsWith('*') &&
-                    !trimmed.startsWith('public class') &&
-                    !trimmed.startsWith('class ') &&
-                    !trimmed.startsWith('public static void main') &&
-                    !trimmed.startsWith('if') &&
-                    !trimmed.startsWith('for') &&
-                    !trimmed.startsWith('while') &&
-                    !trimmed.startsWith('else')
-                ) {
-                    diagnostics.push({
-                        line: lineNum,
-                        type: 'error',
-                        message: 'Possível falta de ponto e vírgula (;) no final da linha.'
-                    });
-                    errorLinesSet.add(lineNum);
-                }
-            });
-
-            if (!code.includes('main') && code.trim() !== '') {
-                diagnostics.push({
-                    line: 0,
-                    type: 'warning',
-                    message: 'Aviso: O método "public static void main" não foi encontrado.'
-                });
-            }
-
-            errorCountBadge.innerText = diagnostics.filter(d => d.type === 'error').length;
-            
-            if (diagnostics.length === 0) {
-                diagnosticsList.innerHTML = '<div style="color: #6a9955; font-style: italic;">Nenhum erro estrutural detectado.</div>';
-            } else {
-                let html = '';
-                diagnostics.forEach(diag => {
-                    const isWarn = diag.type === 'warning';
-                    html += `
-                        <div class="diagnostic-item ${isWarn ? 'warning' : ''}">
-                            ${diag.line > 0 ? `<div class="diag-line">Linha ${diag.line}</div>` : ''}
-                            <div>${diag.message}</div>
-                        </div>
-                    `;
-                });
-                diagnosticsList.innerHTML = html;
-            }
-
-            const numSpans = lineNumbers.getElementsByTagName('span');
-            for (let i = 0; i < numSpans.length; i++) {
-                if (errorLinesSet.has(i + 1)) {
-                    numSpans[i].classList.add('error-line-num');
-                } else {
-                    numSpans[i].classList.remove('error-line-num');
-                }
-            }
-        }
-
-        // --- EXECUÇÃO ROBUSTA VIA PISTON API ---
-        async function runJavaCode() {
-            const code = codeEditor.value;
-            consoleOutput.innerText = "⏳ Compilando e executando via API Piston...";
-            runBtn.disabled = true;
-
-            try {
-                const response = await fetch('https://emkc.org/api/v2/piston/execute', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        language: "java",
-                        version: "15.0.2",
-                        files: [
-                            {
-                                name: "Main.java",
-                                content: code
-                            }
-                        ]
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error("Erro HTTP: " + response.status);
-                }
-
-                const result = await response.json();
-                
-                // Tratamento seguro para diferentes versões do payload de retorno da API
-                const outputObj = result.run || result;
-                
-                let output = "";
-                if (outputObj.stdout) output += outputObj.stdout;
-                if (outputObj.stderr) output += "\n[ERRO DE COMPILAÇÃO / EXECUÇÃO]:\n" + outputObj.stderr;
-                if (outputObj.output && !output) output += outputObj.output;
-
-                consoleOutput.innerText = output.trim() || "Código executado com sucesso (sem saída no console).";
-            } catch (err) {
-                consoleOutput.innerText = "Erro ao conectar com a API de execução. Verifique a sua conexão com a internet.";
-            } finally {
-                runBtn.disabled = false;
-            }
-        }
-
-        updateLineNumbers();
-        runSmartLinter();
-    </script>
+// Firebase: conexão opcional para validar configuração. Não grava dados até haver autenticação/regras seguras.
+try{
+  const app=initializeApp(firebaseConfig);
+  db=getDatabase(app);
+  // Não é feita escrita pública automática. Favoritos continuam locais até as regras de segurança serem configuradas.
+  get(ref(db,"map3d/status")).then(()=>console.info("Map3D: Firebase acessível")).catch(()=>console.info("Map3D: configure as regras do Realtime Database para sincronização."));
+}catch(e){console.warn("Firebase não inicializado:",e)}
+</script>
 </body>
 </html>
